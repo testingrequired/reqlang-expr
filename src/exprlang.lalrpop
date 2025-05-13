@@ -1,0 +1,53 @@
+use crate::errors::LexicalError;
+use crate::ast;
+use crate::lexing::Token;
+
+grammar;
+
+pub Expr: ast::Expr = {
+    ExprIdentifier,
+    ExprCall
+};
+
+ExprS = Spanned<Expr>;
+
+// Call Expressions
+
+CallCallee = Spanned<ExprIdentifier>;
+CallArgs = Args<ExprS>;
+ExprCall: ast::Expr = {
+    "(" <callee:CallCallee> <args:CallArgs> ")" => ast::Expr::Call(ast::ExprCall {
+        callee,
+        args
+    }.into())
+}
+
+// Identifier Expressions
+
+ExprIdentifier: ast::Expr = <name:identifier> =>
+    ast::Expr::Identifier(ast::ExprIdentifier(name).into());
+
+// Utility Types
+
+Spanned<T>: (T, std::ops::Range<usize>) = <l:@L> <t:T> <r:@R> =>
+    (t, l..r);
+
+#[inline]
+Args<E>: Vec<E> = {
+    <first:E> <mut args:(<E>)*> => {
+        args.insert(0, first);
+        args
+    },
+    () => Vec::new(),
+}
+
+extern {
+    type Location = usize;
+    type Error = (LexicalError, std::ops::Range<usize>);
+
+    enum Token {
+        "(" => Token::LParan,
+        ")" => Token::RParan,
+        identifier => Token::Identifier(<String>),
+    }
+}

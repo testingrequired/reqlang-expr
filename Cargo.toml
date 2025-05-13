@@ -3,4 +3,13 @@ name = "reqlang-expr"
 version = "0.1.0"
 edition = "2024"
 
+[build-dependencies] # <-- We added this and everything after!
+lalrpop = "0.22.1"
+
+[dev-dependencies]
+pretty_assertions = "1.4.1"
+
 [dependencies]
+logos = "0.15.0"
+lalrpop-util = { version = "0.21.0", features = ["lexer", "unicode"] }
+pastey = "0.1.0"
