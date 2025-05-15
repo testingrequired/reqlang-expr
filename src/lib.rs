@@ -5,11 +5,11 @@ lalrpop_mod!(pub exprlang);
 pub mod prelude {
     pub use crate::ast::*;
     pub use crate::errors::*;
-    pub use crate::lexing::*;
+    pub use crate::lexer::*;
 }
 
 pub mod errors;
 
-pub mod lexing;
+pub mod lexer;
 
 pub mod ast;

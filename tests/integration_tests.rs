@@ -8,14 +8,14 @@ macro_rules! test {
         ::pastey::paste! {
             #[test]
             fn [< $test_name:lower $(_ $test_name2:lower)* _tokens >]() {
-                let tokens = ::reqlang_expr::lexing::Lexer::new($source).collect::<Vec<_>>();
+                let tokens = ::reqlang_expr::lexer::Lexer::new($source).collect::<Vec<_>>();
 
                 ::pretty_assertions::assert_eq!($expected_tokens, tokens);
             }
 
             #[test]
             fn [< $test_name:lower $(_ $test_name2:lower)* _ast >]() {
-                let tokens = ::reqlang_expr::lexing::Lexer::new($source);
+                let tokens = ::reqlang_expr::lexer::Lexer::new($source);
                 let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
 
                 ::pretty_assertions::assert_eq!($expected_ast, ast);

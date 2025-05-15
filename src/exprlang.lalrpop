@@ -1,6 +1,6 @@
 use crate::errors::LexicalError;
 use crate::ast;
-use crate::lexing::Token;
+use crate::lexer::Token;
 
 grammar;
 
