@@ -4,6 +4,7 @@ macro_rules! test {
         scenario: $test_name:ident $( $test_name2:ident)*;
         tokens should be: $expected_tokens:expr;
         ast should be: $expected_ast:expr;
+        env: $env:tt;
         compiles to: $expected_op_codes:expr;
     ) => {
         ::pastey::paste! {
@@ -24,11 +25,13 @@ macro_rules! test {
 
             #[test]
             fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes >]() {
+                let env: Env = Env$env;
+
                 let tokens = ::reqlang_expr::lexer::Lexer::new($source);
                 let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
 
                 if let Ok(ast) = ast {
-                    let op_codes = ::reqlang_expr::compiler::compile(&ast);
+                    let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
                     let expected_op_codes: Vec<u8> = $expected_op_codes;
 
                     ::pretty_assertions::assert_eq!(expected_op_codes, op_codes);
@@ -52,49 +55,69 @@ mod valid {
 
         ast should be: Ok(Expr::identifier("foo"));
 
+        env: {
+            builtins: vec![Fn { name: "foo".to_string(), arity: 0 }],
+            ..Default::default()
+        };
+
         compiles to: vec![opcode::BUILTIN, 0];
     }
 
     test! {
-        ":variable";
+        ":b";
 
         scenario: variable identifier;
 
         tokens should be: vec![
-            Ok((0, Token::identifier(":variable"), 9))
+            Ok((0, Token::identifier(":b"), 2))
         ];
 
-        ast should be: Ok(Expr::identifier(":variable"));
+        ast should be: Ok(Expr::identifier(":b"));
 
-        compiles to: vec![opcode::VAR, 0];
+        env: {
+            vars: vec!["a".to_string(), "b".to_string()],
+            ..Default::default()
+        };
+
+        compiles to: vec![opcode::VAR, 1];
     }
 
     test! {
-        "?prompt";
+        "?b";
 
         scenario: prompt identifier;
 
         tokens should be: vec![
-            Ok((0, Token::identifier("?prompt"), 7))
+            Ok((0, Token::identifier("?b"), 2))
         ];
 
-        ast should be: Ok(Expr::identifier("?prompt"));
+        ast should be: Ok(Expr::identifier("?b"));
 
-        compiles to: vec![opcode::PROMPT, 0];
+        env: {
+            prompts: vec!["a".to_string(), "b".to_string()],
+            ..Default::default()
+        };
+
+        compiles to: vec![opcode::PROMPT, 1];
     }
 
     test! {
-        "!secret";
+        "!b";
 
         scenario: secret identifier;
 
         tokens should be: vec![
-            Ok((0, Token::identifier("!secret"), 7))
+            Ok((0, Token::identifier("!b"), 2))
         ];
 
-        ast should be: Ok(Expr::identifier("!secret"));
+        ast should be: Ok(Expr::identifier("!b"));
 
-        compiles to: vec![opcode::SECRET, 0];
+        env: {
+            secrets: vec!["a".to_string(), "b".to_string()],
+            ..Default::default()
+        };
+
+        compiles to: vec![opcode::SECRET, 1];
     }
 
     test! {
@@ -112,6 +135,11 @@ mod valid {
             (Expr::identifier("foo"), 1..4),
             vec![]
         ));
+
+        env: {
+            builtins: vec![Fn { name: "foo".to_string(), arity: 0 }],
+            ..Default::default()
+        };
 
         compiles to: vec![opcode::CALL, opcode::BUILTIN, 0, 0];
     }
@@ -132,6 +160,14 @@ mod valid {
             (Expr::identifier("foo"), 1..4),
             vec![(Expr::identifier("bar"), 5..8)]
         ));
+
+        env: {
+            builtins: vec![
+                Fn { name: "foo".to_string(), arity: 1 },
+                Fn { name: "bar".to_string(), arity: 0 }
+            ],
+            ..Default::default()
+        };
 
         compiles to: vec![opcode::CALL, opcode::BUILTIN, 0, 1, opcode::BUILTIN, 1];
     }
@@ -158,6 +194,16 @@ mod valid {
                 (Expr::identifier("baz"), 13..16)
             ]
         ));
+
+        env: {
+            builtins: vec![
+                Fn { name: "foo".to_string(), arity: 3 },
+                Fn { name: "bar".to_string(), arity: 0 },
+                Fn { name: "fiz".to_string(), arity: 0 },
+                Fn { name: "baz".to_string(), arity: 0 }
+            ],
+            ..Default::default()
+        };
 
         compiles to: vec![
             opcode::CALL,
@@ -220,6 +266,19 @@ mod valid {
             ]
         ));
 
+        env: {
+            builtins: vec![
+                Fn { name: "foo".to_string(), arity: 3 },
+                Fn { name: "bar".to_string(), arity: 1 },
+                Fn { name: "fiz".to_string(), arity: 1 },
+                Fn { name: "baz".to_string(), arity: 1 }
+            ],
+            vars: vec!["a".to_string()],
+            prompts: vec!["b".to_string()],
+            secrets: vec!["c".to_string()],
+            ..Default::default()
+        };
+
         compiles to: vec![
             opcode::CALL,
             opcode::BUILTIN,
@@ -265,6 +324,10 @@ mod invalid {
             expected: vec!["identifier".to_string()]
         });
 
+        env: {
+            ..Default::default()
+        };
+
         compiles to: vec![];
     }
 
@@ -287,6 +350,10 @@ mod invalid {
             expected: vec!["identifier".to_string()]
         });
 
+        env: {
+            ..Default::default()
+        };
+
         compiles to: vec![];
     }
 
@@ -303,6 +370,10 @@ mod invalid {
         ast should be: Err(lalrpop_util::ParseError::User {
             error: (LexicalError::InvalidToken, 0..0)
         });
+
+        env: {
+            ..Default::default()
+        };
 
         compiles to: vec![];
     }
@@ -322,6 +393,10 @@ mod invalid {
             expected: vec![]
         });
 
+        env: {
+            ..Default::default()
+        };
+
         compiles to: vec![];
     }
 
@@ -339,6 +414,10 @@ mod invalid {
             token: (4, Token::identifier("bar"), 7),
             expected: vec![]
         });
+
+        env: {
+            ..Default::default()
+        };
 
         compiles to: vec![];
     }
