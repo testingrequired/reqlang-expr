@@ -4,6 +4,7 @@ macro_rules! test {
         scenario: $test_name:ident $( $test_name2:ident)*;
         tokens should be: $expected_tokens:expr;
         ast should be: $expected_ast:expr;
+        compiles to: $expected_op_codes:expr;
     ) => {
         ::pastey::paste! {
             #[test]
@@ -19,6 +20,19 @@ macro_rules! test {
                 let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
 
                 ::pretty_assertions::assert_eq!($expected_ast, ast);
+            }
+
+            #[test]
+            fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes >]() {
+                let tokens = ::reqlang_expr::lexer::Lexer::new($source);
+                let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+
+                if let Ok(ast) = ast {
+                    let op_codes = ::reqlang_expr::compiler::compile(&ast);
+                    let expected_op_codes: Vec<u8> = $expected_op_codes;
+
+                    ::pretty_assertions::assert_eq!(expected_op_codes, op_codes);
+                }
             }
         }
     };
@@ -37,42 +51,50 @@ mod valid {
         ];
 
         ast should be: Ok(Expr::identifier("foo"));
+
+        compiles to: vec![opcode::BUILTIN, 0];
     }
 
     test! {
-        ":foo";
+        ":variable";
 
-        scenario: variable reference identifier;
+        scenario: variable identifier;
 
         tokens should be: vec![
-            Ok((0, Token::identifier(":foo"), 4))
+            Ok((0, Token::identifier(":variable"), 9))
         ];
 
-        ast should be: Ok(Expr::identifier(":foo"));
+        ast should be: Ok(Expr::identifier(":variable"));
+
+        compiles to: vec![opcode::VAR, 0];
     }
 
     test! {
-        "?foo";
+        "?prompt";
 
-        scenario: prompt reference identifier;
+        scenario: prompt identifier;
 
         tokens should be: vec![
-            Ok((0, Token::identifier("?foo"), 4))
+            Ok((0, Token::identifier("?prompt"), 7))
         ];
 
-        ast should be: Ok(Expr::identifier("?foo"));
+        ast should be: Ok(Expr::identifier("?prompt"));
+
+        compiles to: vec![opcode::PROMPT, 0];
     }
 
     test! {
-        "!foo";
+        "!secret";
 
-        scenario: secret reference identifier;
+        scenario: secret identifier;
 
         tokens should be: vec![
-            Ok((0, Token::identifier("!foo"), 4))
+            Ok((0, Token::identifier("!secret"), 7))
         ];
 
-        ast should be: Ok(Expr::identifier("!foo"));
+        ast should be: Ok(Expr::identifier("!secret"));
+
+        compiles to: vec![opcode::SECRET, 0];
     }
 
     test! {
@@ -90,6 +112,8 @@ mod valid {
             (Expr::identifier("foo"), 1..4),
             vec![]
         ));
+
+        compiles to: vec![opcode::CALL, opcode::BUILTIN, 0, 0];
     }
 
     test! {
@@ -108,6 +132,8 @@ mod valid {
             (Expr::identifier("foo"), 1..4),
             vec![(Expr::identifier("bar"), 5..8)]
         ));
+
+        compiles to: vec![opcode::CALL, opcode::BUILTIN, 0, 1, opcode::BUILTIN, 1];
     }
 
     test! {
@@ -132,24 +158,46 @@ mod valid {
                 (Expr::identifier("baz"), 13..16)
             ]
         ));
+
+        compiles to: vec![
+            opcode::CALL,
+            opcode::BUILTIN,
+            0,
+            3,
+            opcode::BUILTIN,
+            1,
+            opcode::BUILTIN,
+            2,
+            opcode::BUILTIN,
+            3
+        ];
     }
 
     test! {
-        "(foo (bar) (fiz baz))";
+        "(foo (bar :a) (fiz ?b) (baz !c))";
 
         scenario: call with multiple call args;
 
         tokens should be: vec![
             Ok((0, Token::LParan, 1)),
             Ok((1, Token::identifier("foo"), 4)),
+
             Ok((5, Token::LParan, 6)),
             Ok((6, Token::identifier("bar"), 9)),
-            Ok((9, Token::RParan, 10)),
-            Ok((11, Token::LParan, 12)),
-            Ok((12, Token::identifier("fiz"), 15)),
-            Ok((16, Token::identifier("baz"), 19)),
-            Ok((19, Token::RParan, 20)),
-            Ok((20, Token::RParan, 21))
+            Ok((10, Token::identifier(":a"), 12)),
+            Ok((12, Token::RParan, 13)),
+
+            Ok((14, Token::LParan, 15)),
+            Ok((15, Token::identifier("fiz"), 18)),
+            Ok((19, Token::identifier("?b"), 21)),
+            Ok((21, Token::RParan, 22)),
+
+            Ok((23, Token::LParan, 24)),
+            Ok((24, Token::identifier("baz"), 27)),
+            Ok((28, Token::identifier("!c"), 30)),
+            Ok((30, Token::RParan, 31)),
+
+            Ok((31, Token::RParan, 32))
         ];
 
         ast should be: Ok(Expr::call(
@@ -157,14 +205,45 @@ mod valid {
             vec![
                 (Expr::call(
                     (Expr::identifier("bar"), 6..9),
-                    vec![]
-                ), 5..10),
+                    vec![
+                        (Expr::identifier(":a"), 10..12)
+                    ]
+                ), 5..13),
                 (Expr::call(
-                    (Expr::identifier("fiz"), 12..15),
-                    vec![(Expr::identifier("baz"), 16..19)]
-                ), 11..20)
+                    (Expr::identifier("fiz"), 15..18),
+                    vec![(Expr::identifier("?b"), 19..21)]
+                ), 14..22),
+                (Expr::call(
+                    (Expr::identifier("baz"), 24..27),
+                    vec![(Expr::identifier("!c"), 28..30)]
+                ), 23..31)
             ]
         ));
+
+        compiles to: vec![
+            opcode::CALL,
+            opcode::BUILTIN,
+            0,
+            3,
+            opcode::CALL,
+            opcode::BUILTIN,
+            1,
+            1,
+            opcode::VAR,
+            0,
+            opcode::CALL,
+            opcode::BUILTIN,
+            2,
+            1,
+            opcode::PROMPT,
+            0,
+            opcode::CALL,
+            opcode::BUILTIN,
+            3,
+            1,
+            opcode::SECRET,
+            0,
+        ];
     }
 }
 
@@ -185,6 +264,8 @@ mod invalid {
             token: (1, Token::RParan, 2),
             expected: vec!["identifier".to_string()]
         });
+
+        compiles to: vec![];
     }
 
     test! {
@@ -205,6 +286,8 @@ mod invalid {
             token: (1, Token::LParan, 2),
             expected: vec!["identifier".to_string()]
         });
+
+        compiles to: vec![];
     }
 
     test! {
@@ -220,6 +303,8 @@ mod invalid {
         ast should be: Err(lalrpop_util::ParseError::User {
             error: (LexicalError::InvalidToken, 0..0)
         });
+
+        compiles to: vec![];
     }
 
     test! {
@@ -236,6 +321,8 @@ mod invalid {
             token: (3, Token::identifier("!bar"), 7),
             expected: vec![]
         });
+
+        compiles to: vec![];
     }
 
     test! {
@@ -252,5 +339,7 @@ mod invalid {
             token: (4, Token::identifier("bar"), 7),
             expected: vec![]
         });
+
+        compiles to: vec![];
     }
 }

@@ -172,6 +172,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "iota"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "680dd6d5502d25bf20a63b093da51b1b2663099dcd7b0fd450cc9e88c9465d4f"
+
+[[package]]
 name = "itertools"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -434,6 +440,7 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 name = "reqlang-expr"
 version = "0.1.0"
 dependencies = [
+ "iota",
  "lalrpop",
  "lalrpop-util 0.21.0",
  "logos",

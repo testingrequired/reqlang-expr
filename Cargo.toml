@@ -13,3 +13,4 @@ pretty_assertions = "1.4.1"
 logos = "0.15.0"
 lalrpop-util = { version = "0.21.0", features = ["lexer", "unicode"] }
 pastey = "0.1.0"
+iota = "0.2.3"
