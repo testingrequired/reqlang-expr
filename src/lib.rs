@@ -7,6 +7,7 @@ pub mod prelude {
     pub use crate::compiler::*;
     pub use crate::errors::*;
     pub use crate::lexer::*;
+    pub use crate::vm::*;
 }
 
 pub mod errors;
@@ -16,3 +17,5 @@ pub mod lexer;
 pub mod ast;
 
 pub mod compiler;
+
+pub mod vm;
