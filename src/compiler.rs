@@ -41,7 +41,19 @@ impl Env {
     }
 }
 
-pub fn compile(expr: &ast::Expr, env: &Env) -> Vec<u8> {
+/// The compiled bytecode for an expression
+#[derive(Debug)]
+pub struct ExprByteCode {
+    pub codes: Vec<u8>,
+}
+
+/// Compile an [`ast::Expr`] into [`ExprByteCode`]
+pub fn compile(expr: &ast::Expr, env: &Env) -> ExprByteCode {
+    let codes = compile_expr(expr, env);
+    ExprByteCode { codes }
+}
+
+fn compile_expr(expr: &ast::Expr, env: &Env) -> Vec<u8> {
     use opcode::*;
 
     let mut codes = vec![];
@@ -83,12 +95,12 @@ pub fn compile(expr: &ast::Expr, env: &Env) -> Vec<u8> {
         ast::Expr::Call(expr_call) => {
             codes.push(opcode::CALL);
 
-            codes.extend(compile(&expr_call.callee.0, env));
+            codes.extend(compile_expr(&expr_call.callee.0, env));
 
             codes.push(expr_call.args.len() as u8);
 
             for arg in expr_call.args.iter() {
-                codes.extend(compile(&arg.0, env));
+                codes.extend(compile_expr(&arg.0, env));
             }
         }
     }

@@ -34,7 +34,7 @@ macro_rules! test {
                     let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
                     let expected_op_codes: Vec<u8> = $expected_op_codes;
 
-                    ::pretty_assertions::assert_eq!(expected_op_codes, op_codes);
+                    ::pretty_assertions::assert_eq!(expected_op_codes, op_codes.codes);
                 }
             }
         }
