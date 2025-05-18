@@ -3,7 +3,7 @@ name = "reqlang-expr"
 version = "0.1.0"
 edition = "2024"
 
-[build-dependencies] # <-- We added this and everything after!
+[build-dependencies]
 lalrpop = "0.22.1"
 
 [dev-dependencies]
