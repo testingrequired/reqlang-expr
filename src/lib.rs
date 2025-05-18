@@ -6,6 +6,7 @@ pub mod prelude {
     pub use crate::ast::*;
     pub use crate::compiler::*;
     pub use crate::errors::*;
+    pub use crate::exprlang::*;
     pub use crate::lexer::*;
     pub use crate::vm::*;
 }
