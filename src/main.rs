@@ -85,7 +85,12 @@ fn read_in_bytecode(args: &Args) -> ExprByteCode {
 
             source
         } else {
-            std::fs::read_to_string(args.path.clone().unwrap()).unwrap()
+            std::fs::read_to_string(
+                args.path
+                    .clone()
+                    .expect("should have a file path to open or pass --stdin flag"),
+            )
+            .expect("should be able to open file at path")
         };
 
         eprintln!("Source:\n\n{source}\n");
