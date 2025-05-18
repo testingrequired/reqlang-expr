@@ -12,6 +12,11 @@ fn main() {
 
     let bytecode: ExprByteCode = read_in_bytecode(&args);
 
+    if bytecode.codes.is_empty() {
+        println!("No bytecode found");
+        exit(1);
+    }
+
     if args.interpret {
         interpret_bytecode(&bytecode);
     }
