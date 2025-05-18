@@ -85,10 +85,7 @@ fn read_in_bytecode(args: &Args) -> ExprByteCode {
 
             source
         } else {
-            // Read from args.path
-            let file = std::fs::read_to_string(args.path.clone().unwrap()).unwrap();
-
-            file
+            std::fs::read_to_string(args.path.clone().unwrap()).unwrap()
         };
 
         eprintln!("Source:\n\n{source}\n");
