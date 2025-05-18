@@ -7,6 +7,7 @@ A small (tiny) WIP expression language for [reqlang](https://github.com/testingr
 - [Bytecode Compiler](./src/compiler.rs)
 - [VM interpreter](./src/vm.rs)
 - [Tests](./tests/integration_tests.rs)
+- [CLI](./src/main.rs)
 
 ## Built With
 
