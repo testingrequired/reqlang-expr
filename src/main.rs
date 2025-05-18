@@ -42,7 +42,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    if args.bytecode {
+    let bytecode = if args.bytecode {
         let bytecode = if args.stdin {
             let mut bytecode = vec![];
 
@@ -56,27 +56,7 @@ fn main() {
             file
         };
 
-        let bytecode = ExprByteCode { codes: bytecode };
-
-        eprintln!("Bytecode:\n\n{bytecode:#?}\n");
-
-        if args.interpret {
-            let mut vm: Vm<'_> = Vm::default();
-            vm.interpret(&bytecode).expect("should interpret bytecode");
-
-            exit(0);
-        }
-
-        if let Some(out_path) = args.out_path {
-            let mut file = File::create(out_path).expect("should create output file");
-
-            file.write_all(&bytecode.codes)
-                .expect("should write bytecode to output file");
-        } else {
-            let _ = stdout().write_all(&bytecode.codes);
-
-            exit(0);
-        }
+        ExprByteCode { codes: bytecode }
     } else {
         let source = if args.stdin {
             let mut source = String::new();
@@ -113,26 +93,26 @@ fn main() {
 
         eprintln!("Env:\n\n{env:#?}\n");
 
-        let bytecode: ExprByteCode = compile(&ast, &env);
+        compile(&ast, &env)
+    };
 
-        eprintln!("Bytecode:\n\n{bytecode:#?}\n");
+    eprintln!("Bytecode:\n\n{bytecode:#?}\n");
 
-        if args.interpret {
-            let mut vm: Vm<'_> = Vm::default();
-            vm.interpret(&bytecode).expect("should interpret bytecode");
+    if args.interpret {
+        let mut vm: Vm<'_> = Vm::default();
+        vm.interpret(&bytecode).expect("should interpret bytecode");
 
-            exit(0);
-        }
+        exit(0);
+    }
 
-        if let Some(out_path) = args.out_path {
-            let mut file = File::create(out_path).expect("should create output file");
+    if let Some(out_path) = args.out_path {
+        let mut file = File::create(out_path).expect("should create output file");
 
-            file.write_all(&bytecode.codes)
-                .expect("should write bytecode to output file");
-        } else {
-            let _ = stdout().write_all(&bytecode.codes);
+        file.write_all(&bytecode.codes)
+            .expect("should write bytecode to output file");
+    } else {
+        let _ = stdout().write_all(&bytecode.codes);
 
-            exit(0);
-        }
+        exit(0);
     }
 }
