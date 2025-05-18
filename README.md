@@ -2,14 +2,6 @@
 
 A small (tiny) WIP expression language for [reqlang](https://github.com/testingrequired/reqlang)'s templating engine.
 
-- [Lexer](./src/lexer.rs)
-- [Parser](./src/exprlang.lalrpop), [AST](./src/ast.rs)
-- [Bytecode Compiler](./src/compiler.rs)
-- [VM interpreter](./src/vm.rs)
-- [CLI](./src/main.rs)
-- [Examples](./spec/)
-- [Tests](./tests/integration_tests.rs)
-
 | Syntax         | Description                                        |
 | -------------- | -------------------------------------------------- |
 | `:a`           | Reference to the variable `a`                      |
@@ -17,6 +9,14 @@ A small (tiny) WIP expression language for [reqlang](https://github.com/testingr
 | `?c`           | Reference to the secret `c`                        |
 | `f`            | Reference to the function `f`                      |
 | `(f :a ?b !c)` | Function call `f` with arguments: `:a`, `?b`, `!c` |
+
+- [Lexer](./src/lexer.rs)
+- [Parser](./src/exprlang.lalrpop), [AST](./src/ast.rs)
+- [Bytecode Compiler](./src/compiler.rs)
+- [VM interpreter](./src/vm.rs)
+- [CLI](./src/main.rs)
+- [Examples](./spec/)
+- [Tests](./tests/integration_tests.rs)
 
 ## Built With
 
