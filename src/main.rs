@@ -7,8 +7,20 @@ use std::{
 use clap::Parser;
 use reqlang_expr::prelude::*;
 
+fn main() {
+    let args = Args::parse();
+
+    let bytecode: ExprByteCode = read_in_bytecode(&args);
+
+    if args.interpret {
+        interpret_bytecode(&bytecode);
+    }
+
+    write_out_bytecode(args, bytecode);
+}
+
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+#[command(version, about = "CLI utility for working with reqlang expressions")]
 struct Args {
     /// Read from stdin (instead of loading from a file)
     #[arg(long)]
@@ -21,7 +33,9 @@ struct Args {
     #[arg(long)]
     out_path: Option<String>,
 
-    /// Run the interpreter (instead of compiling)
+    /// Interpret the bytecode and exit
+    ///
+    /// Instead of writing the bytecode out
     #[arg(long)]
     interpret: bool,
 
@@ -29,31 +43,32 @@ struct Args {
     #[arg(long)]
     bytecode: bool,
 
+    /// List of indexed variable names
     #[arg(long, value_delimiter = ' ', num_args = 1..)]
     vars: Vec<String>,
 
+    /// List of indexed prompt names
     #[arg(long, value_delimiter = ' ', num_args = 1..)]
     prompts: Vec<String>,
 
+    /// List of indexed secret names
     #[arg(long, value_delimiter = ' ', num_args = 1..)]
     secrets: Vec<String>,
 }
 
-fn main() {
-    let args = Args::parse();
-
+fn read_in_bytecode(args: &Args) -> ExprByteCode {
     let bytecode = if args.bytecode {
         let bytecode = if args.stdin {
             let mut bytecode = vec![];
 
-            let _ = stdin().read_to_end(&mut bytecode).unwrap();
+            stdin()
+                .read_to_end(&mut bytecode)
+                .expect("should be able to read bytecode from stdin");
 
             bytecode
         } else {
-            // Read from args.path
-            let file = std::fs::read(args.path.clone().unwrap()).unwrap();
-
-            file
+            std::fs::read(args.path.clone().unwrap())
+                .expect("should be able to read source from file")
         };
 
         ExprByteCode { codes: bytecode }
@@ -98,13 +113,17 @@ fn main() {
 
     eprintln!("Bytecode:\n\n{bytecode:#?}\n");
 
-    if args.interpret {
-        let mut vm: Vm<'_> = Vm::default();
-        vm.interpret(&bytecode).expect("should interpret bytecode");
+    bytecode
+}
 
-        exit(0);
-    }
+fn interpret_bytecode(bytecode: &ExprByteCode) {
+    let mut vm: Vm<'_> = Vm::default();
+    vm.interpret(bytecode).expect("should interpret bytecode");
 
+    exit(0);
+}
+
+fn write_out_bytecode(args: Args, bytecode: ExprByteCode) {
     if let Some(out_path) = args.out_path {
         let mut file = File::create(out_path).expect("should create output file");
 
