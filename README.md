@@ -10,6 +10,10 @@ A small (tiny) WIP expression language for [reqlang](https://github.com/testingr
 | `f`            | Reference to the function `f`                      |
 | `(f :a ?b !c)` | Function call `f` with arguments: `:a`, `?b`, `!c` |
 
+## Project
+
+[![Verify](https://github.com/testingrequired/reqlang-expr/actions/workflows/ci.yml/badge.svg)](https://github.com/testingrequired/reqlang-expr/actions/workflows/ci.yml)
+
 - [Lexer](./src/lexer.rs)
 - [Parser](./src/exprlang.lalrpop), [AST](./src/ast.rs)
 - [Bytecode Compiler](./src/compiler.rs)
