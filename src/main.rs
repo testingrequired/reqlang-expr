@@ -1,4 +1,5 @@
 use std::{
+    fs::File,
     io::{Read, Write, stdin, stdout},
     process::exit,
 };
@@ -15,6 +16,10 @@ struct Args {
 
     /// Path to expression file (if not using stdin)
     path: Option<String>,
+
+    /// Out path to write bytecode to
+    #[arg(long)]
+    out_path: Option<String>,
 
     /// Run the interpreter (instead of compiling)
     #[arg(long)]
@@ -62,9 +67,16 @@ fn main() {
             exit(0);
         }
 
-        let _ = stdout().write_all(&bytecode.codes);
+        if let Some(out_path) = args.out_path {
+            let mut file = File::create(out_path).expect("should create output file");
 
-        exit(0);
+            file.write_all(&bytecode.codes)
+                .expect("should write bytecode to output file");
+        } else {
+            let _ = stdout().write_all(&bytecode.codes);
+
+            exit(0);
+        }
     } else {
         let source = if args.stdin {
             let mut source = String::new();
@@ -112,8 +124,15 @@ fn main() {
             exit(0);
         }
 
-        let _ = stdout().write_all(&bytecode.codes);
+        if let Some(out_path) = args.out_path {
+            let mut file = File::create(out_path).expect("should create output file");
 
-        exit(0);
+            file.write_all(&bytecode.codes)
+                .expect("should write bytecode to output file");
+        } else {
+            let _ = stdout().write_all(&bytecode.codes);
+
+            exit(0);
+        }
     }
 }
