@@ -81,7 +81,7 @@ fn read_in_bytecode(args: &Args) -> ExprByteCode {
         let source = if args.stdin {
             let mut source = String::new();
 
-            let _ = stdin().read_to_string(&mut source).unwrap();
+            stdin().read_to_string(&mut source).unwrap();
 
             source
         } else {
