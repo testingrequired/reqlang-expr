@@ -37,6 +37,21 @@ macro_rules! test {
                     ::pretty_assertions::assert_eq!(expected_op_codes, op_codes.codes);
                 }
             }
+
+            #[test]
+            fn [< $test_name:lower $(_ $test_name2:lower)* _interprets_without_error >]() {
+                let env: Env = Env$env;
+
+                let tokens = ::reqlang_expr::lexer::Lexer::new($source);
+                let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+
+                if let Ok(ast) = ast {
+                    let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+                    let mut vm = Vm::default();
+
+                    vm.interpret(&op_codes).unwrap();
+                }
+            }
         }
     };
 }
