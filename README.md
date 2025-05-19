@@ -39,12 +39,112 @@ Lex an expression in to a list of tokens.
 cargo run -q --example lexer spec/call_with_args.expr
 ```
 
+#### stderr
+
+```
+[
+    Ok(
+        (
+            0,
+            LParan,
+            1,
+        ),
+    ),
+    Ok(
+        (
+            1,
+            Identifier(
+                "fn_name",
+            ),
+            8,
+        ),
+    ),
+    Ok(
+        (
+            9,
+            Identifier(
+                ":a",
+            ),
+            11,
+        ),
+    ),
+    Ok(
+        (
+            12,
+            Identifier(
+                "?b",
+            ),
+            14,
+        ),
+    ),
+    Ok(
+        (
+            15,
+            Identifier(
+                "!c",
+            ),
+            17,
+        ),
+    ),
+    Ok(
+        (
+            17,
+            RParan,
+            18,
+        ),
+    ),
+]
+```
+
 ### Parser
 
 Parse an expression into an AST.
 
 ```sh
 cargo run -q --example parser spec/call_with_args.expr
+```
+
+#### stderr
+
+```
+Call(
+    ExprCall {
+        callee: (
+            Identifier(
+                ExprIdentifier(
+                    "fn_name",
+                ),
+            ),
+            1..8,
+        ),
+        args: [
+            (
+                Identifier(
+                    ExprIdentifier(
+                        ":a",
+                    ),
+                ),
+                9..11,
+            ),
+            (
+                Identifier(
+                    ExprIdentifier(
+                        "?b",
+                    ),
+                ),
+                12..14,
+            ),
+            (
+                Identifier(
+                    ExprIdentifier(
+                        "!c",
+                    ),
+                ),
+                15..17,
+            ),
+        ],
+    },
+)
 ```
 
 ### Compiler
@@ -60,6 +160,31 @@ cargo run -q --example compiler -- spec/call_with_args.expr \
     > output.exprbin
 ```
 
+#### stderr
+
+```
+ExprByteCode {
+    codes: [
+        0,
+        1,
+        0,
+        3,
+        2,
+        0,
+        3,
+        0,
+        4,
+        0,
+    ],
+}
+```
+
+#### stdout
+
+```
+...BYTECODE...
+```
+
 ### Disassembler
 
 Compile expression and disassemble it.
@@ -72,6 +197,15 @@ cargo run -q --example disassembler -- spec/call_with_args.expr \
     --secrets c
 ```
 
+#### stderr
+
+```
+0000 CALL                0 == fn_name (3 args)
+0004 VAR                 0 == 'a'
+0006 PROMPT              0 == 'b'
+0008 SECRET              0 == 'c'
+```
+
 ### Disassembler From Bytecode
 
 Read in bytecode from binary file and disassemble it.
@@ -82,4 +216,13 @@ cargo run -q --example disassembler_from_bytecode -- output.exprbin \
     --vars a \
     --prompts b \
     --secrets c
+```
+
+#### stderr
+
+```
+0000 CALL                0 == fn_name (3 args)
+0004 VAR                 0 == 'a'
+0006 PROMPT              0 == 'b'
+0008 SECRET              0 == 'c'
 ```
