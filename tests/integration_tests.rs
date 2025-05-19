@@ -6,6 +6,7 @@ macro_rules! test {
         ast should be: $expected_ast:expr;
         env: $env:tt;
         compiles to: $expected_op_codes:expr;
+        disassembles to: $expected_disassembly:expr;
     ) => {
         ::pastey::paste! {
             #[test]
@@ -35,6 +36,23 @@ macro_rules! test {
                     let expected_op_codes: Vec<u8> = $expected_op_codes;
 
                     ::pretty_assertions::assert_eq!(expected_op_codes, op_codes.codes);
+                }
+            }
+
+            #[test]
+            fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes_disassemble_to >]() {
+                let env: Env = Env$env;
+
+                let tokens = ::reqlang_expr::lexer::Lexer::new($source);
+                let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+
+                if let Ok(ast) = ast {
+                    let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+                    let expected_disassembly: String = $expected_disassembly.to_string();
+                    let disassemble = ::reqlang_expr::disassembler::Disassembler::new(&op_codes, &env);
+                    let disassembly = disassemble.disassemble(None);
+
+                    ::pretty_assertions::assert_eq!(expected_disassembly, disassembly);
                 }
             }
 
@@ -76,6 +94,8 @@ mod valid {
         };
 
         compiles to: vec![opcode::BUILTIN, 0];
+
+        disassembles to: "0000 BUILTIN             0 == 'foo'\n";
     }
 
     test! {
@@ -95,6 +115,8 @@ mod valid {
         };
 
         compiles to: vec![opcode::VAR, 1];
+
+        disassembles to: "0000 VAR                 1 == 'b'\n";
     }
 
     test! {
@@ -114,6 +136,8 @@ mod valid {
         };
 
         compiles to: vec![opcode::PROMPT, 1];
+
+        disassembles to: "0000 PROMPT              1 == 'b'\n";
     }
 
     test! {
@@ -133,6 +157,8 @@ mod valid {
         };
 
         compiles to: vec![opcode::SECRET, 1];
+
+        disassembles to: "0000 SECRET              1 == 'b'\n";
     }
 
     test! {
@@ -157,6 +183,8 @@ mod valid {
         };
 
         compiles to: vec![opcode::CALL, opcode::BUILTIN, 0, 0];
+
+        disassembles to: "0000 CALL                0 == foo (0 args)\n";
     }
 
     test! {
@@ -185,6 +213,8 @@ mod valid {
         };
 
         compiles to: vec![opcode::CALL, opcode::BUILTIN, 0, 1, opcode::BUILTIN, 1];
+
+        disassembles to: "0000 CALL                0 == foo (1 args)\n0004 BUILTIN             1 == 'bar'\n";
     }
 
     test! {
@@ -232,6 +262,8 @@ mod valid {
             opcode::BUILTIN,
             3
         ];
+
+        disassembles to: "0000 CALL                0 == foo (3 args)\n0004 BUILTIN             1 == 'bar'\n0006 BUILTIN             2 == 'fiz'\n0008 BUILTIN             3 == 'baz'\n";
     }
 
     test! {
@@ -318,6 +350,8 @@ mod valid {
             opcode::SECRET,
             0,
         ];
+
+        disassembles to: "0000 CALL                0 == foo (3 args)\n0004 CALL                1 == bar (1 args)\n0008 VAR                 0 == 'a'\n0010 CALL                2 == fiz (1 args)\n0014 PROMPT              0 == 'b'\n0016 CALL                3 == baz (1 args)\n0020 SECRET              0 == 'c'\n";
     }
 }
 
@@ -344,6 +378,8 @@ mod invalid {
         };
 
         compiles to: vec![];
+
+        disassembles to: "";
     }
 
     test! {
@@ -370,6 +406,8 @@ mod invalid {
         };
 
         compiles to: vec![];
+
+        disassembles to: "";
     }
 
     test! {
@@ -391,6 +429,8 @@ mod invalid {
         };
 
         compiles to: vec![];
+
+        disassembles to: "";
     }
 
     test! {
@@ -413,6 +453,8 @@ mod invalid {
         };
 
         compiles to: vec![];
+
+        disassembles to: "";
     }
 
     test! {
@@ -435,5 +477,7 @@ mod invalid {
         };
 
         compiles to: vec![];
+
+        disassembles to: "";
     }
 }

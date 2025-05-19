@@ -18,6 +18,7 @@ A small (tiny) WIP expression language for [reqlang](https://github.com/testingr
 - [Parser](./src/exprlang.lalrpop), [AST](./src/ast.rs)
 - [Bytecode Compiler](./src/compiler.rs)
 - [VM interpreter](./src/vm.rs)
+- [Disassembler](./src/disassembler.rs)
 - [CLI](./src/main.rs)
 - [Example Usage](./examples/)
 - [Specification Examples](./spec/)
@@ -32,11 +33,15 @@ A small (tiny) WIP expression language for [reqlang](https://github.com/testingr
 
 ### Lexer
 
+Lex an expression in to a list of tokens.
+
 ```sh
 cargo run -q --example lexer spec/call_with_args.expr
 ```
 
 ### Parser
+
+Parse an expression into an AST.
 
 ```sh
 cargo run -q --example parser spec/call_with_args.expr
@@ -44,8 +49,23 @@ cargo run -q --example parser spec/call_with_args.expr
 
 ### Compiler
 
+Compile an expression into bytecode.
+
 ```sh
 cargo run -q --example compiler -- spec/call_with_args.expr \
+    --builtins fn_name:3 \
+    --vars a \
+    --prompts b \
+    --secrets c
+```
+
+### Disassembler
+
+Compile and print the bytecode of an expression.
+
+```sh
+cargo run -q --example disassemble -- spec/call_with_args.expr \
+    --builtins fn_name:3 \
     --vars a \
     --prompts b \
     --secrets c

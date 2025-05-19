@@ -1,7 +1,7 @@
 use std::fs::read_to_string;
 
 use clap::Parser;
-use reqlang_expr::{cli::parse_key_val, prelude::*};
+use reqlang_expr::{cli::parse_key_val, disassembler::Disassembler, prelude::*};
 
 fn main() {
     let args = Args::parse();
@@ -35,11 +35,17 @@ fn main() {
 
     let bytecode = compile(&ast, &env);
 
-    eprintln!("{bytecode:#?}");
+    let disassemble = Disassembler::new(&bytecode, &env);
+    let disassembly = disassemble.disassemble(None);
+
+    eprintln!("{disassembly}");
 }
 
 #[derive(Parser, Debug)]
-#[command(version, about = "Example CLI that compiles an expression")]
+#[command(
+    version,
+    about = "Example CLI that compiles then disassembles an expression"
+)]
 struct Args {
     /// Path to expression file
     path: Option<String>,

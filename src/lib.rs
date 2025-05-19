@@ -20,3 +20,7 @@ pub mod ast;
 pub mod compiler;
 
 pub mod vm;
+
+pub mod disassembler;
+
+pub mod cli;

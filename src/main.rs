@@ -5,7 +5,7 @@ use std::{
 };
 
 use clap::Parser;
-use reqlang_expr::prelude::*;
+use reqlang_expr::{cli::parse_key_val, prelude::*};
 
 fn main() {
     let args = Args::parse();
@@ -59,6 +59,10 @@ struct Args {
     /// List of indexed secret names
     #[arg(long, value_delimiter = ' ', num_args = 1..)]
     secrets: Vec<String>,
+
+    /// List of indexed secret names
+    #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, u8>)]
+    builtins: Vec<(String, u8)>,
 }
 
 fn read_in_bytecode(args: &Args) -> ExprByteCode {
@@ -106,10 +110,20 @@ fn read_in_bytecode(args: &Args) -> ExprByteCode {
 
         eprintln!("AST:\n\n{ast:#?}\n");
 
+        let builtins = args
+            .builtins
+            .iter()
+            .map(|builtin| Fn {
+                name: builtin.0.clone(),
+                arity: builtin.1.clone(),
+            })
+            .collect();
+
         let env = Env {
             vars: args.vars.clone(),
             prompts: args.prompts.clone(),
             secrets: args.secrets.clone(),
+            builtins,
             ..Default::default()
         };
 
