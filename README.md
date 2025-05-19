@@ -49,22 +49,35 @@ cargo run -q --example parser spec/call_with_args.expr
 
 ### Compiler
 
-Compile an expression into bytecode.
+Compile an expression into bytecode to stdout.
 
 ```sh
 cargo run -q --example compiler -- spec/call_with_args.expr \
     --builtins fn_name:3 \
     --vars a \
     --prompts b \
-    --secrets c
+    --secrets c \
+    > output.exprbin
 ```
 
 ### Disassembler
 
-Compile and print the bytecode of an expression.
+Compile expression and disassemble it.
 
 ```sh
 cargo run -q --example disassembler -- spec/call_with_args.expr \
+    --builtins fn_name:3 \
+    --vars a \
+    --prompts b \
+    --secrets c
+```
+
+### Disassembler From Bytecode
+
+Read in bytecode from binary file and disassemble it.
+
+```sh
+cargo run -q --example disassembler_from_bytecode -- output.exprbin \
     --builtins fn_name:3 \
     --vars a \
     --prompts b \

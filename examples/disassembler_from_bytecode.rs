@@ -1,22 +1,8 @@
-use std::{
-    fs::read_to_string,
-    io::{Write, stdout},
-};
-
 use clap::Parser;
-use reqlang_expr::{cli::parse_key_val, prelude::*};
+use reqlang_expr::{cli::parse_key_val, disassembler::Disassembler, prelude::*};
 
 fn main() {
     let args = Args::parse();
-
-    let source = read_to_string(args.path).expect("should be able to open file at path");
-
-    let lexer: Lexer<'_> = Lexer::new(&source);
-    let tokens = lexer.collect::<Vec<_>>();
-
-    let ast: Expr = ExprParser::new()
-        .parse(tokens)
-        .expect("should parse tokens to ast");
 
     let builtins = args
         .builtins
@@ -35,15 +21,20 @@ fn main() {
         ..Default::default()
     };
 
-    let bytecode = compile(&ast, &env);
+    let codes = std::fs::read(&args.path).expect("should be able to read source from file");
+    let bytecode = ExprByteCode { codes };
 
-    eprintln!("{bytecode:#?}");
+    let disassemble = Disassembler::new(&bytecode, &env);
+    let disassembly = disassemble.disassemble(None);
 
-    let _ = stdout().write_all(&bytecode.codes);
+    eprintln!("{disassembly}");
 }
 
 #[derive(Parser, Debug)]
-#[command(version, about = "Example CLI that compiles an expression")]
+#[command(
+    version,
+    about = "Example CLI that compiles then disassembles an expression"
+)]
 struct Args {
     /// Path to expression file
     path: String,
