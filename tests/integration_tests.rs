@@ -10,66 +10,70 @@ macro_rules! test {
         runtime env: $runtime_env:tt;
     ) => {
         ::pastey::paste! {
-            #[test]
-            fn [< $test_name:lower $(_ $test_name2:lower)* _tokens >]() {
-                let tokens = ::reqlang_expr::lexer::Lexer::new($source).collect::<Vec<_>>();
+            mod [< $test_name:lower $(_ $test_name2:lower)* _tests >] {
+                use reqlang_expr::prelude::*;
 
-                ::pretty_assertions::assert_eq!($expected_tokens, tokens);
-            }
+                #[test]
+                fn [< $test_name:lower $(_ $test_name2:lower)* _tokens >]() {
+                    let tokens = ::reqlang_expr::lexer::Lexer::new($source).collect::<Vec<_>>();
 
-            #[test]
-            fn [< $test_name:lower $(_ $test_name2:lower)* _ast >]() {
-                let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
-
-                ::pretty_assertions::assert_eq!($expected_ast, ast);
-            }
-
-            #[test]
-            fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes >]() {
-                let env: Env = Env$env;
-
-                let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
-
-                if let Ok(ast) = ast {
-                    let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
-                    let expected_op_codes: Vec<u8> = $expected_op_codes;
-
-                    ::pretty_assertions::assert_eq!(expected_op_codes, op_codes.codes);
+                    ::pretty_assertions::assert_eq!($expected_tokens, tokens);
                 }
-            }
 
-            #[test]
-            fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes_disassemble_to >]() {
-                let env: Env = Env$env;
+                #[test]
+                fn [< $test_name:lower $(_ $test_name2:lower)* _ast >]() {
+                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
+                    let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
 
-                let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
-
-                if let Ok(ast) = ast {
-                    let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
-                    let expected_disassembly: String = $expected_disassembly.to_string();
-                    let disassemble = ::reqlang_expr::disassembler::Disassembler::new(&op_codes, &env);
-                    let disassembly = disassemble.disassemble(None);
-
-                    ::pretty_assertions::assert_eq!(expected_disassembly, disassembly);
+                    ::pretty_assertions::assert_eq!($expected_ast, ast);
                 }
-            }
 
-            #[test]
-            fn [< $test_name:lower $(_ $test_name2:lower)* _interprets_without_error >]() {
-                let env: Env = Env$env;
+                #[test]
+                fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes >]() {
+                    let env: Env = Env$env;
 
-                let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
+                    let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
 
-                if let Ok(ast) = ast {
-                    let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
-                    let mut vm = Vm::new();
-                    let runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
+                    if let Ok(ast) = ast {
+                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+                        let expected_op_codes: Vec<u8> = $expected_op_codes;
 
-                    vm.interpret(&op_codes, &env, &runtime_env).unwrap();
+                        ::pretty_assertions::assert_eq!(expected_op_codes, op_codes.codes);
+                    }
+                }
+
+                #[test]
+                fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes_disassemble_to >]() {
+                    let env: Env = Env$env;
+
+                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
+                    let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+
+                    if let Ok(ast) = ast {
+                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+                        let expected_disassembly: String = $expected_disassembly.to_string();
+                        let disassemble = ::reqlang_expr::disassembler::Disassembler::new(&op_codes, &env);
+                        let disassembly = disassemble.disassemble(None);
+
+                        ::pretty_assertions::assert_eq!(expected_disassembly, disassembly);
+                    }
+                }
+
+                #[test]
+                fn [< $test_name:lower $(_ $test_name2:lower)* _interprets_without_error >]() {
+                    let env: Env = Env$env;
+
+                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
+                    let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+
+                    if let Ok(ast) = ast {
+                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+                        let mut vm = Vm::new();
+                        let runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
+
+                        vm.interpret(&op_codes, &env, &runtime_env).unwrap();
+                    }
                 }
             }
         }
@@ -77,8 +81,6 @@ macro_rules! test {
 }
 
 mod valid {
-    use reqlang_expr::prelude::*;
-
     test! {
         "foo";
 
@@ -391,8 +393,6 @@ mod valid {
 }
 
 mod invalid {
-    use reqlang_expr::prelude::*;
-
     test! {
         "()";
 
