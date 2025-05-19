@@ -19,8 +19,8 @@ A small (tiny) WIP expression language for [reqlang](https://github.com/testingr
 - [Bytecode Compiler](./src/compiler.rs)
 - [VM interpreter](./src/vm.rs)
 - [CLI](./src/main.rs)
-- [Examples](./examples/)
-- [Example Expression Files](./spec/)
+- [Example Usage](./examples/)
+- [Specification Examples](./spec/)
 - [Tests](./tests/integration_tests.rs)
 
 ## Built With
