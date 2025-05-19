@@ -64,7 +64,7 @@ cargo run -q --example compiler -- spec/call_with_args.expr \
 Compile and print the bytecode of an expression.
 
 ```sh
-cargo run -q --example disassemble -- spec/call_with_args.expr \
+cargo run -q --example disassembler -- spec/call_with_args.expr \
     --builtins fn_name:3 \
     --vars a \
     --prompts b \
