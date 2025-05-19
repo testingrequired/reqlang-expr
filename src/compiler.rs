@@ -18,7 +18,7 @@ fn get(list: &Vec<String>, identifier: &str) -> Option<u8> {
         .map(|i| i as u8)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Fn {
     pub name: String,
     pub arity: u8,

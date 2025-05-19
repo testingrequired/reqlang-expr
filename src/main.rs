@@ -10,7 +10,19 @@ use reqlang_expr::{cli::parse_key_val, prelude::*};
 fn main() {
     let args = Args::parse();
 
-    let bytecode: ExprByteCode = read_in_bytecode(&args);
+    let builtins = args.builtins.iter().map(|builtin| builtin.into()).collect();
+
+    let env = Env {
+        vars: args.vars.clone(),
+        prompts: args.prompts.clone(),
+        secrets: args.secrets.clone(),
+        builtins,
+        ..Default::default()
+    };
+
+    eprintln!("Env:\n\n{env:#?}\n");
+
+    let bytecode: ExprByteCode = read_in_bytecode(&args, &env);
 
     if bytecode.codes.is_empty() {
         println!("No bytecode found");
@@ -18,7 +30,7 @@ fn main() {
     }
 
     if args.interpret {
-        interpret_bytecode(&bytecode);
+        interpret_bytecode(&bytecode, &env);
     }
 
     write_out_bytecode(args, bytecode);
@@ -65,7 +77,7 @@ struct Args {
     builtins: Vec<(String, u8)>,
 }
 
-fn read_in_bytecode(args: &Args) -> ExprByteCode {
+fn read_in_bytecode(args: &Args, env: &Env) -> ExprByteCode {
     let bytecode = if args.bytecode {
         let bytecode = if args.stdin {
             let mut bytecode = vec![];
@@ -110,18 +122,6 @@ fn read_in_bytecode(args: &Args) -> ExprByteCode {
 
         eprintln!("AST:\n\n{ast:#?}\n");
 
-        let builtins = args.builtins.iter().map(|builtin| builtin.into()).collect();
-
-        let env = Env {
-            vars: args.vars.clone(),
-            prompts: args.prompts.clone(),
-            secrets: args.secrets.clone(),
-            builtins,
-            ..Default::default()
-        };
-
-        eprintln!("Env:\n\n{env:#?}\n");
-
         compile(&ast, &env)
     };
 
@@ -130,9 +130,10 @@ fn read_in_bytecode(args: &Args) -> ExprByteCode {
     bytecode
 }
 
-fn interpret_bytecode(bytecode: &ExprByteCode) {
-    let mut vm: Vm<'_> = Vm::default();
-    vm.interpret(bytecode).expect("should interpret bytecode");
+fn interpret_bytecode(bytecode: &ExprByteCode, env: &Env) {
+    let mut vm: Vm<'_> = Vm::new();
+    vm.interpret(bytecode, env, &RuntimeEnv::default())
+        .expect("should interpret bytecode");
 
     exit(0);
 }

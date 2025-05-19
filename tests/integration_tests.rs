@@ -7,6 +7,7 @@ macro_rules! test {
         env: $env:tt;
         compiles to: $expected_op_codes:expr;
         disassembles to: $expected_disassembly:expr;
+        runtime env: $runtime_env:tt;
     ) => {
         ::pastey::paste! {
             #[test]
@@ -65,9 +66,10 @@ macro_rules! test {
 
                 if let Ok(ast) = ast {
                     let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
-                    let mut vm = Vm::default();
+                    let mut vm = Vm::new();
+                    let runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
 
-                    vm.interpret(&op_codes).unwrap();
+                    vm.interpret(&op_codes, &env, &runtime_env).unwrap();
                 }
             }
         }
@@ -96,6 +98,10 @@ mod valid {
         compiles to: vec![opcode::BUILTIN, 0];
 
         disassembles to: "0000 BUILTIN             0 == 'foo'\n";
+
+        runtime env: {
+            ..Default::default()
+        };
     }
 
     test! {
@@ -117,6 +123,11 @@ mod valid {
         compiles to: vec![opcode::VAR, 1];
 
         disassembles to: "0000 VAR                 1 == 'b'\n";
+
+        runtime env: {
+            vars: vec!["key".to_string(), "expected value".to_string()],
+            ..Default::default()
+        };
     }
 
     test! {
@@ -138,6 +149,10 @@ mod valid {
         compiles to: vec![opcode::PROMPT, 1];
 
         disassembles to: "0000 PROMPT              1 == 'b'\n";
+
+        runtime env: {
+            ..Default::default()
+        };
     }
 
     test! {
@@ -159,6 +174,10 @@ mod valid {
         compiles to: vec![opcode::SECRET, 1];
 
         disassembles to: "0000 SECRET              1 == 'b'\n";
+
+        runtime env: {
+            ..Default::default()
+        };
     }
 
     test! {
@@ -185,6 +204,10 @@ mod valid {
         compiles to: vec![opcode::CALL, opcode::BUILTIN, 0, 0];
 
         disassembles to: "0000 CALL                0 == foo (0 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
     }
 
     test! {
@@ -215,6 +238,10 @@ mod valid {
         compiles to: vec![opcode::CALL, opcode::BUILTIN, 0, 1, opcode::BUILTIN, 1];
 
         disassembles to: "0000 CALL                0 == foo (1 args)\n0004 BUILTIN             1 == 'bar'\n";
+
+        runtime env: {
+            ..Default::default()
+        };
     }
 
     test! {
@@ -264,6 +291,10 @@ mod valid {
         ];
 
         disassembles to: "0000 CALL                0 == foo (3 args)\n0004 BUILTIN             1 == 'bar'\n0006 BUILTIN             2 == 'fiz'\n0008 BUILTIN             3 == 'baz'\n";
+
+        runtime env: {
+            ..Default::default()
+        };
     }
 
     test! {
@@ -352,6 +383,10 @@ mod valid {
         ];
 
         disassembles to: "0000 CALL                0 == foo (3 args)\n0004 CALL                1 == bar (1 args)\n0008 VAR                 0 == 'a'\n0010 CALL                2 == fiz (1 args)\n0014 PROMPT              0 == 'b'\n0016 CALL                3 == baz (1 args)\n0020 SECRET              0 == 'c'\n";
+
+        runtime env: {
+            ..Default::default()
+        };
     }
 }
 
@@ -380,6 +415,10 @@ mod invalid {
         compiles to: vec![];
 
         disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
     }
 
     test! {
@@ -408,6 +447,10 @@ mod invalid {
         compiles to: vec![];
 
         disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
     }
 
     test! {
@@ -431,6 +474,10 @@ mod invalid {
         compiles to: vec![];
 
         disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
     }
 
     test! {
@@ -455,6 +502,10 @@ mod invalid {
         compiles to: vec![];
 
         disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
     }
 
     test! {
@@ -479,5 +530,9 @@ mod invalid {
         compiles to: vec![];
 
         disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
     }
 }

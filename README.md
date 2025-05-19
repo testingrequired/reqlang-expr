@@ -160,6 +160,18 @@ cargo run -q --example compiler -- spec/call_with_args.expr \
     > output.exprbin
 ```
 
+### Interpreter
+
+Interpret an expression.
+
+```sh
+cargo run -q --example interpreter -- spec/call_with_args.expr \
+    --builtins fn_name:3 \
+    --vars a \
+    --prompts b \
+    --secrets c
+```
+
 #### stderr
 
 ```
