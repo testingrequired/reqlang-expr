@@ -4,14 +4,7 @@ use reqlang_expr::{cli::parse_key_val, disassembler::Disassembler, prelude::*};
 fn main() {
     let args = Args::parse();
 
-    let builtins = args
-        .builtins
-        .iter()
-        .map(|builtin| Fn {
-            name: builtin.0.clone(),
-            arity: builtin.1.clone(),
-        })
-        .collect();
+    let builtins = args.builtins.iter().map(|builtin| builtin.into()).collect();
 
     let env = Env {
         vars: args.vars.clone(),

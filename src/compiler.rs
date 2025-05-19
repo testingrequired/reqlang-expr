@@ -24,6 +24,15 @@ pub struct Fn {
     pub arity: u8,
 }
 
+impl<'a> From<&'a (String, u8)> for Fn {
+    fn from(value: &'a (String, u8)) -> Self {
+        Fn {
+            name: value.0.clone(),
+            arity: value.1.clone(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct Env {
     pub builtins: Vec<Fn>,

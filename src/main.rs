@@ -110,14 +110,7 @@ fn read_in_bytecode(args: &Args) -> ExprByteCode {
 
         eprintln!("AST:\n\n{ast:#?}\n");
 
-        let builtins = args
-            .builtins
-            .iter()
-            .map(|builtin| Fn {
-                name: builtin.0.clone(),
-                arity: builtin.1.clone(),
-            })
-            .collect();
+        let builtins = args.builtins.iter().map(|builtin| builtin.into()).collect();
 
         let env = Env {
             vars: args.vars.clone(),

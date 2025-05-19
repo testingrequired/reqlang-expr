@@ -15,14 +15,7 @@ fn main() {
         .parse(tokens)
         .expect("should parse tokens to ast");
 
-    let builtins = args
-        .builtins
-        .iter()
-        .map(|builtin| Fn {
-            name: builtin.0.clone(),
-            arity: builtin.1.clone(),
-        })
-        .collect();
+    let builtins = args.builtins.iter().map(|builtin| builtin.into()).collect();
 
     let env = Env {
         vars: args.vars.clone(),
