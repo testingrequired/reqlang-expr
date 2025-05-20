@@ -34,7 +34,7 @@ impl<'bytecode> Vm<'bytecode> {
         bytecode: &'bytecode ExprByteCode,
         env: &Env,
         runtime_env: &RuntimeEnv,
-    ) -> Result<(), ()> {
+    ) -> Result<StackValue, ()> {
         self.bytecode = Some(bytecode);
         self.ip = 0;
 
@@ -51,12 +51,12 @@ impl<'bytecode> Vm<'bytecode> {
 
         eprintln!("{value:#?}");
 
-        Ok(())
+        Ok(value)
     }
 
     fn interpret_op(&mut self, env: &Env, runtime_env: &RuntimeEnv, op_code: u8) {
         match op_code {
-            compiler::opcode::CALL => self.op_call(env),
+            compiler::opcode::CALL => self.op_call(env, runtime_env),
             compiler::opcode::BUILTIN => self.op_builtin(env),
             compiler::opcode::VAR => self.op_var(env, &runtime_env.vars),
             compiler::opcode::PROMPT => self.op_prompt(env),
@@ -65,83 +65,91 @@ impl<'bytecode> Vm<'bytecode> {
         }
     }
 
-    fn op_call(&mut self, env: &Env) {
-        // The following op is BUILTIN
-        assert_eq!(self.next_op(), compiler::opcode::BUILTIN);
+    fn op_call(&mut self, env: &Env, runtime_env: &RuntimeEnv) {
+        // Confirm the current op code is CALL
+        assert_eq!(
+            compiler::opcode::CALL,
+            self.read_u8(),
+            "Expected CALL opcode"
+        );
 
-        // Get the built-in index
-        let index = self.next_op();
+        self.op_builtin(env);
 
-        // Fetch the built-in function from the environment using the index
-        if let Some(builtin) = env.builtins.get(index as usize) {
-            println!("Calling built-in function: {:?}", builtin);
+        let arg_count = self.read_u8() as usize;
 
-            // Next, get the argument count
-            let arg_count = self.next_op();
-            println!("Number of arguments: {}", arg_count);
-
-            // Retrieve arguments from the stack
-            let mut args = Vec::with_capacity(arg_count as usize);
-            for _ in 0..arg_count {
-                let arg = self.stack_pop();
-                args.push(arg);
-            }
-
-            // Simulate the function call with the arguments
-            println!("Executing call with arguments: {:?}", args);
-
-            // Here you might execute or just simulate the function's logic using args
-        }
+        // Push a placeholder result to the stack for now
+        self.stack_push(StackValue::String(String::new()));
     }
 
     fn op_builtin(&mut self, env: &Env) {
-        let index = self.next_op();
-        if let Some(builtin) = env.builtins.get(index as usize) {
+        assert_eq!(
+            compiler::opcode::BUILTIN,
+            self.read_u8(),
+            "Expected BUILTIN opcode"
+        );
+
+        let builtin_idx = self.read_u8();
+
+        if let Some(builtin) = env.builtins.get(builtin_idx as usize) {
             println!("Loading builtin: {:?}", builtin);
             self.stack_push(StackValue::Fn(Box::new(builtin.clone())));
 
             return;
         }
 
-        panic!("Builtin not found at index: {}", index);
+        panic!("Builtin not found at index: {}", builtin_idx);
     }
 
     fn op_var(&mut self, env: &Env, vars: &Vec<String>) {
-        let index = self.next_op();
-        if let Some(var) = env.vars.get(index as usize) {
-            println!("Loading var: {}", var);
-            let value = vars.get(index as usize).expect("undefined variable");
+        assert_eq!(compiler::opcode::VAR, self.read_u8(), "Expected VAR opcode");
+        let var_idx = self.read_u8();
+
+        if let Some(var) = env.vars.get(var_idx as usize) {
+            eprintln!("Loading var: {}", var);
+            let value = vars.get(var_idx as usize).expect("undefined variable");
 
             self.stack_push(StackValue::String(value.clone()));
-
             return;
         }
 
-        panic!("Variable not found at index: {}", index);
+        panic!("Variable not found at index: {}", var_idx);
     }
 
     fn op_prompt(&mut self, env: &Env) {
-        let index = self.next_op();
-        if let Some(prompt) = env.prompts.get(index as usize) {
+        assert_eq!(
+            compiler::opcode::PROMPT,
+            self.read_u8(),
+            "Expected PROMPT opcode"
+        );
+
+        let prompt_idx = self.read_u8();
+
+        if let Some(prompt) = env.prompts.get(prompt_idx as usize) {
             println!("Loading prompt: {}", prompt);
             self.stack_push(StackValue::String(prompt.clone()));
 
             return;
         }
 
-        panic!("Prompt not found at index: {}", index);
+        panic!("Prompt not found at index: {}", prompt_idx);
     }
 
     fn op_secret(&mut self, env: &Env) {
-        let index = self.next_op();
-        if let Some(secret) = env.secrets.get(index as usize) {
+        assert_eq!(
+            compiler::opcode::SECRET,
+            self.read_u8(),
+            "Expected SECRET opcode"
+        );
+
+        let secret_idx = self.read_u8();
+
+        if let Some(secret) = env.secrets.get(secret_idx as usize) {
             println!("Loading secret: {}", secret);
             self.stack_push(StackValue::String(secret.clone()));
-
             return;
         }
 
-        panic!("Secret not found at index: {}", index);
+        panic!("Secret not found at index: {}", secret_idx);
     }
 
     fn stack_push(&mut self, value: StackValue) {
@@ -161,11 +169,11 @@ impl<'bytecode> Vm<'bytecode> {
         value
     }
 
-    fn next_op(&mut self) -> u8 {
-        let current_op = self.ip as u8;
+    fn read_u8(&mut self) -> u8 {
+        let current_ip = (self.ip as u8).clone();
 
         self.ip += 1;
 
-        current_op
+        self.bytecode.expect("should have bytecode").codes[current_ip as usize]
     }
 }

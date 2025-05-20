@@ -8,6 +8,7 @@ macro_rules! test {
         compiles to: $expected_op_codes:expr;
         disassembles to: $expected_disassembly:expr;
         runtime env: $runtime_env:tt;
+        interpets to: $expected_interpretation:expr;
     ) => {
         ::pastey::paste! {
             mod [< $test_name:lower $(_ $test_name2:lower)* _tests >] {
@@ -69,6 +70,7 @@ macro_rules! test {
 
                     if let Ok(ast) = ast {
                         let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+
                         let mut vm = Vm::new();
                         let runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
 
@@ -104,6 +106,11 @@ mod valid {
         runtime env: {
             ..Default::default()
         };
+
+        interpets to: Ok(
+            StackValue::Fn(Box::new(
+                Fn { name: "foo".to_string(), arity: 0 }
+            )));
     }
 
     test! {
@@ -127,9 +134,12 @@ mod valid {
         disassembles to: "0000 VAR                 1 == 'b'\n";
 
         runtime env: {
-            vars: vec!["key".to_string(), "expected value".to_string()],
+            vars: vec!["a_value".to_string(), "b_value".to_string()],
             ..Default::default()
         };
+
+        interpets to: Ok(StackValue::String(
+            "b_value".to_string()));
     }
 
     test! {
@@ -153,8 +163,12 @@ mod valid {
         disassembles to: "0000 PROMPT              1 == 'b'\n";
 
         runtime env: {
+            prompts: vec!["a_value".to_string(), "b_value".to_string()],
             ..Default::default()
         };
+
+        interpets to: Ok(StackValue::String(
+            "b_value".to_string()));
     }
 
     test! {
@@ -178,8 +192,12 @@ mod valid {
         disassembles to: "0000 SECRET              1 == 'b'\n";
 
         runtime env: {
+            secrets: vec!["a_value".to_string(), "b_value".to_string()],
             ..Default::default()
         };
+
+        interpets to: Ok(StackValue::String(
+            "b_value".to_string()));
     }
 
     test! {
@@ -210,40 +228,45 @@ mod valid {
         runtime env: {
             ..Default::default()
         };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 
     test! {
-        "(foo bar)";
+        "(foo :a)";
 
         scenario: call with identifier arg;
 
         tokens should be: vec![
             Ok((0, Token::LParan, 1)),
             Ok((1, Token::identifier("foo"), 4)),
-            Ok((5, Token::identifier("bar"), 8)),
-            Ok((8, Token::RParan, 9))
+            Ok((5, Token::identifier(":a"), 7)),
+            Ok((7, Token::RParan, 8))
         ];
 
         ast should be: Ok(Expr::call(
             (Expr::identifier("foo"), 1..4),
-            vec![(Expr::identifier("bar"), 5..8)]
+            vec![(Expr::identifier(":a"), 5..7)]
         ));
 
         env: {
             builtins: vec![
-                Fn { name: "foo".to_string(), arity: 1 },
-                Fn { name: "bar".to_string(), arity: 0 }
+                Fn { name: "foo".to_string(), arity: 1 }
             ],
+            vars: vec!["a".to_string()],
             ..Default::default()
         };
 
-        compiles to: vec![opcode::CALL, opcode::BUILTIN, 0, 1, opcode::BUILTIN, 1];
+        compiles to: vec![opcode::CALL, opcode::BUILTIN, 0, 1, opcode::VAR, 0];
 
-        disassembles to: "0000 CALL                0 == foo (1 args)\n0004 BUILTIN             1 == 'bar'\n";
+        disassembles to: "0000 CALL                0 == foo (1 args)\n0004 VAR                 0 == 'a'\n";
 
         runtime env: {
+            vars: vec!["a_value".to_string()],
             ..Default::default()
         };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 
     test! {
@@ -297,6 +320,8 @@ mod valid {
         runtime env: {
             ..Default::default()
         };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 
     test! {
@@ -389,6 +414,8 @@ mod valid {
         runtime env: {
             ..Default::default()
         };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 }
 
@@ -419,6 +446,8 @@ mod invalid {
         runtime env: {
             ..Default::default()
         };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 
     test! {
@@ -451,6 +480,8 @@ mod invalid {
         runtime env: {
             ..Default::default()
         };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 
     test! {
@@ -478,6 +509,8 @@ mod invalid {
         runtime env: {
             ..Default::default()
         };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 
     test! {
@@ -506,6 +539,8 @@ mod invalid {
         runtime env: {
             ..Default::default()
         };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 
     test! {
@@ -534,5 +569,7 @@ mod invalid {
         runtime env: {
             ..Default::default()
         };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 }
