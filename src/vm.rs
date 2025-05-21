@@ -1,9 +1,14 @@
-use crate::compiler::{self, Env, ExprByteCode, Fn};
+use std::rc::Rc;
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+use crate::{
+    compiler::{self, BuiltinFn, Env, ExprByteCode},
+    prelude::lookup,
+};
+
+#[derive(Debug, Clone)]
 pub enum StackValue {
     String(String),
-    Fn(Box<Fn>),
+    Fn(Rc<BuiltinFn<Vec<StackValue>>>),
 }
 
 #[derive(Debug, Clone, Default)]
@@ -56,16 +61,13 @@ impl<'bytecode> Vm<'bytecode> {
 
     fn interpret_op(&mut self, env: &Env, runtime_env: &RuntimeEnv, op_code: u8) {
         match op_code {
-            compiler::opcode::CALL => self.op_call(env, runtime_env),
-            compiler::opcode::BUILTIN => self.op_builtin(env),
-            compiler::opcode::VAR => self.op_var(env, &runtime_env.vars),
-            compiler::opcode::PROMPT => self.op_prompt(env),
-            compiler::opcode::SECRET => self.op_secret(env),
+            compiler::opcode::CALL => self.op_call(),
+            compiler::opcode::GET => self.op_get(env, &runtime_env),
             _ => panic!("Invalid OP code: {op_code}"),
         }
     }
 
-    fn op_call(&mut self, env: &Env, runtime_env: &RuntimeEnv) {
+    fn op_call(&mut self) {
         // Confirm the current op code is CALL
         assert_eq!(
             compiler::opcode::CALL,
@@ -73,83 +75,74 @@ impl<'bytecode> Vm<'bytecode> {
             "Expected CALL opcode"
         );
 
-        self.op_builtin(env);
-
         let arg_count = self.read_u8() as usize;
 
-        // Push a placeholder result to the stack for now
-        self.stack_push(StackValue::String(String::new()));
-    }
+        let mut args: Vec<StackValue> = vec![];
 
-    fn op_builtin(&mut self, env: &Env) {
-        assert_eq!(
-            compiler::opcode::BUILTIN,
-            self.read_u8(),
-            "Expected BUILTIN opcode"
-        );
-
-        let builtin_idx = self.read_u8();
-
-        if let Some(builtin) = env.builtins.get(builtin_idx as usize) {
-            println!("Loading builtin: {:?}", builtin);
-            self.stack_push(StackValue::Fn(Box::new(builtin.clone())));
-
-            return;
+        for _ in 0..arg_count {
+            args.push(self.stack_pop());
         }
 
-        panic!("Builtin not found at index: {}", builtin_idx);
+        args.reverse();
+
+        let builtin = self.stack_pop();
+
+        match builtin {
+            StackValue::Fn(c) => match c.name {
+                _ => {
+                    eprintln!("{}({} args) {:#?}", c.name, c.arity, args);
+
+                    let result = (c.func)(args);
+
+                    self.stack_push(StackValue::String(result));
+                }
+            },
+            _ => panic!("not callable"),
+        }
     }
 
-    fn op_var(&mut self, env: &Env, vars: &Vec<String>) {
-        assert_eq!(compiler::opcode::VAR, self.read_u8(), "Expected VAR opcode");
-        let var_idx = self.read_u8();
+    fn op_get(&mut self, env: &Env, runtime_env: &RuntimeEnv) {
+        assert_eq!(compiler::opcode::GET, self.read_u8(), "Expected GET opcode");
+        let get_lookup = self.read_u8();
+        let get_idx = self.read_u8() as usize;
 
-        if let Some(var) = env.vars.get(var_idx as usize) {
-            eprintln!("Loading var: {}", var);
-            let value = vars.get(var_idx as usize).expect("undefined variable");
+        match get_lookup {
+            lookup::BUILTIN => {
+                let value = env
+                    .builtins
+                    .get(get_idx)
+                    .expect(&format! {"undefined builtin: {get_idx}"});
+                self.stack_push(StackValue::Fn(value.clone()));
+            }
+            lookup::VAR => {
+                let value = env
+                    .vars
+                    .get(get_idx)
+                    .and_then(|_| runtime_env.vars.get(get_idx))
+                    .expect(&format! {"undefined variable: {get_idx}"});
 
-            self.stack_push(StackValue::String(value.clone()));
-            return;
-        }
+                self.stack_push(StackValue::String(value.clone()));
+            }
+            lookup::PROMPT => {
+                let value = env
+                    .prompts
+                    .get(get_idx)
+                    .and_then(|_| runtime_env.prompts.get(get_idx))
+                    .expect(&format! {"undefined prompt: {get_idx}"});
 
-        panic!("Variable not found at index: {}", var_idx);
-    }
+                self.stack_push(StackValue::String(value.clone()));
+            }
+            lookup::SECRET => {
+                let value = env
+                    .secrets
+                    .get(get_idx)
+                    .and_then(|_| runtime_env.secrets.get(get_idx))
+                    .expect(&format! {"undefined secret: {get_idx}"});
 
-    fn op_prompt(&mut self, env: &Env) {
-        assert_eq!(
-            compiler::opcode::PROMPT,
-            self.read_u8(),
-            "Expected PROMPT opcode"
-        );
-
-        let prompt_idx = self.read_u8();
-
-        if let Some(prompt) = env.prompts.get(prompt_idx as usize) {
-            println!("Loading prompt: {}", prompt);
-            self.stack_push(StackValue::String(prompt.clone()));
-
-            return;
-        }
-
-        panic!("Prompt not found at index: {}", prompt_idx);
-    }
-
-    fn op_secret(&mut self, env: &Env) {
-        assert_eq!(
-            compiler::opcode::SECRET,
-            self.read_u8(),
-            "Expected SECRET opcode"
-        );
-
-        let secret_idx = self.read_u8();
-
-        if let Some(secret) = env.secrets.get(secret_idx as usize) {
-            println!("Loading secret: {}", secret);
-            self.stack_push(StackValue::String(secret.clone()));
-            return;
-        }
-
-        panic!("Secret not found at index: {}", secret_idx);
+                self.stack_push(StackValue::String(value.clone()));
+            }
+            _ => panic!("invalid get lookup code: {}", get_lookup),
+        };
     }
 
     fn stack_push(&mut self, value: StackValue) {
@@ -174,6 +167,11 @@ impl<'bytecode> Vm<'bytecode> {
 
         self.ip += 1;
 
-        self.bytecode.expect("should have bytecode").codes[current_ip as usize]
+        self.bytecode
+            .expect("should have bytecode")
+            .codes
+            .get(current_ip as usize)
+            .expect("should have op in bytecode at {}")
+            .clone()
     }
 }

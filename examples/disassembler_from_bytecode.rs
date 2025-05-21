@@ -1,10 +1,22 @@
+use std::rc::Rc;
+
 use clap::Parser;
 use reqlang_expr::{cli::parse_key_val, disassembler::Disassembler, prelude::*};
 
 fn main() {
     let args = Args::parse();
 
-    let builtins = args.builtins.iter().map(|builtin| builtin.into()).collect();
+    let builtins = args
+        .builtins
+        .iter()
+        .map(|builtin| {
+            Rc::new(BuiltinFn {
+                name: builtin.0.clone(),
+                arity: builtin.1,
+                func: Rc::new(|_| String::new()),
+            })
+        })
+        .collect();
 
     let env = Env {
         vars: args.vars.clone(),
