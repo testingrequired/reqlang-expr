@@ -4,13 +4,15 @@ A small (tiny) WIP expression language for [reqlang](https://github.com/testingr
 
 ## Syntax
 
-| Syntax    | Description                                                  |
-| --------- | ------------------------------------------------------------ |
-| `:a`      | Reference to the variable `a`                                |
-| `?b`      | Reference to the prompt `b`                                  |
-| `!c`      | Reference to the secret `c`                                  |
-| `id`      | Reference to the [builtin function](#builtin-functions) `id` |
-| `(id :a)` | Call to builtin `id` with arguments: `:a`                    |
+The syntax is s-expression like. There are only [builtin function](#builtin-functions) and identifiers.
+
+| Syntax    | Description                               |
+| --------- | ----------------------------------------- |
+| `:a`      | Reference to the variable `a`             |
+| `?b`      | Reference to the prompt `b`               |
+| `!c`      | Reference to the secret `c`               |
+| `id`      | Reference to the builtin `id`             |
+| `(id :a)` | Call to builtin `id` with arguments: `:a` |
 
 ### Builtin Functions
 
