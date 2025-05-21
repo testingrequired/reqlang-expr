@@ -83,6 +83,76 @@ macro_rules! test {
 }
 
 mod valid {
+    test! {
+        "(noop)";
+
+        scenario: call noop;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("noop"), 5)),
+            Ok((5, Token::RParan, 6)),
+        ];
+
+        ast should be: Ok(Expr::call((Expr::identifier("noop"), 1..5), vec![]));
+
+        env: {
+            ..Default::default()
+        };
+
+        compiles to: vec![
+            opcode::GET, lookup::BUILTIN, 1,
+            opcode::CALL, 0
+        ];
+
+        disassembles to: "0000 GET                 1 == 'noop'\n0003 CALL             (0 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String(
+            "noop".to_string()));
+    }
+
+    test! {
+        "(id (noop))";
+
+        scenario: call id with noop call;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("id"), 3)),
+            Ok((4, Token::LParan, 5)),
+            Ok((5, Token::identifier("noop"), 9)),
+            Ok((9, Token::RParan, 10)),
+            Ok((10, Token::RParan, 11)),
+        ];
+
+        ast should be: Ok(Expr::call((Expr::identifier("id"), 1..3), vec![
+            (Expr::call((Expr::identifier("noop"), 5..9), vec![]), 4..10)
+        ]));
+
+        env: {
+            ..Default::default()
+        };
+
+        compiles to: vec![
+            opcode::GET, lookup::BUILTIN, 0,
+            opcode::GET, lookup::BUILTIN, 1,
+            opcode::CALL, 0,
+            opcode::CALL, 1
+        ];
+
+        disassembles to: "0000 GET                 0 == 'id'\n0003 GET                 1 == 'noop'\n0006 CALL             (0 args)\n0008 CALL             (1 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String(
+            "noop".to_string()));
+    }
 
     test! {
         "(id :b)";

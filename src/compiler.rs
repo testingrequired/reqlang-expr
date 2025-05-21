@@ -73,17 +73,24 @@ pub struct Env {
 impl Default for Env {
     fn default() -> Self {
         Self {
-            builtins: vec![Rc::new(BuiltinFn {
-                name: String::from("id"),
-                arity: 1,
-                func: Rc::new(|args| {
-                    let arg = args.first().unwrap();
+            builtins: vec![
+                Rc::new(BuiltinFn {
+                    name: String::from("id"),
+                    arity: 1,
+                    func: Rc::new(|args| {
+                        let arg = args.first().unwrap();
 
-                    let value = arg.get_string();
+                        let value = arg.get_string();
 
-                    value.to_string()
+                        value.to_string()
+                    }),
                 }),
-            })],
+                Rc::new(BuiltinFn {
+                    name: String::from("noop"),
+                    arity: 0,
+                    func: Rc::new(|_| String::from("noop")),
+                }),
+            ],
             vars: Vec::new(),
             prompts: Vec::new(),
             secrets: Vec::new(),
