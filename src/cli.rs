@@ -10,10 +10,10 @@ where
 {
     let n = 2;
 
-    let parts: Vec<&str> = value.splitn(n, ':').collect();
+    let parts: Vec<&str> = value.splitn(n, '=').collect();
 
     if parts.len() != n {
-        return Err(format!("should be formatted as key:value pair: `{value}`").into());
+        return Err(format!("should be formatted as key=value pair: `{value}`").into());
     }
 
     let key = parts[0].parse()?;

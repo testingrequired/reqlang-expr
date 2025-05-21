@@ -208,7 +208,7 @@ Compile expression and disassemble it.
 
 ```sh
 cargo run -q --example disassembler -- spec/call_with_args.expr \
-    --vars a:a_value
+    --vars a=a_value
 ```
 
 #### stderr
@@ -247,7 +247,7 @@ Interpret an expression.
 
 ```sh
 cargo run -q --example interpreter -- spec/call_with_args.expr \
-    --vars a:a_value
+    --vars a=a_value
 ```
 
 #### stdout
