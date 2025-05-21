@@ -78,24 +78,32 @@ impl Default for Env {
                 Rc::new(BuiltinFn {
                     name: String::from("id"),
                     arity: 1,
-                    func: Rc::new(|args| {
-                        let arg = args.first().unwrap();
-
-                        let value = arg.get_string();
-
-                        value.to_string()
-                    }),
+                    func: Rc::new(BuiltinFns::id),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("noop"),
                     arity: 0,
-                    func: Rc::new(|_| String::from("noop")),
+                    func: Rc::new(BuiltinFns::noop),
                 }),
             ],
             vars: Vec::new(),
             prompts: Vec::new(),
             secrets: Vec::new(),
         }
+    }
+}
+
+pub struct BuiltinFns;
+
+impl BuiltinFns {
+    pub fn id(args: Vec<Value>) -> String {
+        let arg = args.first().unwrap();
+
+        arg.get_string().to_string()
+    }
+
+    pub fn noop(_: Vec<Value>) -> String {
+        String::from("noop")
     }
 }
 
