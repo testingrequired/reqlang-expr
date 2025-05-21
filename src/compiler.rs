@@ -7,7 +7,8 @@ pub mod opcode {
     iota::iota! {
         pub const
         CALL: u8 = iota;,
-        GET
+        GET,
+        CONSTANT
     }
 }
 
@@ -119,20 +120,53 @@ impl Env {
 #[derive(Debug)]
 pub struct ExprByteCode {
     pub codes: Vec<u8>,
+    pub strings: Vec<String>,
+}
+
+impl ExprByteCode {
+    pub fn new() -> Self {
+        Self {
+            codes: vec![],
+            strings: vec![],
+        }
+    }
+
+    pub fn from(codes: Vec<u8>) -> Self {
+        Self {
+            codes,
+            strings: vec![],
+        }
+    }
+
+    pub fn push_string(&mut self, string: &str) {
+        self.strings.push(string.to_string());
+    }
 }
 
 /// Compile an [`ast::Expr`] into [`ExprByteCode`]
 pub fn compile(expr: &ast::Expr, env: &Env) -> ExprByteCode {
-    let codes = compile_expr(expr, env);
-    ExprByteCode { codes }
+    let mut strings: Vec<String> = vec![];
+    let codes = compile_expr(expr, env, &mut strings);
+    ExprByteCode { codes, strings }
 }
 
-fn compile_expr(expr: &ast::Expr, env: &Env) -> Vec<u8> {
+fn compile_expr(expr: &ast::Expr, env: &Env, strings: &mut Vec<String>) -> Vec<u8> {
     use opcode::*;
 
     let mut codes = vec![];
 
     match expr {
+        ast::Expr::String(string) => {
+            if let Some(index) = strings.iter().position(|x| x == &string.0) {
+                codes.push(CONSTANT);
+                codes.push(index as u8);
+            } else {
+                strings.push(string.0.clone());
+                let index = strings.len() - 1;
+                codes.push(CONSTANT);
+                codes.push(index as u8);
+            }
+        }
         ast::Expr::Identifier(identifier) => {
             let identifier_name = identifier.0.as_str();
 
@@ -171,10 +205,10 @@ fn compile_expr(expr: &ast::Expr, env: &Env) -> Vec<u8> {
             }
         }
         ast::Expr::Call(expr_call) => {
-            codes.extend(compile_expr(&expr_call.callee.0, env));
+            codes.extend(compile_expr(&expr_call.callee.0, env, strings));
 
             for arg in expr_call.args.iter() {
-                codes.extend(compile_expr(&arg.0, env));
+                codes.extend(compile_expr(&arg.0, env, strings));
             }
 
             codes.push(opcode::CALL);

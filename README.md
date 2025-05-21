@@ -4,7 +4,7 @@ A small (tiny) WIP expression language for [reqlang](https://github.com/testingr
 
 ## Syntax
 
-The syntax is s-expression like. There are only [builtin function](#builtin-functions) and identifiers.
+The syntax is s-expression like. There are only [builtin functions](#builtin-functions), identifiers and string literals.
 
 | Syntax    | Description                               |
 | --------- | ----------------------------------------- |
@@ -13,6 +13,7 @@ The syntax is s-expression like. There are only [builtin function](#builtin-func
 | `!c`      | Reference to the secret `c`               |
 | `id`      | Reference to the builtin `id`             |
 | `(id :a)` | Call to builtin `id` with arguments: `:a` |
+| `"foo"`   | String literal                            |
 
 ### Builtin Functions
 

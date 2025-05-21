@@ -61,7 +61,7 @@ impl<'bytecode> Vm<'bytecode> {
 
         while let Some(op_code) = self
             .bytecode
-            .and_then(|ExprByteCode { codes }| codes.get(self.ip))
+            .and_then(|ExprByteCode { codes, strings: _ }| codes.get(self.ip))
         {
             self.interpret_op(env, runtime_env, *op_code);
         }
@@ -78,6 +78,7 @@ impl<'bytecode> Vm<'bytecode> {
     fn interpret_op(&mut self, env: &Env, runtime_env: &RuntimeEnv, op_code: u8) {
         match op_code {
             compiler::opcode::CALL => self.op_call(),
+            compiler::opcode::CONSTANT => self.op_constant(),
             compiler::opcode::GET => self.op_get(env, &runtime_env),
             _ => panic!("Invalid OP code: {op_code}"),
         }
@@ -152,6 +153,25 @@ impl<'bytecode> Vm<'bytecode> {
             }
             _ => panic!("invalid get lookup code: {}", get_lookup),
         };
+    }
+
+    fn op_constant(&mut self) {
+        assert_eq!(
+            compiler::opcode::CONSTANT,
+            self.read_u8(),
+            "Expected CONSTANT opcode"
+        );
+
+        let get_idx = self.read_u8() as usize;
+
+        let s = self
+            .bytecode
+            .expect("should have bytecode")
+            .strings
+            .get(get_idx)
+            .expect(&format!("undefined string: {}", get_idx));
+
+        self.stack_push(Value::String(s.clone()));
     }
 
     fn stack_push(&mut self, value: Value) {

@@ -103,7 +103,7 @@ fn read_in_bytecode(args: &Args, env: &Env) -> ExprByteCode {
                 .expect("should be able to read source from file")
         };
 
-        ExprByteCode { codes: bytecode }
+        ExprByteCode::from(bytecode)
     } else {
         let source = if args.stdin {
             let mut source = String::new();

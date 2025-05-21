@@ -46,6 +46,9 @@ pub enum Token {
     #[token(")")]
     RParan,
 
+    #[regex(r#""[^"]*""#, lex_string)]
+    String(String),
+
     #[regex("[!?:]?[a-zA-Z][a-zA-Z0-9_]*", lex_identifier)]
     Identifier(String),
 }
@@ -53,6 +56,11 @@ pub enum Token {
 fn lex_identifier(lexer: &mut logos::Lexer<Token>) -> String {
     let slice = lexer.slice();
     slice.to_string()
+}
+
+fn lex_string(lexer: &mut logos::Lexer<Token>) -> String {
+    let slice = lexer.slice();
+    slice[1..slice.len() - 1].to_string()
 }
 
 impl Token {

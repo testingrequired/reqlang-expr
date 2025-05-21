@@ -28,7 +28,7 @@ fn main() {
     env.builtins.extend(builtins);
 
     let codes = std::fs::read(&args.path).expect("should be able to read source from file");
-    let bytecode = ExprByteCode { codes };
+    let bytecode = ExprByteCode::from(codes);
 
     let disassemble = Disassembler::new(&bytecode, &env);
     let disassembly = disassemble.disassemble(None);

@@ -64,10 +64,28 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
         let (op_idx_inc, op_str): (usize, String) = match self.bytecode.codes[op_idx] {
             compiler::opcode::GET => self.disassemble_op_get("GET", op_idx),
             compiler::opcode::CALL => self.disassemble_op_call("CALL", op_idx),
+            compiler::opcode::CONSTANT => self.disassemble_op_constant("CONSTANT", op_idx),
             _ => (1, "".to_string()),
         };
 
         (op_idx_inc, op_idx_str, op_str)
+    }
+
+    fn disassemble_op_constant(&self, name: &str, op_idx: usize) -> (usize, String) {
+        let constant_op = self.bytecode.codes[op_idx];
+        assert_eq!(constant_op, compiler::opcode::CONSTANT);
+
+        let constant_idx = self.bytecode.codes[op_idx + 1] as usize;
+
+        let value = self
+            .bytecode
+            .strings
+            .get(constant_idx)
+            .expect("should have string at index");
+
+        let string = format!("{name:16} {constant_idx:>4} == '{value}'\n");
+
+        (2, string)
     }
 
     fn disassemble_op_get(&self, name: &str, op_idx: usize) -> (usize, String) {

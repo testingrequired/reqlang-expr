@@ -6,10 +6,16 @@ grammar;
 
 pub Expr: ast::Expr = {
     ExprIdentifier,
-    ExprCall
+    ExprCall,
+    ExprString,
 };
 
 ExprS = Spanned<Expr>;
+
+// String Expressions
+ExprString: ast::Expr = {
+    string => ast::Expr::String(ast::ExprString(<>).into())
+};
 
 // Call Expressions
 
@@ -48,6 +54,7 @@ extern {
     enum Token {
         "(" => Token::LParan,
         ")" => Token::RParan,
+        string => Token::String(<String>),
         identifier => Token::Identifier(<String>),
     }
 }

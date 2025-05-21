@@ -84,6 +84,35 @@ macro_rules! test {
 
 mod valid {
     test! {
+        "\"test string\"";
+
+        scenario: string string;
+
+        tokens should be: vec![
+            Ok((0, Token::String("test string".to_string()), 13)),
+        ];
+
+        ast should be: Ok(Expr::string("test string"));
+
+        env: {
+            ..Default::default()
+        };
+
+        compiles to: vec![
+            opcode::CONSTANT, 0
+        ];
+
+        disassembles to: "0000 CONSTANT            0 == 'test string'\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String(
+            "test string".to_string()));
+    }
+
+    test! {
         "(noop)";
 
         scenario: call noop;
@@ -152,6 +181,42 @@ mod valid {
 
         interpets to: Ok(StackValue::String(
             "noop".to_string()));
+    }
+
+    test! {
+        "(id \"test value\")";
+
+        scenario: call id with string;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("id"), 3)),
+            Ok((4, Token::String("test value".to_string()), 16)),
+            Ok((16, Token::RParan, 17)),
+        ];
+
+        ast should be: Ok(Expr::call((Expr::identifier("id"), 1..3), vec![
+            (Expr::string("test value"), 4..16)
+        ]));
+
+        env: {
+            ..Default::default()
+        };
+
+        compiles to: vec![
+            opcode::GET, lookup::BUILTIN, 0,
+            opcode::CONSTANT, 0,
+            opcode::CALL, 1
+        ];
+
+        disassembles to: "0000 GET                 0 == 'id'\n0003 CONSTANT            0 == 'test value'\n0005 CALL             (1 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String(
+            "test value".to_string()));
     }
 
     test! {
