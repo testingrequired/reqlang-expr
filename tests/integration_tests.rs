@@ -83,6 +83,87 @@ macro_rules! test {
 }
 
 mod valid {
+
+    test! {
+        "(id :b)";
+
+        scenario: call id with var;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("id"), 3)),
+            Ok((4, Token::identifier(":b"), 6)),
+            Ok((6, Token::RParan, 7)),
+        ];
+
+        ast should be: Ok(Expr::call((Expr::identifier("id"), 1..3), vec![
+            (Expr::identifier(":b"), 4..6)
+        ]));
+
+        env: {
+            vars: vec!["a".to_string(), "b".to_string()],
+            ..Default::default()
+        };
+
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 0, opcode::GET, lookup::VAR, 1, opcode::CALL, 1];
+
+        disassembles to: "0000 GET                 0 == 'id'\n0003 GET                 1 == 'b'\n0006 CALL             (1 args)\n";
+
+        runtime env: {
+            vars: vec!["a_value".to_string(), "b_value".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String(
+            "b_value".to_string()));
+    }
+
+    test! {
+        "(id (id :b))";
+
+        scenario: call id with a call to id;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("id"), 3)),
+            Ok((4, Token::LParan, 5)),
+            Ok((5, Token::identifier("id"), 7)),
+            Ok((8, Token::identifier(":b"), 10)),
+            Ok((10, Token::RParan, 11)),
+            Ok((11, Token::RParan, 12)),
+        ];
+
+        ast should be: Ok(Expr::call((Expr::identifier("id"), 1..3), vec![
+            (Expr::call((Expr::identifier("id"), 5..7), vec![
+                (Expr::identifier(":b"), 8..10)
+            ]), 4..11)
+        ]));
+
+        env: {
+            vars: vec!["a".to_string(), "b".to_string()],
+            ..Default::default()
+        };
+
+        compiles to: vec![
+            opcode::GET, lookup::BUILTIN, 0,
+
+            opcode::GET, lookup::BUILTIN, 0,
+            opcode::GET, lookup::VAR, 1,
+            opcode::CALL, 1,
+
+            opcode::CALL, 1
+        ];
+
+        disassembles to: "0000 GET                 0 == 'id'\n0003 GET                 0 == 'id'\n0006 GET                 1 == 'b'\n0009 CALL             (1 args)\n0011 CALL             (1 args)\n";
+
+        runtime env: {
+            vars: vec!["a_value".to_string(), "b_value".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String(
+            "b_value".to_string()));
+    }
     test! {
         ":b";
 

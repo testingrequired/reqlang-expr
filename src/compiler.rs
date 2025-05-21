@@ -1,7 +1,7 @@
 use core::fmt;
 use std::rc::Rc;
 
-use crate::{ast, vm::StackValue};
+use crate::{ast, vm::Value};
 
 pub mod opcode {
     iota::iota! {
@@ -11,6 +11,11 @@ pub mod opcode {
     }
 }
 
+/// Types of lookups for the GET op code
+///
+/// Used at compile time to encode lookup indexes
+///
+/// Used at runtime to use lookup indexes to reference runtime values
 pub mod lookup {
     iota::iota! {
         pub const
@@ -28,9 +33,13 @@ fn get(list: &Vec<String>, identifier: &str) -> Option<u8> {
         .map(|i| i as u8)
 }
 
+/// Builtin function used in expressions
 pub struct BuiltinFn<T> {
+    // Needs to follow identifier naming rules
     pub name: String,
+    // Number of arguments the function expects
     pub arity: u8,
+    // Function used at runtime
     pub func: Rc<dyn Fn(T) -> String>,
 }
 
@@ -53,20 +62,49 @@ impl<'a, T> From<&'a (String, u8)> for BuiltinFn<T> {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Env {
-    pub builtins: Vec<Rc<BuiltinFn<Vec<StackValue>>>>,
+    pub builtins: Vec<Rc<BuiltinFn<Vec<Value>>>>,
     pub vars: Vec<String>,
     pub prompts: Vec<String>,
     pub secrets: Vec<String>,
 }
 
+impl Default for Env {
+    fn default() -> Self {
+        Self {
+            builtins: vec![Rc::new(BuiltinFn {
+                name: String::from("id"),
+                arity: 1,
+                func: Rc::new(|args| {
+                    let arg = args.first().unwrap();
+
+                    let value = arg.get_string();
+
+                    value.to_string()
+                }),
+            })],
+            vars: Vec::new(),
+            prompts: Vec::new(),
+            secrets: Vec::new(),
+        }
+    }
+}
+
 impl Env {
-    pub fn get_builtin(&self, name: &str) -> Option<(&Rc<BuiltinFn<Vec<StackValue>>>, u8)> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn get_builtin_index(&self, name: &str) -> Option<(&Rc<BuiltinFn<Vec<Value>>>, u8)> {
         let index = self.builtins.iter().position(|x| x.name == name);
 
         let result = index.map(|i| (self.builtins.get(i).unwrap(), i as u8));
         result
+    }
+
+    pub fn get_builtin(&self, index: usize) -> Option<&Rc<BuiltinFn<Vec<Value>>>> {
+        self.builtins.get(index)
     }
 }
 
@@ -91,7 +129,7 @@ fn compile_expr(expr: &ast::Expr, env: &Env) -> Vec<u8> {
         ast::Expr::Identifier(identifier) => {
             let identifier_name = identifier.0.as_str();
 
-            if let Some((_, index)) = env.get_builtin(identifier_name) {
+            if let Some((_, index)) = env.get_builtin_index(identifier_name) {
                 codes.push(GET);
                 codes.push(lookup::BUILTIN);
                 codes.push(index);

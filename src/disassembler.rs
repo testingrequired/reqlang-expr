@@ -81,8 +81,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             lookup::BUILTIN => {
                 let value = self
                     .env
-                    .builtins
-                    .get(constant_idx)
+                    .get_builtin(constant_idx)
                     .expect(&format! {"undefined builtin: {constant_idx}"});
                 &value.name
             }

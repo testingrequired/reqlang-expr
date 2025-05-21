@@ -54,43 +54,48 @@ cargo run -q --example lexer spec/call_with_args.expr
         (
             1,
             Identifier(
-                "fn_name",
+                "id",
             ),
-            8,
+            3,
         ),
     ),
     Ok(
         (
-            9,
+            4,
+            LParan,
+            5,
+        ),
+    ),
+    Ok(
+        (
+            5,
+            Identifier(
+                "id",
+            ),
+            7,
+        ),
+    ),
+    Ok(
+        (
+            8,
             Identifier(
                 ":a",
             ),
+            10,
+        ),
+    ),
+    Ok(
+        (
+            10,
+            RParan,
             11,
         ),
     ),
     Ok(
         (
-            12,
-            Identifier(
-                "?b",
-            ),
-            14,
-        ),
-    ),
-    Ok(
-        (
-            15,
-            Identifier(
-                "!c",
-            ),
-            17,
-        ),
-    ),
-    Ok(
-        (
-            17,
+            11,
             RParan,
-            18,
+            12,
         ),
     ),
 ]
@@ -112,35 +117,36 @@ Call(
         callee: (
             Identifier(
                 ExprIdentifier(
-                    "fn_name",
+                    "id",
                 ),
             ),
-            1..8,
+            1..3,
         ),
         args: [
             (
-                Identifier(
-                    ExprIdentifier(
-                        ":a",
-                    ),
+                Call(
+                    ExprCall {
+                        callee: (
+                            Identifier(
+                                ExprIdentifier(
+                                    "id",
+                                ),
+                            ),
+                            5..7,
+                        ),
+                        args: [
+                            (
+                                Identifier(
+                                    ExprIdentifier(
+                                        ":a",
+                                    ),
+                                ),
+                                8..10,
+                            ),
+                        ],
+                    },
                 ),
-                9..11,
-            ),
-            (
-                Identifier(
-                    ExprIdentifier(
-                        "?b",
-                    ),
-                ),
-                12..14,
-            ),
-            (
-                Identifier(
-                    ExprIdentifier(
-                        "!c",
-                    ),
-                ),
-                15..17,
+                4..11,
             ),
         ],
     },
@@ -153,23 +159,8 @@ Compile an expression into bytecode to stdout.
 
 ```sh
 cargo run -q --example compiler -- spec/call_with_args.expr \
-    --builtins fn_name:3 \
     --vars a \
-    --prompts b \
-    --secrets c \
     > output.exprbin
-```
-
-### Interpreter
-
-Interpret an expression.
-
-```sh
-cargo run -q --example interpreter -- spec/call_with_args.expr \
-    --builtins fn_name:3 \
-    --vars a \
-    --prompts b \
-    --secrets c
 ```
 
 #### stderr
@@ -177,16 +168,19 @@ cargo run -q --example interpreter -- spec/call_with_args.expr \
 ```
 ExprByteCode {
     codes: [
+        1,
+        0,
         0,
         1,
         0,
-        3,
-        2,
         0,
-        3,
+        1,
+        1,
         0,
-        4,
         0,
+        1,
+        0,
+        1,
     ],
 }
 ```
@@ -203,19 +197,16 @@ Compile expression and disassemble it.
 
 ```sh
 cargo run -q --example disassembler -- spec/call_with_args.expr \
-    --builtins fn_name:3 \
-    --vars a \
-    --prompts b \
-    --secrets c
+    --vars a:a_value
 ```
 
 #### stderr
 
 ```
-0000 CALL                0 == fn_name (3 args)
-0004 VAR                 0 == 'a'
-0006 PROMPT              0 == 'b'
-0008 SECRET              0 == 'c'
+0000 GET                 0 == 'id'
+0003 GET                 0 == 'id'
+0006 CALL             (1 args)
+0008 CALL             (1 args)
 ```
 
 ### Disassembler From Bytecode
@@ -237,4 +228,21 @@ cargo run -q --example disassembler_from_bytecode -- output.exprbin \
 0004 VAR                 0 == 'a'
 0006 PROMPT              0 == 'b'
 0008 SECRET              0 == 'c'
+```
+
+### Interpreter
+
+Interpret an expression.
+
+```sh
+cargo run -q --example interpreter -- spec/call_with_args.expr \
+    --vars a:a_value
+```
+
+#### stdout
+
+```
+String(
+    "a_value",
+)
 ```

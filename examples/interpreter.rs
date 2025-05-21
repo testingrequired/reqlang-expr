@@ -25,7 +25,7 @@ fn main() {
                 func: Rc::new(|_| String::new()),
             })
         })
-        .collect();
+        .collect::<Vec<_>>();
 
     let var_keys = args.vars.clone().into_iter().map(|(key, _)| key).collect();
 
@@ -56,13 +56,14 @@ fn main() {
         .map(|(_, value)| value)
         .collect();
 
-    let env = Env {
+    let mut env = Env {
         vars: var_keys,
         prompts: prompt_keys,
         secrets: secret_keys,
-        builtins,
         ..Default::default()
     };
+
+    env.builtins.extend(builtins);
 
     let bytecode = compile(&ast, &env);
 
@@ -96,6 +97,6 @@ struct Args {
     secrets: Vec<(String, String)>,
 
     /// List of indexed secret names
-    #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, String>)]
+    #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, u8>)]
     builtins: Vec<(String, u8)>,
 }

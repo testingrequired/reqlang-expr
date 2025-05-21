@@ -15,12 +15,12 @@ fn main() {
     let builtins = vec![Rc::new(BuiltinFn {
         name: "id".to_string(),
         arity: 1,
-        func: Rc::new(|args: Vec<StackValue>| {
+        func: Rc::new(|args: Vec<Value>| {
             let arg = args.get(0).unwrap();
 
             match arg {
-                StackValue::String(value) => value.to_string(),
-                StackValue::Fn(_) => panic!("id should not be called with a function"),
+                Value::String(value) => value.to_string(),
+                Value::Fn(_) => panic!("id should not be called with a function"),
             }
         }),
     })];
@@ -48,10 +48,5 @@ fn main() {
         .interpret(&bytecode, &env, &runtime_env)
         .expect("should be ok");
 
-    if let StackValue::String(string) = result {
-        assert_eq!("a_value", string);
-        return;
-    }
-
-    panic!("result from interpeter should be a string");
+    assert_eq!("a_value", result.get_string());
 }

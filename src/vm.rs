@@ -6,9 +6,25 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub enum StackValue {
+pub enum Value {
     String(String),
-    Fn(Rc<BuiltinFn<Vec<StackValue>>>),
+    Fn(Rc<BuiltinFn<Vec<Value>>>),
+}
+
+impl Value {
+    pub fn get_string(&self) -> &str {
+        match self {
+            Value::String(s) => s.as_str(),
+            _ => panic!("Value is not a string"),
+        }
+    }
+
+    pub fn get_func(&self) -> Rc<BuiltinFn<Vec<Value>>> {
+        match self {
+            Value::Fn(f) => f.clone(),
+            _ => panic!("Value is not a function"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -22,7 +38,7 @@ pub struct RuntimeEnv {
 pub struct Vm<'bytecode> {
     bytecode: Option<&'bytecode ExprByteCode>,
     ip: usize,
-    stack: Vec<StackValue>,
+    stack: Vec<Value>,
 }
 
 impl<'bytecode> Vm<'bytecode> {
@@ -39,7 +55,7 @@ impl<'bytecode> Vm<'bytecode> {
         bytecode: &'bytecode ExprByteCode,
         env: &Env,
         runtime_env: &RuntimeEnv,
-    ) -> Result<StackValue, ()> {
+    ) -> Result<Value, ()> {
         self.bytecode = Some(bytecode);
         self.ip = 0;
 
@@ -77,7 +93,7 @@ impl<'bytecode> Vm<'bytecode> {
 
         let arg_count = self.read_u8() as usize;
 
-        let mut args: Vec<StackValue> = vec![];
+        let mut args: Vec<Value> = vec![];
 
         for _ in 0..arg_count {
             args.push(self.stack_pop());
@@ -85,20 +101,13 @@ impl<'bytecode> Vm<'bytecode> {
 
         args.reverse();
 
-        let builtin = self.stack_pop();
+        let value = self.stack_pop();
 
-        match builtin {
-            StackValue::Fn(c) => match c.name {
-                _ => {
-                    eprintln!("{}({} args) {:#?}", c.name, c.arity, args);
+        let builtin = value.get_func().func.clone();
 
-                    let result = (c.func)(args);
+        let result = builtin(args);
 
-                    self.stack_push(StackValue::String(result));
-                }
-            },
-            _ => panic!("not callable"),
-        }
+        self.stack_push(Value::String(result));
     }
 
     fn op_get(&mut self, env: &Env, runtime_env: &RuntimeEnv) {
@@ -112,7 +121,7 @@ impl<'bytecode> Vm<'bytecode> {
                     .builtins
                     .get(get_idx)
                     .expect(&format! {"undefined builtin: {get_idx}"});
-                self.stack_push(StackValue::Fn(value.clone()));
+                self.stack_push(Value::Fn(value.clone()));
             }
             lookup::VAR => {
                 let value = env
@@ -121,7 +130,7 @@ impl<'bytecode> Vm<'bytecode> {
                     .and_then(|_| runtime_env.vars.get(get_idx))
                     .expect(&format! {"undefined variable: {get_idx}"});
 
-                self.stack_push(StackValue::String(value.clone()));
+                self.stack_push(Value::String(value.clone()));
             }
             lookup::PROMPT => {
                 let value = env
@@ -130,7 +139,7 @@ impl<'bytecode> Vm<'bytecode> {
                     .and_then(|_| runtime_env.prompts.get(get_idx))
                     .expect(&format! {"undefined prompt: {get_idx}"});
 
-                self.stack_push(StackValue::String(value.clone()));
+                self.stack_push(Value::String(value.clone()));
             }
             lookup::SECRET => {
                 let value = env
@@ -139,19 +148,19 @@ impl<'bytecode> Vm<'bytecode> {
                     .and_then(|_| runtime_env.secrets.get(get_idx))
                     .expect(&format! {"undefined secret: {get_idx}"});
 
-                self.stack_push(StackValue::String(value.clone()));
+                self.stack_push(Value::String(value.clone()));
             }
             _ => panic!("invalid get lookup code: {}", get_lookup),
         };
     }
 
-    fn stack_push(&mut self, value: StackValue) {
+    fn stack_push(&mut self, value: Value) {
         eprintln!("Pushing value: {:?}", value);
 
         self.stack.push(value);
     }
 
-    fn stack_pop(&mut self) -> StackValue {
+    fn stack_pop(&mut self) -> Value {
         let value = self
             .stack
             .pop()

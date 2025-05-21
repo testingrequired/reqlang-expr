@@ -16,15 +16,16 @@ fn main() {
                 func: Rc::new(|_| String::new()),
             })
         })
-        .collect();
+        .collect::<Vec<_>>();
 
-    let env = Env {
+    let mut env = Env {
         vars: args.vars.clone(),
         prompts: args.prompts.clone(),
         secrets: args.secrets.clone(),
-        builtins,
         ..Default::default()
     };
+
+    env.builtins.extend(builtins);
 
     let codes = std::fs::read(&args.path).expect("should be able to read source from file");
     let bytecode = ExprByteCode { codes };
