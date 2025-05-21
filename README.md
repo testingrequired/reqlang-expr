@@ -2,13 +2,22 @@
 
 A small (tiny) WIP expression language for [reqlang](https://github.com/testingrequired/reqlang)'s templating engine.
 
-| Syntax         | Description                                        |
-| -------------- | -------------------------------------------------- |
-| `:a`           | Reference to the variable `a`                      |
-| `?b`           | Reference to the prompt `b`                        |
-| `!c`           | Reference to the secret `c`                        |
-| `f`            | Reference to the function `f`                      |
-| `(f :a ?b !c)` | Function call `f` with arguments: `:a`, `?b`, `!c` |
+## Syntax
+
+| Syntax    | Description                                                  |
+| --------- | ------------------------------------------------------------ |
+| `:a`      | Reference to the variable `a`                                |
+| `?b`      | Reference to the prompt `b`                                  |
+| `!c`      | Reference to the secret `c`                                  |
+| `id`      | Reference to the [builtin function](#builtin-functions) `id` |
+| `(id :a)` | Call to builtin `id` with arguments: `:a`                    |
+
+### Builtin Functions
+
+| Name   | Arity | Description                              | Usage         |
+| ------ | ----: | ---------------------------------------- | ------------- |
+| `id`   |     1 | Returns the string arugment passed to it | `(id (noop))` |
+| `noop` |     0 | Returns the string "noop"                | `(noop)`      |
 
 ## Project
 
