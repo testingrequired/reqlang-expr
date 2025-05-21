@@ -1,4 +1,7 @@
-use crate::compiler::{self, ExprByteCode};
+use crate::{
+    compiler::{self, ExprByteCode},
+    prelude::lookup,
+};
 
 pub struct Disassembler<'bytecode, 'env> {
     bytecode: &'bytecode ExprByteCode,
@@ -59,10 +62,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
         };
 
         let (op_idx_inc, op_str): (usize, String) = match self.bytecode.codes[op_idx] {
-            compiler::opcode::VAR => self.disassemble_op_var("VAR", op_idx),
-            compiler::opcode::PROMPT => self.disassemble_op_prompt("PROMPT", op_idx),
-            compiler::opcode::SECRET => self.disassemble_op_secret("SECRET", op_idx),
-            compiler::opcode::BUILTIN => self.disassemble_op_builtin("BUILTIN", op_idx),
+            compiler::opcode::GET => self.disassemble_op_get("GET", op_idx),
             compiler::opcode::CALL => self.disassemble_op_call("CALL", op_idx),
             _ => (1, "".to_string()),
         };
@@ -70,55 +70,64 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
         (op_idx_inc, op_idx_str, op_str)
     }
 
-    fn disassemble_op_var(&self, name: &str, op_idx: usize) -> (usize, String) {
-        let constant_idx = self.bytecode.codes[op_idx + 1];
-        let var = &self.env.vars[constant_idx as usize];
-        let string = format!("{name:16} {constant_idx:>4} == '{var}'\n");
+    fn disassemble_op_get(&self, name: &str, op_idx: usize) -> (usize, String) {
+        let call_op = self.bytecode.codes[op_idx];
+        assert_eq!(call_op, compiler::opcode::GET);
 
-        (2, string)
-    }
+        let lookup_type = self.bytecode.codes[op_idx + 1];
+        let constant_idx = self.bytecode.codes[op_idx + 2] as usize;
 
-    fn disassemble_op_prompt(&self, name: &str, op_idx: usize) -> (usize, String) {
-        let constant_idx = self.bytecode.codes[op_idx + 1];
-        let var = &self.env.prompts[constant_idx as usize];
-        let string = format!("{name:16} {constant_idx:>4} == '{var}'\n");
+        let value = match lookup_type {
+            lookup::BUILTIN => {
+                let value = self
+                    .env
+                    .get_builtin(constant_idx)
+                    .expect(&format! {"undefined builtin: {constant_idx}"});
+                &value.name
+            }
+            lookup::VAR => {
+                let value = self
+                    .env
+                    .vars
+                    .get(constant_idx)
+                    .expect(&format! {"undefined variable: {constant_idx}"});
 
-        (2, string)
-    }
+                value
+            }
+            lookup::PROMPT => {
+                let value = self
+                    .env
+                    .prompts
+                    .get(constant_idx)
+                    .expect(&format! {"undefined prompt: {constant_idx}"});
 
-    fn disassemble_op_secret(&self, name: &str, op_idx: usize) -> (usize, String) {
-        let constant_idx = self.bytecode.codes[op_idx + 1];
-        let var = &self.env.secrets[constant_idx as usize];
-        let string = format!("{name:16} {constant_idx:>4} == '{var}'\n");
+                value
+            }
+            lookup::SECRET => {
+                let value = self
+                    .env
+                    .secrets
+                    .get(constant_idx)
+                    .expect(&format! {"undefined secret: {constant_idx}"});
 
-        (2, string)
-    }
+                value
+            }
+            _ => panic!("invalid get lookup code: {}", lookup_type),
+        };
 
-    fn disassemble_op_builtin(&self, name: &str, op_idx: usize) -> (usize, String) {
-        let constant_idx = self.bytecode.codes[op_idx + 1];
-        let builtin = &self.env.builtins[constant_idx as usize];
-        let string = format!("{name:16} {constant_idx:>4} == '{}'\n", builtin.name);
+        let string = format!("{name:16} {constant_idx:>4} == '{value}'\n");
 
-        (2, string)
+        (3, string)
     }
 
     fn disassemble_op_call(&self, name: &str, op_idx: usize) -> (usize, String) {
         let call_op = self.bytecode.codes[op_idx];
         assert_eq!(call_op, compiler::opcode::CALL);
 
-        let builtin_op = self.bytecode.codes[op_idx + 1];
-        assert_eq!(builtin_op, compiler::opcode::BUILTIN);
+        let arg_count = self.bytecode.codes[op_idx + 1];
 
-        let builtin_idx = self.bytecode.codes[op_idx + 2];
-        let builtin_fn = &self.env.builtins[builtin_idx as usize];
+        let string = format!("{name:16} ({arg_count} args)\n",);
 
-        let arg_count = self.bytecode.codes[op_idx + 3];
-
-        let string = format!(
-            "{name:16} {builtin_idx:>4} == {} ({arg_count} args)\n",
-            builtin_fn.name
-        );
-
-        (4, string)
+        (2, string)
     }
 }

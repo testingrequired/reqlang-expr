@@ -1,6 +1,7 @@
 use std::{
     fs::read_to_string,
     io::{Write, stdout},
+    rc::Rc,
 };
 
 use clap::Parser;
@@ -18,15 +19,26 @@ fn main() {
         .parse(tokens)
         .expect("should parse tokens to ast");
 
-    let builtins = args.builtins.iter().map(|builtin| builtin.into()).collect();
+    let builtins = args
+        .builtins
+        .iter()
+        .map(|builtin| {
+            Rc::new(BuiltinFn {
+                name: builtin.0.clone(),
+                arity: builtin.1,
+                func: Rc::new(|_| String::new()),
+            })
+        })
+        .collect::<Vec<_>>();
 
-    let env = Env {
+    let mut env = Env {
         vars: args.vars.clone(),
         prompts: args.prompts.clone(),
         secrets: args.secrets.clone(),
-        builtins,
         ..Default::default()
     };
+
+    env.builtins.extend(builtins);
 
     let bytecode = compile(&ast, &env);
 

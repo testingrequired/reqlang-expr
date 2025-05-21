@@ -7,67 +7,75 @@ macro_rules! test {
         env: $env:tt;
         compiles to: $expected_op_codes:expr;
         disassembles to: $expected_disassembly:expr;
+        runtime env: $runtime_env:tt;
+        interpets to: $expected_interpretation:expr;
     ) => {
         ::pastey::paste! {
-            #[test]
-            fn [< $test_name:lower $(_ $test_name2:lower)* _tokens >]() {
-                let tokens = ::reqlang_expr::lexer::Lexer::new($source).collect::<Vec<_>>();
+            mod [< $test_name:lower $(_ $test_name2:lower)* _tests >] {
+                use reqlang_expr::prelude::*;
 
-                ::pretty_assertions::assert_eq!($expected_tokens, tokens);
-            }
+                #[test]
+                fn [< $test_name:lower $(_ $test_name2:lower)* _tokens >]() {
+                    let tokens = ::reqlang_expr::lexer::Lexer::new($source).collect::<Vec<_>>();
 
-            #[test]
-            fn [< $test_name:lower $(_ $test_name2:lower)* _ast >]() {
-                let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
-
-                ::pretty_assertions::assert_eq!($expected_ast, ast);
-            }
-
-            #[test]
-            fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes >]() {
-                let env: Env = Env$env;
-
-                let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
-
-                if let Ok(ast) = ast {
-                    let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
-                    let expected_op_codes: Vec<u8> = $expected_op_codes;
-
-                    ::pretty_assertions::assert_eq!(expected_op_codes, op_codes.codes);
+                    ::pretty_assertions::assert_eq!($expected_tokens, tokens);
                 }
-            }
 
-            #[test]
-            fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes_disassemble_to >]() {
-                let env: Env = Env$env;
+                #[test]
+                fn [< $test_name:lower $(_ $test_name2:lower)* _ast >]() {
+                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
+                    let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
 
-                let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
-
-                if let Ok(ast) = ast {
-                    let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
-                    let expected_disassembly: String = $expected_disassembly.to_string();
-                    let disassemble = ::reqlang_expr::disassembler::Disassembler::new(&op_codes, &env);
-                    let disassembly = disassemble.disassemble(None);
-
-                    ::pretty_assertions::assert_eq!(expected_disassembly, disassembly);
+                    ::pretty_assertions::assert_eq!($expected_ast, ast);
                 }
-            }
 
-            #[test]
-            fn [< $test_name:lower $(_ $test_name2:lower)* _interprets_without_error >]() {
-                let env: Env = Env$env;
+                #[test]
+                fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes >]() {
+                    let env: Env = Env$env;
 
-                let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
+                    let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
 
-                if let Ok(ast) = ast {
-                    let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
-                    let mut vm = Vm::default();
+                    if let Ok(ast) = ast {
+                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+                        let expected_op_codes: Vec<u8> = $expected_op_codes;
 
-                    vm.interpret(&op_codes).unwrap();
+                        ::pretty_assertions::assert_eq!(expected_op_codes, op_codes.codes);
+                    }
+                }
+
+                #[test]
+                fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes_disassemble_to >]() {
+                    let env: Env = Env$env;
+
+                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
+                    let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+
+                    if let Ok(ast) = ast {
+                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+                        let expected_disassembly: String = $expected_disassembly.to_string();
+                        let disassemble = ::reqlang_expr::disassembler::Disassembler::new(&op_codes, &env);
+                        let disassembly = disassemble.disassemble(None);
+
+                        ::pretty_assertions::assert_eq!(expected_disassembly, disassembly);
+                    }
+                }
+
+                #[test]
+                fn [< $test_name:lower $(_ $test_name2:lower)* _interprets_without_error >]() {
+                    let env: Env = Env$env;
+
+                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
+                    let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+
+                    if let Ok(ast) = ast {
+                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+
+                        let mut vm = Vm::new();
+                        let runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
+
+                        vm.interpret(&op_codes, &env, &runtime_env).unwrap();
+                    }
                 }
             }
         }
@@ -75,29 +83,157 @@ macro_rules! test {
 }
 
 mod valid {
-    use reqlang_expr::prelude::*;
-
     test! {
-        "foo";
+        "(noop)";
 
-        scenario: identifier;
+        scenario: call noop;
 
         tokens should be: vec![
-            Ok((0, Token::identifier("foo"), 3))
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("noop"), 5)),
+            Ok((5, Token::RParan, 6)),
         ];
 
-        ast should be: Ok(Expr::identifier("foo"));
+        ast should be: Ok(Expr::call((Expr::identifier("noop"), 1..5), vec![]));
 
         env: {
-            builtins: vec![Fn { name: "foo".to_string(), arity: 0 }],
             ..Default::default()
         };
 
-        compiles to: vec![opcode::BUILTIN, 0];
+        compiles to: vec![
+            opcode::GET, lookup::BUILTIN, 1,
+            opcode::CALL, 0
+        ];
 
-        disassembles to: "0000 BUILTIN             0 == 'foo'\n";
+        disassembles to: "0000 GET                 1 == 'noop'\n0003 CALL             (0 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String(
+            "noop".to_string()));
     }
 
+    test! {
+        "(id (noop))";
+
+        scenario: call id with noop call;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("id"), 3)),
+            Ok((4, Token::LParan, 5)),
+            Ok((5, Token::identifier("noop"), 9)),
+            Ok((9, Token::RParan, 10)),
+            Ok((10, Token::RParan, 11)),
+        ];
+
+        ast should be: Ok(Expr::call((Expr::identifier("id"), 1..3), vec![
+            (Expr::call((Expr::identifier("noop"), 5..9), vec![]), 4..10)
+        ]));
+
+        env: {
+            ..Default::default()
+        };
+
+        compiles to: vec![
+            opcode::GET, lookup::BUILTIN, 0,
+            opcode::GET, lookup::BUILTIN, 1,
+            opcode::CALL, 0,
+            opcode::CALL, 1
+        ];
+
+        disassembles to: "0000 GET                 0 == 'id'\n0003 GET                 1 == 'noop'\n0006 CALL             (0 args)\n0008 CALL             (1 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String(
+            "noop".to_string()));
+    }
+
+    test! {
+        "(id :b)";
+
+        scenario: call id with var;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("id"), 3)),
+            Ok((4, Token::identifier(":b"), 6)),
+            Ok((6, Token::RParan, 7)),
+        ];
+
+        ast should be: Ok(Expr::call((Expr::identifier("id"), 1..3), vec![
+            (Expr::identifier(":b"), 4..6)
+        ]));
+
+        env: {
+            vars: vec!["a".to_string(), "b".to_string()],
+            ..Default::default()
+        };
+
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 0, opcode::GET, lookup::VAR, 1, opcode::CALL, 1];
+
+        disassembles to: "0000 GET                 0 == 'id'\n0003 GET                 1 == 'b'\n0006 CALL             (1 args)\n";
+
+        runtime env: {
+            vars: vec!["a_value".to_string(), "b_value".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String(
+            "b_value".to_string()));
+    }
+
+    test! {
+        "(id (id :b))";
+
+        scenario: call id with a call to id;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("id"), 3)),
+            Ok((4, Token::LParan, 5)),
+            Ok((5, Token::identifier("id"), 7)),
+            Ok((8, Token::identifier(":b"), 10)),
+            Ok((10, Token::RParan, 11)),
+            Ok((11, Token::RParan, 12)),
+        ];
+
+        ast should be: Ok(Expr::call((Expr::identifier("id"), 1..3), vec![
+            (Expr::call((Expr::identifier("id"), 5..7), vec![
+                (Expr::identifier(":b"), 8..10)
+            ]), 4..11)
+        ]));
+
+        env: {
+            vars: vec!["a".to_string(), "b".to_string()],
+            ..Default::default()
+        };
+
+        compiles to: vec![
+            opcode::GET, lookup::BUILTIN, 0,
+
+            opcode::GET, lookup::BUILTIN, 0,
+            opcode::GET, lookup::VAR, 1,
+            opcode::CALL, 1,
+
+            opcode::CALL, 1
+        ];
+
+        disassembles to: "0000 GET                 0 == 'id'\n0003 GET                 0 == 'id'\n0006 GET                 1 == 'b'\n0009 CALL             (1 args)\n0011 CALL             (1 args)\n";
+
+        runtime env: {
+            vars: vec!["a_value".to_string(), "b_value".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String(
+            "b_value".to_string()));
+    }
     test! {
         ":b";
 
@@ -114,9 +250,17 @@ mod valid {
             ..Default::default()
         };
 
-        compiles to: vec![opcode::VAR, 1];
+        compiles to: vec![opcode::GET, lookup::VAR, 1];
 
-        disassembles to: "0000 VAR                 1 == 'b'\n";
+        disassembles to: "0000 GET                 1 == 'b'\n";
+
+        runtime env: {
+            vars: vec!["a_value".to_string(), "b_value".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String(
+            "b_value".to_string()));
     }
 
     test! {
@@ -135,9 +279,17 @@ mod valid {
             ..Default::default()
         };
 
-        compiles to: vec![opcode::PROMPT, 1];
+        compiles to: vec![opcode::GET, lookup::PROMPT, 1];
 
-        disassembles to: "0000 PROMPT              1 == 'b'\n";
+        disassembles to: "0000 GET                 1 == 'b'\n";
+
+        runtime env: {
+            prompts: vec!["a_value".to_string(), "b_value".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String(
+            "b_value".to_string()));
     }
 
     test! {
@@ -156,9 +308,17 @@ mod valid {
             ..Default::default()
         };
 
-        compiles to: vec![opcode::SECRET, 1];
+        compiles to: vec![opcode::GET, lookup::SECRET, 1];
 
-        disassembles to: "0000 SECRET              1 == 'b'\n";
+        disassembles to: "0000 GET                 1 == 'b'\n";
+
+        runtime env: {
+            secrets: vec!["a_value".to_string(), "b_value".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String(
+            "b_value".to_string()));
     }
 
     test! {
@@ -178,92 +338,56 @@ mod valid {
         ));
 
         env: {
-            builtins: vec![Fn { name: "foo".to_string(), arity: 0 }],
+            builtins: vec![BuiltinFn { name: "foo".to_string(), arity: 0, func: std::rc::Rc::new(|_| String::new()) }.into()],
             ..Default::default()
         };
 
-        compiles to: vec![opcode::CALL, opcode::BUILTIN, 0, 0];
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 0, opcode::CALL, 0];
 
-        disassembles to: "0000 CALL                0 == foo (0 args)\n";
+        disassembles to: "0000 GET                 0 == 'foo'\n0003 CALL             (0 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 
     test! {
-        "(foo bar)";
+        "(foo :a)";
 
         scenario: call with identifier arg;
 
         tokens should be: vec![
             Ok((0, Token::LParan, 1)),
             Ok((1, Token::identifier("foo"), 4)),
-            Ok((5, Token::identifier("bar"), 8)),
-            Ok((8, Token::RParan, 9))
+            Ok((5, Token::identifier(":a"), 7)),
+            Ok((7, Token::RParan, 8))
         ];
 
         ast should be: Ok(Expr::call(
             (Expr::identifier("foo"), 1..4),
-            vec![(Expr::identifier("bar"), 5..8)]
+            vec![(Expr::identifier(":a"), 5..7)]
         ));
 
         env: {
             builtins: vec![
-                Fn { name: "foo".to_string(), arity: 1 },
-                Fn { name: "bar".to_string(), arity: 0 }
+                BuiltinFn { name: "foo".to_string(), arity: 1, func: std::rc::Rc::new(|_| String::new()) }.into()
             ],
+            vars: vec!["a".to_string()],
             ..Default::default()
         };
 
-        compiles to: vec![opcode::CALL, opcode::BUILTIN, 0, 1, opcode::BUILTIN, 1];
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 0, opcode::GET, lookup::VAR, 0, opcode::CALL, 1];
 
-        disassembles to: "0000 CALL                0 == foo (1 args)\n0004 BUILTIN             1 == 'bar'\n";
-    }
+        disassembles to: "0000 GET                 0 == 'foo'\n0003 GET                 0 == 'a'\n0006 CALL             (1 args)\n";
 
-    test! {
-        "(foo bar fiz baz)";
-
-        scenario: call with multiple identifier args;
-
-        tokens should be: vec![
-            Ok((0, Token::LParan, 1)),
-            Ok((1, Token::identifier("foo"), 4)),
-            Ok((5, Token::identifier("bar"), 8)),
-            Ok((9, Token::identifier("fiz"), 12)),
-            Ok((13, Token::identifier("baz"), 16)),
-            Ok((16, Token::RParan, 17))
-        ];
-
-        ast should be: Ok(Expr::call(
-            (Expr::identifier("foo"), 1..4),
-            vec![
-                (Expr::identifier("bar"), 5..8),
-                (Expr::identifier("fiz"), 9..12),
-                (Expr::identifier("baz"), 13..16)
-            ]
-        ));
-
-        env: {
-            builtins: vec![
-                Fn { name: "foo".to_string(), arity: 3 },
-                Fn { name: "bar".to_string(), arity: 0 },
-                Fn { name: "fiz".to_string(), arity: 0 },
-                Fn { name: "baz".to_string(), arity: 0 }
-            ],
+        runtime env: {
+            vars: vec!["a_value".to_string()],
             ..Default::default()
         };
 
-        compiles to: vec![
-            opcode::CALL,
-            opcode::BUILTIN,
-            0,
-            3,
-            opcode::BUILTIN,
-            1,
-            opcode::BUILTIN,
-            2,
-            opcode::BUILTIN,
-            3
-        ];
-
-        disassembles to: "0000 CALL                0 == foo (3 args)\n0004 BUILTIN             1 == 'bar'\n0006 BUILTIN             2 == 'fiz'\n0008 BUILTIN             3 == 'baz'\n";
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 
     test! {
@@ -315,10 +439,10 @@ mod valid {
 
         env: {
             builtins: vec![
-                Fn { name: "foo".to_string(), arity: 3 },
-                Fn { name: "bar".to_string(), arity: 1 },
-                Fn { name: "fiz".to_string(), arity: 1 },
-                Fn { name: "baz".to_string(), arity: 1 }
+                BuiltinFn { name: "foo".to_string(), arity: 3, func: std::rc::Rc::new(|_| String::new()) }.into(),
+                BuiltinFn { name: "bar".to_string(), arity: 1, func: std::rc::Rc::new(|_| String::new()) }.into(),
+                BuiltinFn { name: "fiz".to_string(), arity: 1, func: std::rc::Rc::new(|_| String::new()) }.into(),
+                BuiltinFn { name: "baz".to_string(), arity: 1, func: std::rc::Rc::new(|_| String::new()) }.into()
             ],
             vars: vec!["a".to_string()],
             prompts: vec!["b".to_string()],
@@ -327,36 +451,147 @@ mod valid {
         };
 
         compiles to: vec![
-            opcode::CALL,
-            opcode::BUILTIN,
+            opcode::GET,
+            lookup::BUILTIN, // foo
             0,
-            3,
-            opcode::CALL,
-            opcode::BUILTIN,
+
+            opcode::GET,
+            lookup::BUILTIN, // bar
             1,
-            1,
-            opcode::VAR,
+            opcode::GET,
+            lookup::VAR, // :a
             0,
-            opcode::CALL,
-            opcode::BUILTIN,
+            opcode::CALL, // bar
+            1,
+
+            opcode::GET,
+            lookup::BUILTIN, // fiz
             2,
-            1,
-            opcode::PROMPT,
+            opcode::GET,
+            lookup::PROMPT, // ?b
             0,
-            opcode::CALL,
-            opcode::BUILTIN,
+            opcode::CALL, // fiz
+            1,
+
+            opcode::GET,
+            lookup::BUILTIN, // baz
             3,
-            1,
-            opcode::SECRET,
+            opcode::GET,
+            lookup::SECRET, // !c
             0,
+            opcode::CALL, // baz
+            1,
+
+            opcode::CALL, // foo
+            3
         ];
 
-        disassembles to: "0000 CALL                0 == foo (3 args)\n0004 CALL                1 == bar (1 args)\n0008 VAR                 0 == 'a'\n0010 CALL                2 == fiz (1 args)\n0014 PROMPT              0 == 'b'\n0016 CALL                3 == baz (1 args)\n0020 SECRET              0 == 'c'\n";
+        disassembles to: "0000 GET                 0 == 'foo'\n0003 GET                 1 == 'bar'\n0006 GET                 0 == 'a'\n0009 CALL             (1 args)\n0011 GET                 2 == 'fiz'\n0014 GET                 0 == 'b'\n0017 CALL             (1 args)\n0019 GET                 3 == 'baz'\n0022 GET                 0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
+
+        runtime env: {
+            vars: vec!["a_value".to_string()],
+            prompts: vec!["b_value".to_string()],
+            secrets: vec!["c_value".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 }
 
 mod invalid {
-    use reqlang_expr::prelude::*;
+    test! {
+        "foo";
+
+        scenario: identifier;
+
+        tokens should be: vec![
+            Ok((0, Token::identifier("foo"), 3))
+        ];
+
+        ast should be: Ok(Expr::identifier("foo"));
+
+        env: {
+            builtins: vec![BuiltinFn { name: "foo".to_string(), arity: 0, func: std::rc::Rc::new(|_| String::new()) }.into()],
+            ..Default::default()
+        };
+
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 0];
+
+        disassembles to: "0000 GET                 0 == 'foo'\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(
+            StackValue::Fn(Box::new(
+                Fn { name: "foo".to_string(), arity: 0 }
+            )));
+    }
+
+    test! {
+        "(foo bar fiz baz)";
+
+        scenario: call with multiple identifier args;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("foo"), 4)),
+            Ok((5, Token::identifier("bar"), 8)),
+            Ok((9, Token::identifier("fiz"), 12)),
+            Ok((13, Token::identifier("baz"), 16)),
+            Ok((16, Token::RParan, 17))
+        ];
+
+        ast should be: Ok(Expr::call(
+            (Expr::identifier("foo"), 1..4),
+            vec![
+                (Expr::identifier("bar"), 5..8),
+                (Expr::identifier("fiz"), 9..12),
+                (Expr::identifier("baz"), 13..16)
+            ]
+        ));
+
+        env: {
+            builtins: vec![
+                BuiltinFn { name: "foo".to_string(), arity: 3, func: std::rc::Rc::new(|_| String::new()) }.into(),
+                BuiltinFn { name: "bar".to_string(), arity: 0, func: std::rc::Rc::new(|_| String::new()) }.into(),
+                BuiltinFn { name: "fiz".to_string(), arity: 0, func: std::rc::Rc::new(|_| String::new()) }.into(),
+                BuiltinFn { name: "baz".to_string(), arity: 0, func: std::rc::Rc::new(|_| String::new()) }.into()
+            ],
+            ..Default::default()
+        };
+
+        compiles to: vec![
+            opcode::GET,
+            lookup::BUILTIN,
+            0,
+
+            opcode::GET,
+            lookup::BUILTIN,
+            1,
+
+            opcode::GET,
+            lookup::BUILTIN,
+            2,
+
+            opcode::GET,
+            lookup::BUILTIN,
+            3,
+
+            opcode::CALL,
+            3
+        ];
+
+        disassembles to: "0000 GET                 0 == 'foo'\n0003 GET                 1 == 'bar'\n0006 GET                 2 == 'fiz'\n0009 GET                 3 == 'baz'\n0012 CALL             (3 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String("".to_string()));
+    }
 
     test! {
         "()";
@@ -380,6 +615,12 @@ mod invalid {
         compiles to: vec![];
 
         disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 
     test! {
@@ -408,6 +649,12 @@ mod invalid {
         compiles to: vec![];
 
         disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 
     test! {
@@ -431,6 +678,12 @@ mod invalid {
         compiles to: vec![];
 
         disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 
     test! {
@@ -455,6 +708,12 @@ mod invalid {
         compiles to: vec![];
 
         disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 
     test! {
@@ -479,5 +738,11 @@ mod invalid {
         compiles to: vec![];
 
         disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(StackValue::String("".to_string()));
     }
 }
