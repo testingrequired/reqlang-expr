@@ -1,4 +1,7 @@
-use crate::compiler::{self, ExprByteCode};
+use crate::{
+    compiler::{self, ExprByteCode},
+    prelude::lookup,
+};
 
 pub struct Disassembler<'bytecode, 'env> {
     bytecode: &'bytecode ExprByteCode,
@@ -68,27 +71,64 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
     }
 
     fn disassemble_op_get(&self, name: &str, op_idx: usize) -> (usize, String) {
-        let constant_idx = self.bytecode.codes[op_idx + 1];
-        let var = &self.env.vars[constant_idx as usize];
-        let string = format!("{name:16} {constant_idx:>4} == '{var}'\n");
+        let call_op = self.bytecode.codes[op_idx];
+        assert_eq!(call_op, compiler::opcode::GET);
 
-        (2, string)
+        let lookup_type = self.bytecode.codes[op_idx + 1];
+        let constant_idx = self.bytecode.codes[op_idx + 2] as usize;
+
+        let value = match lookup_type {
+            lookup::BUILTIN => {
+                let value = self
+                    .env
+                    .builtins
+                    .get(constant_idx)
+                    .expect(&format! {"undefined builtin: {constant_idx}"});
+                &value.name
+            }
+            lookup::VAR => {
+                let value = self
+                    .env
+                    .vars
+                    .get(constant_idx)
+                    .expect(&format! {"undefined variable: {constant_idx}"});
+
+                value
+            }
+            lookup::PROMPT => {
+                let value = self
+                    .env
+                    .prompts
+                    .get(constant_idx)
+                    .expect(&format! {"undefined prompt: {constant_idx}"});
+
+                value
+            }
+            lookup::SECRET => {
+                let value = self
+                    .env
+                    .secrets
+                    .get(constant_idx)
+                    .expect(&format! {"undefined secret: {constant_idx}"});
+
+                value
+            }
+            _ => panic!("invalid get lookup code: {}", lookup_type),
+        };
+
+        let string = format!("{name:16} {constant_idx:>4} == '{value}'\n");
+
+        (3, string)
     }
 
     fn disassemble_op_call(&self, name: &str, op_idx: usize) -> (usize, String) {
         let call_op = self.bytecode.codes[op_idx];
         assert_eq!(call_op, compiler::opcode::CALL);
 
-        let builtin_idx = self.bytecode.codes[op_idx + 1];
-        let builtin_fn = &self.env.builtins[builtin_idx as usize];
+        let arg_count = self.bytecode.codes[op_idx + 1];
 
-        let arg_count = self.bytecode.codes[op_idx + 2];
+        let string = format!("{name:16} ({arg_count} args)\n",);
 
-        let string = format!(
-            "{name:16} {builtin_idx:>4} == {} ({arg_count} args)\n",
-            builtin_fn.name
-        );
-
-        (4, string)
+        (2, string)
     }
 }

@@ -44,22 +44,22 @@ macro_rules! test {
                     }
                 }
 
-                // #[test]
-                // fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes_disassemble_to >]() {
-                //     let env: Env = Env$env;
+                #[test]
+                fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes_disassemble_to >]() {
+                    let env: Env = Env$env;
 
-                //     let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                //     let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
+                    let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
 
-                //     if let Ok(ast) = ast {
-                //         let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
-                //         let expected_disassembly: String = $expected_disassembly.to_string();
-                //         let disassemble = ::reqlang_expr::disassembler::Disassembler::new(&op_codes, &env);
-                //         let disassembly = disassemble.disassemble(None);
+                    if let Ok(ast) = ast {
+                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+                        let expected_disassembly: String = $expected_disassembly.to_string();
+                        let disassemble = ::reqlang_expr::disassembler::Disassembler::new(&op_codes, &env);
+                        let disassembly = disassemble.disassemble(None);
 
-                //         ::pretty_assertions::assert_eq!(expected_disassembly, disassembly);
-                //     }
-                // }
+                        ::pretty_assertions::assert_eq!(expected_disassembly, disassembly);
+                    }
+                }
 
                 #[test]
                 fn [< $test_name:lower $(_ $test_name2:lower)* _interprets_without_error >]() {
@@ -101,7 +101,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::VAR, 1];
 
-        disassembles to: "0000 VAR                 1 == 'b'\n";
+        disassembles to: "0000 GET                 1 == 'b'\n";
 
         runtime env: {
             vars: vec!["a_value".to_string(), "b_value".to_string()],
@@ -130,7 +130,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::PROMPT, 1];
 
-        disassembles to: "0000 PROMPT              1 == 'b'\n";
+        disassembles to: "0000 GET                 1 == 'b'\n";
 
         runtime env: {
             prompts: vec!["a_value".to_string(), "b_value".to_string()],
@@ -159,7 +159,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::SECRET, 1];
 
-        disassembles to: "0000 SECRET              1 == 'b'\n";
+        disassembles to: "0000 GET                 1 == 'b'\n";
 
         runtime env: {
             secrets: vec!["a_value".to_string(), "b_value".to_string()],
@@ -193,7 +193,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 0, opcode::CALL, 0];
 
-        disassembles to: "0000 CALL                0 == foo (0 args)\n";
+        disassembles to: "0000 GET                 0 == 'foo'\n0003 CALL             (0 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -229,7 +229,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 0, opcode::GET, lookup::VAR, 0, opcode::CALL, 1];
 
-        disassembles to: "0000 CALL                0 == foo (1 args)\n0004 VAR                 0 == 'a'\n";
+        disassembles to: "0000 GET                 0 == 'foo'\n0003 GET                 0 == 'a'\n0006 CALL             (1 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -335,7 +335,7 @@ mod valid {
             3
         ];
 
-        disassembles to: "0000 CALL                0 == foo (3 args)\n0004 CALL                1 == bar (1 args)\n0008 VAR                 0 == 'a'\n0010 CALL                2 == fiz (1 args)\n0014 PROMPT              0 == 'b'\n0016 CALL                3 == baz (1 args)\n0020 SECRET              0 == 'c'\n";
+        disassembles to: "0000 GET                 0 == 'foo'\n0003 GET                 1 == 'bar'\n0006 GET                 0 == 'a'\n0009 CALL             (1 args)\n0011 GET                 2 == 'fiz'\n0014 GET                 0 == 'b'\n0017 CALL             (1 args)\n0019 GET                 3 == 'baz'\n0022 GET                 0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -367,7 +367,7 @@ mod invalid {
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 0];
 
-        disassembles to: "0000 BUILTIN             0 == 'foo'\n";
+        disassembles to: "0000 GET                 0 == 'foo'\n";
 
         runtime env: {
             ..Default::default()
@@ -433,7 +433,7 @@ mod invalid {
             3
         ];
 
-        disassembles to: "0000 CALL                0 == foo (3 args)\n0004 BUILTIN             1 == 'bar'\n0006 BUILTIN             2 == 'fiz'\n0008 BUILTIN             3 == 'baz'\n";
+        disassembles to: "0000 GET                 0 == 'foo'\n0003 GET                 1 == 'bar'\n0006 GET                 2 == 'fiz'\n0009 GET                 3 == 'baz'\n0012 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()
