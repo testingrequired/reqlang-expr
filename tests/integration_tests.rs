@@ -363,6 +363,39 @@ mod valid {
     }
 
     test! {
+        "(id ?b)";
+
+        scenario: call id with prompt;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("id"), 3)),
+            Ok((4, Token::identifier("?b"), 6)),
+            Ok((6, Token::RParan, 7)),
+        ];
+
+        ast should be: Ok(Expr::call((Expr::identifier("id"), 1..3), vec![
+            (Expr::identifier("?b"), 4..6)
+        ]));
+
+        env: (vec![], vec!["a".to_string(), "b".to_string()], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 0, opcode::GET, lookup::PROMPT, 1, opcode::CALL, 1];
+
+        disassembles to: "0000 GET                 0 == 'id'\n0003 GET                 1 == 'b'\n0006 CALL             (1 args)\n";
+
+        runtime env: {
+            prompts: vec!["a_value".to_string(), "b_value".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String(
+            "b_value".to_string()));
+    }
+
+    test! {
         "!b";
 
         scenario: secret identifier;

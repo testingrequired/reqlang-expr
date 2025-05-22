@@ -1,4 +1,8 @@
-use std::error::Error;
+use std::{
+    error::Error,
+    fs::read_to_string,
+    io::{Read, stdin},
+};
 
 /// Parse a single key-value pair
 pub fn parse_key_val<T, U>(value: &str) -> Result<(T, U), Box<dyn Error + Send + Sync + 'static>>
@@ -20,4 +24,20 @@ where
     let value = parts[1].parse()?;
 
     Ok((key, value))
+}
+
+pub fn read_in_source(path: Option<String>) -> String {
+    match path {
+        Some(path) => {
+            //
+            return read_to_string(path).expect("should be able to open file at path");
+        }
+        None => {
+            let mut source = String::new();
+
+            stdin().read_to_string(&mut source).unwrap();
+
+            source
+        }
+    }
 }

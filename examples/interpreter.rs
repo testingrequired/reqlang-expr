@@ -1,12 +1,15 @@
-use std::{fs::read_to_string, rc::Rc};
+use std::rc::Rc;
 
 use clap::Parser;
-use reqlang_expr::{cli::parse_key_val, prelude::*};
+use reqlang_expr::{
+    cli::{parse_key_val, read_in_source},
+    prelude::*,
+};
 
 fn main() {
     let args = Args::parse();
 
-    let source = read_to_string(args.path).expect("should be able to open file at path");
+    let source = read_in_source(args.path);
 
     let lexer: Lexer<'_> = Lexer::new(&source);
     let tokens = lexer.collect::<Vec<_>>();
@@ -36,9 +39,12 @@ fn main() {
         .map(|(_, value)| value)
         .collect();
 
-    eprintln!("{var_values:#?}");
-
-    let prompt_keys = args.vars.clone().into_iter().map(|(key, _)| key).collect();
+    let prompt_keys = args
+        .prompts
+        .clone()
+        .into_iter()
+        .map(|(key, _)| key)
+        .collect();
 
     let prompt_values = args
         .prompts
@@ -47,7 +53,12 @@ fn main() {
         .map(|(_, value)| value)
         .collect();
 
-    let secret_keys = args.vars.clone().into_iter().map(|(key, _)| key).collect();
+    let secret_keys = args
+        .secrets
+        .clone()
+        .into_iter()
+        .map(|(key, _)| key)
+        .collect();
 
     let secret_values = args
         .secrets
@@ -77,7 +88,7 @@ fn main() {
 #[command(version, about = "Example CLI that compiles an expression")]
 struct Args {
     /// Path to expression file
-    path: String,
+    path: Option<String>,
 
     /// List of indexed variable names
     #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, String>)]

@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{fmt::Display, rc::Rc};
 
 use crate::{
     compiler::{self, BuiltinFn, Env, ExprByteCode},
@@ -30,6 +30,15 @@ impl Value {
 impl From<&str> for Value {
     fn from(s: &str) -> Self {
         Value::String(s.to_string())
+    }
+}
+
+impl Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Value::String(string) => write!(f, "{}", string),
+            Value::Fn(builtin) => write!(f, "builtin {}({})", builtin.name, builtin.arity),
+        }
     }
 }
 
@@ -76,7 +85,7 @@ impl<'bytecode> Vm<'bytecode> {
 
         let value = self.stack_pop();
 
-        eprintln!("{value:#?}");
+        eprintln!("{value}");
 
         Ok(value)
     }
