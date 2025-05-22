@@ -41,7 +41,13 @@ pub struct BuiltinFn {
     // Number of arguments the function expects
     pub arity: u8,
     // Function used at runtime
-    pub func: Rc<dyn Fn(Vec<Value>) -> String>,
+    pub func: Rc<dyn Fn(Vec<Value>) -> Value>,
+}
+
+impl PartialEq for BuiltinFn {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.arity == other.arity
+    }
 }
 
 impl fmt::Debug for BuiltinFn {
@@ -58,7 +64,7 @@ impl<'a> From<&'a (String, u8)> for BuiltinFn {
         BuiltinFn {
             name: value.0.clone(),
             arity: value.1.clone(),
-            func: Rc::new(|_| String::new()),
+            func: Rc::new(|_| Value::String(String::new())),
         }
     }
 }
@@ -96,14 +102,14 @@ impl Default for Env {
 pub struct BuiltinFns;
 
 impl BuiltinFns {
-    pub fn id(args: Vec<Value>) -> String {
+    pub fn id(args: Vec<Value>) -> Value {
         let arg = args.first().unwrap();
 
-        arg.get_string().to_string()
+        Value::String(arg.get_string().to_string())
     }
 
-    pub fn noop(_: Vec<Value>) -> String {
-        String::from("noop")
+    pub fn noop(_: Vec<Value>) -> Value {
+        Value::String(String::from("noop"))
     }
 }
 

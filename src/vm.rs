@@ -5,7 +5,7 @@ use crate::{
     prelude::lookup,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     String(String),
     Fn(Rc<BuiltinFn>),
@@ -108,7 +108,7 @@ impl<'bytecode> Vm<'bytecode> {
 
         let result = builtin(args);
 
-        self.stack_push(Value::String(result));
+        self.stack_push(result);
     }
 
     fn op_get(&mut self, env: &Env, runtime_env: &RuntimeEnv) {
@@ -119,8 +119,7 @@ impl<'bytecode> Vm<'bytecode> {
         match get_lookup {
             lookup::BUILTIN => {
                 let value = env
-                    .builtins
-                    .get(get_idx)
+                    .get_builtin(get_idx)
                     .expect(&format! {"undefined builtin: {get_idx}"});
                 self.stack_push(Value::Fn(value.clone()));
             }

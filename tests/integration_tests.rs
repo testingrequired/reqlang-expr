@@ -74,7 +74,11 @@ macro_rules! test {
                         let mut vm = Vm::new();
                         let runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
 
-                        vm.interpret(&op_codes, &env, &runtime_env).unwrap();
+                        let value = vm.interpret(&op_codes, &env, &runtime_env);
+
+                        let expected_interpretation: Result<Value, ()> = $expected_interpretation;
+
+                        ::pretty_assertions::assert_eq!(expected_interpretation, value);
                     }
                 }
             }
@@ -108,8 +112,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String(
-            "test string".to_string()));
+        interpets to: Ok(Value::String("test string".to_string()));
     }
 
     test! {
@@ -140,8 +143,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String(
-            "noop".to_string()));
+        interpets to: Ok(Value::String("noop".to_string()));
     }
 
     test! {
@@ -179,7 +181,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String(
+        interpets to: Ok(Value::String(
             "noop".to_string()));
     }
 
@@ -215,7 +217,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String(
+        interpets to: Ok(Value::String(
             "test value".to_string()));
     }
 
@@ -249,7 +251,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String(
+        interpets to: Ok(Value::String(
             "b_value".to_string()));
     }
 
@@ -296,7 +298,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String(
+        interpets to: Ok(Value::String(
             "b_value".to_string()));
     }
     test! {
@@ -324,7 +326,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String(
+        interpets to: Ok(Value::String(
             "b_value".to_string()));
     }
 
@@ -353,7 +355,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String(
+        interpets to: Ok(Value::String(
             "b_value".to_string()));
     }
 
@@ -382,7 +384,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String(
+        interpets to: Ok(Value::String(
             "b_value".to_string()));
     }
 
@@ -403,7 +405,11 @@ mod valid {
         ));
 
         env: {
-            builtins: vec![BuiltinFn { name: "foo".to_string(), arity: 0, func: std::rc::Rc::new(|_| String::new()) }.into()],
+            builtins: vec![BuiltinFn {
+                name: "foo".to_string(),
+                arity: 0,
+                func: std::rc::Rc::new(|_| Value::String(String::new()))
+            }.into()],
             ..Default::default()
         };
 
@@ -415,7 +421,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String("".to_string()));
+        interpets to: Ok(Value::String("".to_string()));
     }
 
     test! {
@@ -436,9 +442,11 @@ mod valid {
         ));
 
         env: {
-            builtins: vec![
-                BuiltinFn { name: "foo".to_string(), arity: 1, func: std::rc::Rc::new(|_| String::new()) }.into()
-            ],
+            builtins: vec![BuiltinFn {
+                name: "foo".to_string(),
+                arity: 0,
+                func: std::rc::Rc::new(|_| Value::String(String::new()))
+            }.into()],
             vars: vec!["a".to_string()],
             ..Default::default()
         };
@@ -452,7 +460,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String("".to_string()));
+        interpets to: Ok(Value::String("".to_string()));
     }
 
     test! {
@@ -504,10 +512,26 @@ mod valid {
 
         env: {
             builtins: vec![
-                BuiltinFn { name: "foo".to_string(), arity: 3, func: std::rc::Rc::new(|_| String::new()) }.into(),
-                BuiltinFn { name: "bar".to_string(), arity: 1, func: std::rc::Rc::new(|_| String::new()) }.into(),
-                BuiltinFn { name: "fiz".to_string(), arity: 1, func: std::rc::Rc::new(|_| String::new()) }.into(),
-                BuiltinFn { name: "baz".to_string(), arity: 1, func: std::rc::Rc::new(|_| String::new()) }.into()
+                BuiltinFn {
+                    name: "foo".to_string(),
+                    arity: 3,
+                    func: std::rc::Rc::new(|_| Value::String(String::new()))
+                }.into(),
+                BuiltinFn {
+                    name: "bar".to_string(),
+                    arity: 1,
+                    func: std::rc::Rc::new(|_| Value::String(String::new()))
+                }.into(),
+                BuiltinFn {
+                    name: "fiz".to_string(),
+                    arity: 1,
+                    func: std::rc::Rc::new(|_| Value::String(String::new()))
+                }.into(),
+                BuiltinFn {
+                    name: "baz".to_string(),
+                    arity: 1,
+                    func: std::rc::Rc::new(|_| Value::String(String::new()))
+                }.into()
             ],
             vars: vec!["a".to_string()],
             prompts: vec!["b".to_string()],
@@ -560,7 +584,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String("".to_string()));
+        interpets to: Ok(Value::String("".to_string()));
     }
 }
 
@@ -577,7 +601,11 @@ mod invalid {
         ast should be: Ok(Expr::identifier("foo"));
 
         env: {
-            builtins: vec![BuiltinFn { name: "foo".to_string(), arity: 0, func: std::rc::Rc::new(|_| String::new()) }.into()],
+            builtins: vec![BuiltinFn {
+                name: "foo".to_string(),
+                arity: 0,
+                func: std::rc::Rc::new(|_| Value::String(String::new()))
+            }.into()],
             ..Default::default()
         };
 
@@ -589,10 +617,11 @@ mod invalid {
             ..Default::default()
         };
 
-        interpets to: Ok(
-            StackValue::Fn(Box::new(
-                Fn { name: "foo".to_string(), arity: 0 }
-            )));
+        interpets to: Ok(Value::Fn(BuiltinFn {
+                name: "foo".to_string(),
+                arity: 0,
+                func: std::rc::Rc::new(|_| Value::String(String::new()))
+            }.into()));
     }
 
     test! {
@@ -620,10 +649,26 @@ mod invalid {
 
         env: {
             builtins: vec![
-                BuiltinFn { name: "foo".to_string(), arity: 3, func: std::rc::Rc::new(|_| String::new()) }.into(),
-                BuiltinFn { name: "bar".to_string(), arity: 0, func: std::rc::Rc::new(|_| String::new()) }.into(),
-                BuiltinFn { name: "fiz".to_string(), arity: 0, func: std::rc::Rc::new(|_| String::new()) }.into(),
-                BuiltinFn { name: "baz".to_string(), arity: 0, func: std::rc::Rc::new(|_| String::new()) }.into()
+                BuiltinFn {
+                    name: "foo".to_string(),
+                    arity: 3,
+                    func: std::rc::Rc::new(|_| Value::String(String::new()))
+                }.into(),
+                BuiltinFn {
+                    name: "bar".to_string(),
+                    arity: 0,
+                    func: std::rc::Rc::new(|_| Value::String(String::new()))
+                }.into(),
+                BuiltinFn {
+                    name: "fiz".to_string(),
+                    arity: 0,
+                    func: std::rc::Rc::new(|_| Value::String(String::new()))
+                }.into(),
+                BuiltinFn {
+                    name: "baz".to_string(),
+                    arity: 0,
+                    func: std::rc::Rc::new(|_| Value::String(String::new()))
+                }.into()
             ],
             ..Default::default()
         };
@@ -655,7 +700,7 @@ mod invalid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String("".to_string()));
+        interpets to: Ok(Value::String("".to_string()));
     }
 
     test! {
@@ -685,7 +730,7 @@ mod invalid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String("".to_string()));
+        interpets to: Ok(Value::String("".to_string()));
     }
 
     test! {
@@ -719,7 +764,7 @@ mod invalid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String("".to_string()));
+        interpets to: Ok(Value::String("".to_string()));
     }
 
     test! {
@@ -748,7 +793,7 @@ mod invalid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String("".to_string()));
+        interpets to: Ok(Value::String("".to_string()));
     }
 
     test! {
@@ -778,7 +823,7 @@ mod invalid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String("".to_string()));
+        interpets to: Ok(Value::String("".to_string()));
     }
 
     test! {
@@ -808,6 +853,6 @@ mod invalid {
             ..Default::default()
         };
 
-        interpets to: Ok(StackValue::String("".to_string()));
+        interpets to: Ok(Value::String("".to_string()));
     }
 }
