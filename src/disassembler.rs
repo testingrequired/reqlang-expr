@@ -106,8 +106,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             lookup::VAR => {
                 let value = self
                     .env
-                    .vars
-                    .get(constant_idx)
+                    .get_var(constant_idx)
                     .expect(&format! {"undefined variable: {constant_idx}"});
 
                 value
@@ -115,8 +114,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             lookup::PROMPT => {
                 let value = self
                     .env
-                    .prompts
-                    .get(constant_idx)
+                    .get_prompt(constant_idx)
                     .expect(&format! {"undefined prompt: {constant_idx}"});
 
                 value
@@ -124,8 +122,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             lookup::SECRET => {
                 let value = self
                     .env
-                    .secrets
-                    .get(constant_idx)
+                    .get_secret(constant_idx)
                     .expect(&format! {"undefined secret: {constant_idx}"});
 
                 value

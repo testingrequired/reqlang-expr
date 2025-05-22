@@ -56,14 +56,9 @@ fn main() {
         .map(|(_, value)| value)
         .collect();
 
-    let mut env = Env {
-        vars: var_keys,
-        prompts: prompt_keys,
-        secrets: secret_keys,
-        ..Default::default()
-    };
+    let mut env = Env::new(var_keys, prompt_keys, secret_keys);
 
-    env.builtins.extend(builtins);
+    env.add_builtins(builtins);
 
     let bytecode = compile(&ast, &env);
 

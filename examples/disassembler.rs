@@ -1,4 +1,4 @@
-use std::{fs::read_to_string, rc::Rc};
+use std::fs::read_to_string;
 
 use clap::Parser;
 use reqlang_expr::{cli::parse_key_val, disassembler::Disassembler, prelude::*};
@@ -15,26 +15,7 @@ fn main() {
         .parse(tokens)
         .expect("should parse tokens to ast");
 
-    let builtins = args
-        .builtins
-        .iter()
-        .map(|builtin| {
-            Rc::new(BuiltinFn {
-                name: builtin.0.clone(),
-                arity: builtin.1,
-                func: Rc::new(|_| Value::String(String::new())),
-            })
-        })
-        .collect::<Vec<_>>();
-
-    let mut env = Env {
-        vars: args.vars.clone(),
-        prompts: args.prompts.clone(),
-        secrets: args.secrets.clone(),
-        ..Default::default()
-    };
-
-    env.builtins.extend(builtins);
+    let env = Env::new(args.vars, args.prompts, args.secrets);
 
     let bytecode = compile(&ast, &env);
 

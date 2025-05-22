@@ -69,12 +69,26 @@ impl<'a> From<&'a (String, u8)> for BuiltinFn {
     }
 }
 
+pub struct BuiltinFns;
+
+impl BuiltinFns {
+    pub fn id(args: Vec<Value>) -> Value {
+        let arg = args.first().unwrap();
+
+        Value::String(arg.get_string().to_string())
+    }
+
+    pub fn noop(_: Vec<Value>) -> Value {
+        Value::String(String::from("noop"))
+    }
+}
+
 #[derive(Debug)]
 pub struct Env {
-    pub builtins: Vec<Rc<BuiltinFn>>,
-    pub vars: Vec<String>,
-    pub prompts: Vec<String>,
-    pub secrets: Vec<String>,
+    builtins: Vec<Rc<BuiltinFn>>,
+    vars: Vec<String>,
+    prompts: Vec<String>,
+    secrets: Vec<String>,
 }
 
 impl Default for Env {
@@ -99,23 +113,15 @@ impl Default for Env {
     }
 }
 
-pub struct BuiltinFns;
-
-impl BuiltinFns {
-    pub fn id(args: Vec<Value>) -> Value {
-        let arg = args.first().unwrap();
-
-        Value::String(arg.get_string().to_string())
-    }
-
-    pub fn noop(_: Vec<Value>) -> Value {
-        Value::String(String::from("noop"))
-    }
-}
-
 impl Env {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(vars: Vec<String>, prompts: Vec<String>, secrets: Vec<String>) -> Self {
+        let mut env = Self::default();
+
+        env.vars = vars;
+        env.prompts = prompts;
+        env.secrets = secrets;
+
+        env
     }
 
     pub fn get_builtin_index(&self, name: &str) -> Option<(&Rc<BuiltinFn>, u8)> {
@@ -125,8 +131,30 @@ impl Env {
         result
     }
 
+    pub fn add_builtins(&mut self, builtins: Vec<Rc<BuiltinFn>>) {
+        for builtin in builtins {
+            self.add_builtin(builtin);
+        }
+    }
+
+    pub fn add_builtin(&mut self, builtin: Rc<BuiltinFn>) {
+        self.builtins.push(builtin);
+    }
+
     pub fn get_builtin(&self, index: usize) -> Option<&Rc<BuiltinFn>> {
         self.builtins.get(index)
+    }
+
+    pub fn get_var(&self, index: usize) -> Option<&String> {
+        self.vars.get(index)
+    }
+
+    pub fn get_prompt(&self, index: usize) -> Option<&String> {
+        self.prompts.get(index)
+    }
+
+    pub fn get_secret(&self, index: usize) -> Option<&String> {
+        self.secrets.get(index)
     }
 }
 

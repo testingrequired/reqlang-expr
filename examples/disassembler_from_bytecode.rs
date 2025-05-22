@@ -1,31 +1,10 @@
-use std::rc::Rc;
-
 use clap::Parser;
 use reqlang_expr::{cli::parse_key_val, disassembler::Disassembler, prelude::*};
 
 fn main() {
     let args = Args::parse();
 
-    let builtins = args
-        .builtins
-        .iter()
-        .map(|builtin| {
-            Rc::new(BuiltinFn {
-                name: builtin.0.clone(),
-                arity: builtin.1,
-                func: Rc::new(|_| Value::String(String::new())),
-            })
-        })
-        .collect::<Vec<_>>();
-
-    let mut env = Env {
-        vars: args.vars.clone(),
-        prompts: args.prompts.clone(),
-        secrets: args.secrets.clone(),
-        ..Default::default()
-    };
-
-    env.builtins.extend(builtins);
+    let env = Env::new(args.vars, args.prompts, args.secrets);
 
     let codes = std::fs::read(&args.path).expect("should be able to read source from file");
     let bytecode = ExprByteCode::from(codes);

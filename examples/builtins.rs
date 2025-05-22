@@ -26,13 +26,9 @@ fn main() {
 
     let var_values = vec!["a_value".to_string()];
 
-    let mut env = Env::new();
+    let mut env = Env::new(var_keys, vec![], vec![]);
 
-    env.vars = var_keys;
-
-    for builtin in builtins {
-        env.builtins.push(builtin);
-    }
+    env.add_builtins(builtins);
 
     let bytecode = compile(&ast, &env);
 

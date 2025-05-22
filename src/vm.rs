@@ -125,8 +125,7 @@ impl<'bytecode> Vm<'bytecode> {
             }
             lookup::VAR => {
                 let value = env
-                    .vars
-                    .get(get_idx)
+                    .get_var(get_idx)
                     .and_then(|_| runtime_env.vars.get(get_idx))
                     .expect(&format! {"undefined variable: {get_idx}"});
 
@@ -134,8 +133,7 @@ impl<'bytecode> Vm<'bytecode> {
             }
             lookup::PROMPT => {
                 let value = env
-                    .prompts
-                    .get(get_idx)
+                    .get_prompt(get_idx)
                     .and_then(|_| runtime_env.prompts.get(get_idx))
                     .expect(&format! {"undefined prompt: {get_idx}"});
 
@@ -143,8 +141,7 @@ impl<'bytecode> Vm<'bytecode> {
             }
             lookup::SECRET => {
                 let value = env
-                    .secrets
-                    .get(get_idx)
+                    .get_secret(get_idx)
                     .and_then(|_| runtime_env.secrets.get(get_idx))
                     .expect(&format! {"undefined secret: {get_idx}"});
 

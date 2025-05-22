@@ -31,14 +31,9 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    let mut env = Env {
-        vars: args.vars.clone(),
-        prompts: args.prompts.clone(),
-        secrets: args.secrets.clone(),
-        ..Default::default()
-    };
+    let mut env = Env::new(args.vars.clone(), vec![], vec![]);
 
-    env.builtins.extend(builtins);
+    env.add_builtins(builtins);
 
     let bytecode = compile(&ast, &env);
 

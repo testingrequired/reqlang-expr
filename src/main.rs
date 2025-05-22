@@ -23,13 +23,13 @@ fn main() {
         })
         .collect();
 
-    let env = Env {
-        vars: args.vars.clone(),
-        prompts: args.prompts.clone(),
-        secrets: args.secrets.clone(),
-        builtins,
-        ..Default::default()
-    };
+    let mut env = Env::new(
+        args.vars.clone(),
+        args.prompts.clone(),
+        args.secrets.clone(),
+    );
+
+    env.add_builtins(builtins);
 
     eprintln!("Env:\n\n{env:#?}\n");
 
