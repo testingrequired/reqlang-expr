@@ -35,16 +35,16 @@ fn get(list: &Vec<String>, identifier: &str) -> Option<u8> {
 }
 
 /// Builtin function used in expressions
-pub struct BuiltinFn<T> {
+pub struct BuiltinFn {
     // Needs to follow identifier naming rules
     pub name: String,
     // Number of arguments the function expects
     pub arity: u8,
     // Function used at runtime
-    pub func: Rc<dyn Fn(T) -> String>,
+    pub func: Rc<dyn Fn(Vec<Value>) -> String>,
 }
 
-impl<T> fmt::Debug for BuiltinFn<T> {
+impl fmt::Debug for BuiltinFn {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("BuiltinFn")
             .field("name", &self.name)
@@ -53,7 +53,7 @@ impl<T> fmt::Debug for BuiltinFn<T> {
     }
 }
 
-impl<'a, T> From<&'a (String, u8)> for BuiltinFn<T> {
+impl<'a> From<&'a (String, u8)> for BuiltinFn {
     fn from(value: &'a (String, u8)) -> Self {
         BuiltinFn {
             name: value.0.clone(),
@@ -65,7 +65,7 @@ impl<'a, T> From<&'a (String, u8)> for BuiltinFn<T> {
 
 #[derive(Debug)]
 pub struct Env {
-    pub builtins: Vec<Rc<BuiltinFn<Vec<Value>>>>,
+    pub builtins: Vec<Rc<BuiltinFn>>,
     pub vars: Vec<String>,
     pub prompts: Vec<String>,
     pub secrets: Vec<String>,
@@ -112,14 +112,14 @@ impl Env {
         Self::default()
     }
 
-    pub fn get_builtin_index(&self, name: &str) -> Option<(&Rc<BuiltinFn<Vec<Value>>>, u8)> {
+    pub fn get_builtin_index(&self, name: &str) -> Option<(&Rc<BuiltinFn>, u8)> {
         let index = self.builtins.iter().position(|x| x.name == name);
 
         let result = index.map(|i| (self.builtins.get(i).unwrap(), i as u8));
         result
     }
 
-    pub fn get_builtin(&self, index: usize) -> Option<&Rc<BuiltinFn<Vec<Value>>>> {
+    pub fn get_builtin(&self, index: usize) -> Option<&Rc<BuiltinFn>> {
         self.builtins.get(index)
     }
 }

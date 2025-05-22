@@ -8,7 +8,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub enum Value {
     String(String),
-    Fn(Rc<BuiltinFn<Vec<Value>>>),
+    Fn(Rc<BuiltinFn>),
 }
 
 impl Value {
@@ -19,7 +19,7 @@ impl Value {
         }
     }
 
-    pub fn get_func(&self) -> Rc<BuiltinFn<Vec<Value>>> {
+    pub fn get_func(&self) -> Rc<BuiltinFn> {
         match self {
             Value::Fn(f) => f.clone(),
             _ => panic!("Value is not a function"),
