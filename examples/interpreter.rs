@@ -22,7 +22,7 @@ fn main() {
             Rc::new(BuiltinFn {
                 name: builtin.0.clone(),
                 arity: builtin.1,
-                func: Rc::new(|_| Value::String(String::new())),
+                func: Rc::new(|_| "".into()),
             })
         })
         .collect::<Vec<_>>();

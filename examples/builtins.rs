@@ -18,7 +18,7 @@ fn main() {
         func: Rc::new(|args: Vec<Value>| {
             let arg = args.get(0).unwrap();
 
-            Value::String(arg.get_string().to_string())
+            arg.get_string().into()
         }),
     })];
 

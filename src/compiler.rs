@@ -64,7 +64,7 @@ impl<'a> From<&'a (String, u8)> for BuiltinFn {
         BuiltinFn {
             name: value.0.clone(),
             arity: value.1.clone(),
-            func: Rc::new(|_| Value::String(String::new())),
+            func: Rc::new(|_| "".into()),
         }
     }
 }
@@ -75,7 +75,7 @@ impl BuiltinFns {
     pub fn id(args: Vec<Value>) -> Value {
         let arg = args.first().unwrap();
 
-        Value::String(arg.get_string().to_string())
+        arg.get_string().into()
     }
 
     pub fn noop(_: Vec<Value>) -> Value {
