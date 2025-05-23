@@ -21,6 +21,10 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
 
         let mut op_idx = 0;
 
+        let (offset, string) = self.disassemble_version();
+        op_idx += offset;
+        out.push_str(&string);
+
         while op_idx < self.bytecode.codes.len() {
             let (op_byte_size, disassembled_byte_idx, disassembled_op) =
                 self.disassemble_op(op_idx, level);
@@ -44,6 +48,16 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
         }
 
         out
+    }
+
+    pub fn disassemble_version(&self) -> (usize, String) {
+        let version_bytes = &self.bytecode.codes[0..4];
+
+        let name = "VERSION";
+
+        let string = format!("0000 {name:19} {version_bytes:?}\n");
+
+        (4, string)
     }
 
     pub fn disassemble_op(&self, op_idx: usize, level: usize) -> (usize, String, String) {

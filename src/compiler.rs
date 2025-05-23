@@ -197,6 +197,8 @@ fn compile_expr(expr: &ast::Expr, env: &Env, strings: &mut Vec<String>) -> Vec<u
 
     let mut codes = vec![];
 
+    codes.extend(get_version_bytes());
+
     match expr {
         ast::Expr::String(string) => {
             if let Some(index) = strings.iter().position(|x| x == &string.0) {
@@ -259,4 +261,25 @@ fn compile_expr(expr: &ast::Expr, env: &Env, strings: &mut Vec<String>) -> Vec<u
     }
 
     codes
+}
+
+pub fn get_version_bytes() -> [u8; 4] {
+    [
+        env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap(),
+        env!("CARGO_PKG_VERSION_MINOR").parse().unwrap(),
+        env!("CARGO_PKG_VERSION_PATCH").parse().unwrap(),
+        0,
+    ]
+}
+
+#[cfg(test)]
+mod compiler_tests {
+    use super::*;
+
+    #[test]
+    pub fn current_version_bytes() {
+        let version_bytes = get_version_bytes();
+
+        assert_eq!(version_bytes, [0, 1, 0, 0]);
+    }
 }

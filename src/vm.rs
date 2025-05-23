@@ -2,7 +2,7 @@ use std::{fmt::Display, rc::Rc};
 
 use crate::{
     compiler::{self, BuiltinFn, Env, ExprByteCode},
-    prelude::lookup,
+    prelude::{get_version_bytes, lookup},
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -73,6 +73,8 @@ impl<'bytecode> Vm<'bytecode> {
     ) -> Result<Value, ()> {
         self.bytecode = Some(bytecode);
         self.ip = 0;
+
+        self.read_version_bytes();
 
         while let Some(op_code) = self
             .bytecode
@@ -213,5 +215,19 @@ impl<'bytecode> Vm<'bytecode> {
             .get(current_ip as usize)
             .expect("should have op in bytecode at {}")
             .clone()
+    }
+
+    fn read_version_bytes(&mut self) -> Vec<u8> {
+        let version_bytes = &self.bytecode.expect("...").codes[0..4];
+
+        assert_eq!(
+            get_version_bytes(),
+            version_bytes,
+            "Incorrect bytecode version"
+        );
+
+        self.ip += 4;
+
+        version_bytes.to_vec()
     }
 }

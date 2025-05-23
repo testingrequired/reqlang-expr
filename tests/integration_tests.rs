@@ -40,8 +40,14 @@ macro_rules! test {
                     let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
-                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+                        let mut op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
                         let expected_op_codes: Vec<u8> = $expected_op_codes;
+
+                        let version_bytes = ::reqlang_expr::compiler::get_version_bytes();
+
+                        for version_op in version_bytes {
+                            op_codes.codes.insert(0, version_op);
+                        }
 
                         ::pretty_assertions::assert_eq!(expected_op_codes, op_codes.codes);
                     }
@@ -113,7 +119,7 @@ mod valid {
             opcode::CONSTANT, 0
         ];
 
-        disassembles to: "0000 CONSTANT            0 == 'test string'\n";
+        disassembles to: "0000 VERSION             [0, 1, 0, 0]\n0004 CONSTANT            0 == 'test string'\n";
 
         runtime env: {
             ..Default::default()
@@ -323,7 +329,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::VAR, 1];
 
-        disassembles to: "0000 GET                 1 == 'b'\n";
+        disassembles to: "0000 VERSION             [0, 1, 0, 0]\n0004 GET                 1 == 'b'\n";
 
         runtime env: {
             vars: vec!["a_value".to_string(), "b_value".to_string()],
@@ -351,7 +357,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::PROMPT, 1];
 
-        disassembles to: "0000 GET                 1 == 'b'\n";
+        disassembles to: "0000 VERSION             [0, 1, 0, 0]\n0004 GET                 1 == 'b'\n";
 
         runtime env: {
             prompts: vec!["a_value".to_string(), "b_value".to_string()],
@@ -412,7 +418,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::SECRET, 1];
 
-        disassembles to: "0000 GET                 1 == 'b'\n";
+        disassembles to: "0000 VERSION             [0, 1, 0, 0]\n0004 GET                 1 == 'b'\n";
 
         runtime env: {
             secrets: vec!["a_value".to_string(), "b_value".to_string()],
@@ -449,7 +455,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 2, opcode::CALL, 0];
 
-        disassembles to: "0000 GET                 2 == 'foo'\n0003 CALL             (0 args)\n";
+        disassembles to: "0000 VERSION             [0, 1, 0, 0]\n0004 GET                 2 == 'foo'\n0007 CALL             (0 args)\n";
 
         runtime env: {
             ..Default::default()
