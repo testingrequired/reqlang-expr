@@ -887,4 +887,34 @@ mod invalid {
 
         interpets to: Ok(Value::String("".to_string()));
     }
+
+    test! {
+        "`test string";
+
+        scenario: unterminated string;
+
+        tokens should be: vec![
+            Err((LexicalError::InvalidToken, 0..0)),
+        ];
+
+        ast should be: Err(lalrpop_util::ParseError::User {
+            error: (LexicalError::InvalidToken, 0..0)
+        });
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![
+            opcode::CONSTANT, 0
+        ];
+
+        disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Err(());
+    }
 }
