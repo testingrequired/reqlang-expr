@@ -95,7 +95,7 @@ macro_rules! test {
 
 mod valid {
     test! {
-        "\"test string\"";
+        "`test string`";
 
         scenario: string string;
 
@@ -193,7 +193,7 @@ mod valid {
     }
 
     test! {
-        "(id \"test value\")";
+        "(id `test value`)";
 
         scenario: call id with string;
 

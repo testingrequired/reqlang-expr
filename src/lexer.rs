@@ -46,7 +46,7 @@ pub enum Token {
     #[token(")")]
     RParan,
 
-    #[regex(r#""[^"]*""#, lex_string)]
+    #[regex(r#"`[^`]*`"#, lex_string)]
     String(String),
 
     #[regex("[!?:]?[a-zA-Z][a-zA-Z0-9_]*", lex_identifier)]

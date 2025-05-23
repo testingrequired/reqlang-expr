@@ -6,14 +6,18 @@ A small (tiny) WIP expression language for [reqlang](https://github.com/testingr
 
 The syntax is s-expression like. There are only [builtin functions](#builtin-functions), identifiers and string literals.
 
-| Syntax    | Description                               |
-| --------- | ----------------------------------------- |
-| `:a`      | Reference to the variable `a`             |
-| `?b`      | Reference to the prompt `b`               |
-| `!c`      | Reference to the secret `c`               |
-| `id`      | Reference to the builtin `id`             |
-| `(id :a)` | Call to builtin `id` with arguments: `:a` |
-| `"foo"`   | String literal                            |
+| Syntax      | Description                               |
+| ----------- | ----------------------------------------- |
+| `:a`        | Reference to the variable `a`             |
+| `?b`        | Reference to the prompt `b`               |
+| `!c`        | Reference to the secret `c`               |
+| `id`        | Reference to the builtin `id`             |
+| `(id :a)`   | Call to builtin `id` with arguments: `:a` |
+| `` `foo` `` | String literal                            |
+
+### Why Backticks For Strings?
+
+These expressions will be embedded in places where double quotes are common (e.g. JSON). Single quotes weren't chosen due to their use in prose e.g. weren't
 
 ### Builtin Functions
 
