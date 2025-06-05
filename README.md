@@ -262,3 +262,19 @@ String(
     "a_value",
 )
 ```
+
+### REPL
+
+A simple REPL to interpret expressions.
+
+```sh
+cargo run -q --example repl -- --vars foo=bar
+```
+
+#### Example
+
+```
+> (id :foo)
+
+bar
+```
