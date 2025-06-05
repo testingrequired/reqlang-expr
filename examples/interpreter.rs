@@ -81,7 +81,7 @@ fn main() {
         secrets: secret_values,
     };
 
-    let _ = vm.interpret(&bytecode, &env, &runtime_env);
+    let _ = vm.interpret(bytecode.into(), &env, &runtime_env);
 }
 
 #[derive(Parser, Debug)]

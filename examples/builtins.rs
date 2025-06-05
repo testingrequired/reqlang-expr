@@ -40,7 +40,7 @@ fn main() {
     };
 
     let result = vm
-        .interpret(&bytecode, &env, &runtime_env)
+        .interpret(bytecode.into(), &env, &runtime_env)
         .expect("should be ok");
 
     assert_eq!("noop", result.get_string());

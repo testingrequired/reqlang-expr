@@ -33,7 +33,7 @@ fn main() {
 
     eprintln!("Env:\n\n{env:#?}\n");
 
-    let bytecode: ExprByteCode = read_in_bytecode(&args, &env);
+    let bytecode: Box<ExprByteCode> = read_in_bytecode(&args, &env).into();
 
     if bytecode.codes.is_empty() {
         println!("No bytecode found");
@@ -41,7 +41,7 @@ fn main() {
     }
 
     if args.interpret {
-        interpret_bytecode(&bytecode, &env);
+        interpret_bytecode(bytecode.clone(), &env);
     }
 
     write_out_bytecode(args, bytecode);
@@ -141,15 +141,15 @@ fn read_in_bytecode(args: &Args, env: &Env) -> ExprByteCode {
     bytecode
 }
 
-fn interpret_bytecode(bytecode: &ExprByteCode, env: &Env) {
-    let mut vm: Vm<'_> = Vm::new();
+fn interpret_bytecode(bytecode: Box<ExprByteCode>, env: &Env) {
+    let mut vm = Vm::new();
     vm.interpret(bytecode, env, &RuntimeEnv::default())
         .expect("should interpret bytecode");
 
     exit(0);
 }
 
-fn write_out_bytecode(args: Args, bytecode: ExprByteCode) {
+fn write_out_bytecode(args: Args, bytecode: Box<ExprByteCode>) {
     if let Some(out_path) = args.out_path {
         let mut file = File::create(out_path).expect("should create output file");
 

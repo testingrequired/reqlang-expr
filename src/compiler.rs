@@ -159,7 +159,7 @@ impl Env {
 }
 
 /// The compiled bytecode for an expression
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExprByteCode {
     pub codes: Vec<u8>,
     pub strings: Vec<String>,

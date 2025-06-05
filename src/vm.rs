@@ -50,13 +50,13 @@ pub struct RuntimeEnv {
 }
 
 #[derive(Debug)]
-pub struct Vm<'bytecode> {
-    bytecode: Option<&'bytecode ExprByteCode>,
+pub struct Vm {
+    bytecode: Option<Box<ExprByteCode>>,
     ip: usize,
     stack: Vec<Value>,
 }
 
-impl<'bytecode> Vm<'bytecode> {
+impl Vm {
     pub fn new() -> Self {
         Self {
             bytecode: None,
@@ -67,17 +67,14 @@ impl<'bytecode> Vm<'bytecode> {
 
     pub fn interpret(
         &mut self,
-        bytecode: &'bytecode ExprByteCode,
+        bytecode: Box<ExprByteCode>,
         env: &Env,
         runtime_env: &RuntimeEnv,
     ) -> Result<Value, ()> {
-        self.bytecode = Some(bytecode);
+        self.bytecode = Some(bytecode.into());
         self.ip = 0;
 
-        while let Some(op_code) = self
-            .bytecode
-            .and_then(|ExprByteCode { codes, strings: _ }| codes.get(self.ip))
-        {
+        while let Some(op_code) = self.bytecode.as_ref().and_then(|bc| bc.codes.get(self.ip)) {
             self.interpret_op(env, runtime_env, *op_code);
         }
 
@@ -177,6 +174,7 @@ impl<'bytecode> Vm<'bytecode> {
 
         let s = self
             .bytecode
+            .as_ref()
             .expect("should have bytecode")
             .strings
             .get(get_idx)
@@ -186,8 +184,6 @@ impl<'bytecode> Vm<'bytecode> {
     }
 
     fn stack_push(&mut self, value: Value) {
-        eprintln!("Pushing value: {:?}", value);
-
         self.stack.push(value);
     }
 
@@ -196,8 +192,6 @@ impl<'bytecode> Vm<'bytecode> {
             .stack
             .pop()
             .expect("should have a value to pop from the stack");
-
-        eprintln!("Popping value: {:?}", value);
 
         value
     }
@@ -208,6 +202,7 @@ impl<'bytecode> Vm<'bytecode> {
         self.ip += 1;
 
         self.bytecode
+            .as_ref()
             .expect("should have bytecode")
             .codes
             .get(current_ip as usize)

@@ -81,7 +81,7 @@ macro_rules! test {
                         let mut vm = Vm::new();
                         let runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
 
-                        let value = vm.interpret(&op_codes, &env, &runtime_env);
+                        let value = vm.interpret(op_codes.into(), &env, &runtime_env);
 
                         let expected_interpretation: Result<Value, ()> = $expected_interpretation;
 
