@@ -36,6 +36,7 @@ These expressions will be embedded in places where double quotes are common (e.g
 - [VM interpreter](./src/vm.rs)
 - [Disassembler](./src/disassembler.rs)
 - [CLI](./src/main.rs)
+- [REPL](#repl)
 - [Example Usage](./examples/)
 - [Specification Examples](./spec/)
 - [Tests](./tests/integration_tests.rs)

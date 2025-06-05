@@ -59,8 +59,7 @@ fn main() {
 
         match sig {
             Ok(Signal::Success(source)) => {
-                let source: &str = &source;
-                let lexer: Lexer<'_> = Lexer::new(source);
+                let lexer: Lexer<'_> = Lexer::new(&source);
                 let tokens = lexer.collect::<Vec<_>>();
 
                 let ast: Expr = ExprParser::new()
