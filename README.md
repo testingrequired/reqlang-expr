@@ -304,6 +304,48 @@ value
 value
 ```
 
+##### Print Current Environment
+
+```
+> /env
+
+Env {
+    builtins: [
+        BuiltinFn {
+            name: "id",
+            arity: 1,
+        },
+        BuiltinFn {
+            name: "noop",
+            arity: 0,
+        },
+    ],
+    vars: [],
+    prompts: [],
+    secrets: [],
+}
+
+> /set var isActive = true
+
+> /env
+
+Env {
+    builtins: [
+        BuiltinFn {
+            name: "id",
+            arity: 1,
+        },
+        BuiltinFn {
+            name: "noop",
+            arity: 0,
+        },
+    ],
+    vars: ["isActive"],
+    prompts: [],
+    secrets: [],
+}
+```
+
 #### Example
 
 ```

@@ -6,11 +6,13 @@ use regex::Regex;
 use reqlang_expr::{cli::parse_key_val, prelude::*};
 
 static SET_COMMAND_PATTERN: &str = r"/set (var|prompt|secret) ([a-zA-Z]+) = (.*)";
+static ENV_COMMAND_PATTERN: &str = r"/env";
 
 fn main() {
     let args = Args::parse();
 
     let mut line_editor = Reedline::create();
+
     let prompt = DefaultPrompt::default();
 
     let mut vm = Vm::new();
@@ -48,6 +50,7 @@ fn main() {
         .collect();
 
     let set_pattern = Regex::new(SET_COMMAND_PATTERN).unwrap();
+    let env_pattern = Regex::new(ENV_COMMAND_PATTERN).unwrap();
 
     loop {
         let sig = line_editor.read_line(&prompt);
@@ -64,6 +67,11 @@ fn main() {
 
         match sig {
             Ok(Signal::Success(source)) => {
+                if env_pattern.is_match(&source) {
+                    println!("{env:#?}");
+                    continue;
+                }
+
                 if set_pattern.is_match(&source) {
                     for (_, [set_type, key, value]) in
                         set_pattern.captures_iter(&source).map(|c| c.extract())
