@@ -269,7 +269,7 @@ String(
 A simple REPL to interpret expressions.
 
 ```sh
-cargo run -q --example repl -- --vars foo=bar
+cargo run -q --example repl
 ```
 
 #### Commands
