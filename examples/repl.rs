@@ -69,6 +69,10 @@ fn main() {
 
         match sig {
             Ok(Signal::Success(source)) => {
+                if source.trim().is_empty() {
+                    continue;
+                }
+
                 if mode_get_pattern.is_match(&source) {
                     println!("MODE: {repl_mode:#?}");
                     continue;
