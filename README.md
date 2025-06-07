@@ -272,6 +272,38 @@ A simple REPL to interpret expressions.
 cargo run -q --example repl -- --vars foo=bar
 ```
 
+#### Commands
+
+##### Set Variable
+
+```
+> /set var key = value
+
+> :key
+
+value
+```
+
+##### Set Prompt
+
+```
+> /set prompt key = value
+
+> ?key
+
+value
+```
+
+##### Set Secret
+
+```
+> /set secret key = value
+
+> !key
+
+value
+```
+
 #### Example
 
 ```

@@ -766,6 +766,7 @@ dependencies = [
  "pastey",
  "pretty_assertions",
  "reedline",
+ "regex",
 ]
 
 [[package]]

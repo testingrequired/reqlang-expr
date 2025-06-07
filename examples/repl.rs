@@ -2,9 +2,12 @@ use std::rc::Rc;
 
 use clap::Parser;
 use reedline::{DefaultPrompt, Reedline, Signal};
+use regex::Regex;
 use reqlang_expr::{cli::parse_key_val, prelude::*};
 
 fn main() {
+    let set_pattern = Regex::new(r"/set (var|prompt|secret) ([a-zA-Z]+) = (.*)").unwrap();
+
     let args = Args::parse();
 
     let mut line_editor = Reedline::create();
@@ -25,40 +28,64 @@ fn main() {
         .collect::<Vec<_>>();
 
     let vars: &Vec<(String, String)> = &args.vars;
-    let var_keys: Vec<String> = vars.clone().into_iter().map(|(key, _)| key).collect();
-    let var_values: Vec<String> = vars.clone().into_iter().map(|(_, value)| value).collect();
+    let mut var_keys: Vec<String> = vars.clone().into_iter().map(|(key, _)| key).collect();
+    let mut var_values: Vec<String> = vars.clone().into_iter().map(|(_, value)| value).collect();
 
     let prompts: &Vec<(String, String)> = &args.prompts;
-    let prompt_keys: Vec<String> = prompts.clone().into_iter().map(|(key, _)| key).collect();
-    let prompt_values: Vec<String> = prompts
+    let mut prompt_keys: Vec<String> = prompts.clone().into_iter().map(|(key, _)| key).collect();
+    let mut prompt_values: Vec<String> = prompts
         .clone()
         .into_iter()
         .map(|(_, value)| value)
         .collect();
 
     let secrets: &Vec<(String, String)> = &args.secrets;
-    let secret_keys: Vec<String> = secrets.clone().into_iter().map(|(key, _)| key).collect();
-    let secret_values: Vec<String> = secrets
+    let mut secret_keys: Vec<String> = secrets.clone().into_iter().map(|(key, _)| key).collect();
+    let mut secret_values: Vec<String> = secrets
         .clone()
         .into_iter()
         .map(|(_, value)| value)
         .collect();
 
-    let mut env = Env::new(var_keys, prompt_keys, secret_keys);
-
-    env.add_builtins(builtins);
-
-    let runtime_env: RuntimeEnv = RuntimeEnv {
-        vars: var_values.clone(),
-        prompts: prompt_values.clone(),
-        secrets: secret_values.clone(),
-    };
-
     loop {
         let sig = line_editor.read_line(&prompt);
 
+        let mut env = Env::new(var_keys.clone(), prompt_keys.clone(), secret_keys.clone());
+
+        env.add_builtins(builtins.clone());
+
+        let runtime_env: RuntimeEnv = RuntimeEnv {
+            vars: var_values.clone(),
+            prompts: prompt_values.clone(),
+            secrets: secret_values.clone(),
+        };
+
         match sig {
             Ok(Signal::Success(source)) => {
+                if set_pattern.is_match(&source) {
+                    for (_, [set_type, key, value]) in
+                        set_pattern.captures_iter(&source).map(|c| c.extract())
+                    {
+                        match set_type {
+                            "var" => {
+                                var_keys.push(key.to_string());
+                                var_values.push(value.to_string());
+                            }
+                            "prompt" => {
+                                prompt_keys.push(key.to_string());
+                                prompt_values.push(value.to_string());
+                            }
+                            "secret" => {
+                                secret_keys.push(key.to_string());
+                                secret_values.push(value.to_string());
+                            }
+                            _ => {}
+                        }
+                    }
+
+                    continue;
+                }
+
                 let lexer: Lexer<'_> = Lexer::new(&source);
                 let tokens = lexer.collect::<Vec<_>>();
 

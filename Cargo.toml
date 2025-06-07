@@ -16,3 +16,4 @@ pastey = "0.1.0"
 iota = "0.2.3"
 clap = { version = "4.4.16", features = ["derive"] }
 reedline = "0.40.0"
+regex = "1.11.1"
