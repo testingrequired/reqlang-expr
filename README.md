@@ -41,6 +41,8 @@ These expressions will be embedded in places where double quotes are common (e.g
 - [Specification Examples](./spec/)
 - [Tests](./tests/integration_tests.rs)
 
+A more detailed technical breakdown can be found [here](./TECH.md).
+
 ## Built With
 
 - [lalrpop](https://github.com/lalrpop/lalrpop)
