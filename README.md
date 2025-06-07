@@ -285,27 +285,21 @@ The REPL works in different modes:
 5. Lex: Lex an expression into tokens
 
 ```
-> /mode
+interpret   > /mode
 
 Current Mode: Interpret
 
-> /mode compile
+interpret   > /mode compile
 
-Current Mode: Compile
+compile     > /mode disassemble
 
-> /mode disassemble
+disassemble > /mode parse
 
-Current Mode: Disassemble
+parse       > /mode lex
 
-> /mode parse
+lex         > /mode interpret
 
-Current Mode: Parse
-
-> /mode lex
-
-Current Mode: Lex
-
-> /mode interpret
+interpret   > /mode
 
 Current Mode: Interpret
 ```
@@ -313,9 +307,9 @@ Current Mode: Interpret
 ##### Set Variable
 
 ```
-> /set var key = value
+interpret   > /set var key = value
 
-> :key
+interpret   > :key
 
 value
 ```
@@ -323,9 +317,9 @@ value
 ##### Set Prompt
 
 ```
-> /set prompt key = value
+interpret   > /set prompt key = value
 
-> ?key
+interpret   > ?key
 
 value
 ```
@@ -333,9 +327,9 @@ value
 ##### Set Secret
 
 ```
-> /set secret key = value
+interpret   > /set secret key = value
 
-> !key
+interpret   > !key
 
 value
 ```
@@ -343,7 +337,7 @@ value
 ##### Print Current Environment
 
 ```
-> /env
+interpret   > /env
 
 Env {
     builtins: [
@@ -385,7 +379,7 @@ Env {
 #### Example
 
 ```
-> (id :foo)
+interpret   > (id :foo)
 
 bar
 ```

@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use clap::Parser;
-use reedline::{DefaultPrompt, Reedline, Signal};
+use reedline::{DefaultPrompt, DefaultPromptSegment, Reedline, Signal};
 use regex::Regex;
 use reqlang_expr::{cli::parse_key_val, disassembler::Disassembler, prelude::*};
 
@@ -12,7 +12,8 @@ fn main() {
 
     let mut line_editor = Reedline::create();
 
-    let prompt = DefaultPrompt::default();
+    let mut prompt = DefaultPrompt::default();
+    prompt.left_prompt = DefaultPromptSegment::Basic("interpet    ".to_string());
 
     let mut vm = Vm::new();
 
@@ -80,18 +81,28 @@ fn main() {
                         match new_mode {
                             "interpret" => {
                                 repl_mode = ReplMode::Interpret;
+                                prompt.left_prompt =
+                                    DefaultPromptSegment::Basic("interpet    ".to_string());
                             }
                             "compile" => {
                                 repl_mode = ReplMode::Compile;
+                                prompt.left_prompt =
+                                    DefaultPromptSegment::Basic("compile     ".to_string());
                             }
                             "disassemble" => {
                                 repl_mode = ReplMode::Disassemble;
+                                prompt.left_prompt =
+                                    DefaultPromptSegment::Basic("disassemble ".to_string());
                             }
                             "parse" => {
                                 repl_mode = ReplMode::Parse;
+                                prompt.left_prompt =
+                                    DefaultPromptSegment::Basic("parse       ".to_string());
                             }
                             "lex" => {
                                 repl_mode = ReplMode::Lex;
+                                prompt.left_prompt =
+                                    DefaultPromptSegment::Basic("lex         ".to_string());
                             }
                             _ => {
                                 println!(
@@ -101,7 +112,6 @@ fn main() {
                         }
                     }
 
-                    println!("Current Mode: {repl_mode:#?}");
                     continue;
                 }
 
