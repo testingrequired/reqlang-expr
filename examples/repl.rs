@@ -5,9 +5,9 @@ use reedline::{DefaultPrompt, Reedline, Signal};
 use regex::Regex;
 use reqlang_expr::{cli::parse_key_val, prelude::*};
 
-fn main() {
-    let set_pattern = Regex::new(r"/set (var|prompt|secret) ([a-zA-Z]+) = (.*)").unwrap();
+static SET_COMMAND_PATTERN: &str = r"/set (var|prompt|secret) ([a-zA-Z]+) = (.*)";
 
+fn main() {
     let args = Args::parse();
 
     let mut line_editor = Reedline::create();
@@ -46,6 +46,8 @@ fn main() {
         .into_iter()
         .map(|(_, value)| value)
         .collect();
+
+    let set_pattern = Regex::new(SET_COMMAND_PATTERN).unwrap();
 
     loop {
         let sig = line_editor.read_line(&prompt);
