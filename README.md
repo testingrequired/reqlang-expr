@@ -274,6 +274,42 @@ cargo run -q --example repl
 
 #### Commands
 
+##### Repl Mode
+
+The REPL works in different modes:
+
+1. Interpret: Fully interpret an expression using the VM. This is the default.
+2. Compile: Compile an expression into its bytecode
+3. Disassemble: Compile and disassemble an expression
+4. Parse: Parse an expression into an AST
+5. Lex: Lex an expression into tokens
+
+```
+> /mode
+
+Current Mode: Interpret
+
+> /mode compile
+
+Current Mode: Compile
+
+> /mode disassemble
+
+Current Mode: Disassemble
+
+> /mode parse
+
+Current Mode: Parse
+
+> /mode lex
+
+Current Mode: Lex
+
+> /mode interpret
+
+Current Mode: Interpret
+```
+
 ##### Set Variable
 
 ```

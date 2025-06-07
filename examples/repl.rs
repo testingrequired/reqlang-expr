@@ -3,12 +3,11 @@ use std::rc::Rc;
 use clap::Parser;
 use reedline::{DefaultPrompt, Reedline, Signal};
 use regex::Regex;
-use reqlang_expr::{cli::parse_key_val, prelude::*};
-
-static SET_COMMAND_PATTERN: &str = r"/set (var|prompt|secret) ([a-zA-Z]+) = (.*)";
-static ENV_COMMAND_PATTERN: &str = r"/env";
+use reqlang_expr::{cli::parse_key_val, disassembler::Disassembler, prelude::*};
 
 fn main() {
+    let mut repl_mode = ReplMode::default();
+
     let args = Args::parse();
 
     let mut line_editor = Reedline::create();
@@ -51,6 +50,8 @@ fn main() {
 
     let set_pattern = Regex::new(SET_COMMAND_PATTERN).unwrap();
     let env_pattern = Regex::new(ENV_COMMAND_PATTERN).unwrap();
+    let mode_set_pattern = Regex::new(MODE_SET_COMMAND_PATTERN).unwrap();
+    let mode_get_pattern = Regex::new(MODE_GET_COMMAND_PATTERN).unwrap();
 
     loop {
         let sig = line_editor.read_line(&prompt);
@@ -67,6 +68,43 @@ fn main() {
 
         match sig {
             Ok(Signal::Success(source)) => {
+                if mode_get_pattern.is_match(&source) {
+                    println!("MODE: {repl_mode:#?}");
+                    continue;
+                }
+
+                if mode_set_pattern.is_match(&source) {
+                    for (_, [new_mode]) in
+                        mode_set_pattern.captures_iter(&source).map(|c| c.extract())
+                    {
+                        match new_mode {
+                            "interpret" => {
+                                repl_mode = ReplMode::Interpret;
+                            }
+                            "compile" => {
+                                repl_mode = ReplMode::Compile;
+                            }
+                            "disassemble" => {
+                                repl_mode = ReplMode::Disassemble;
+                            }
+                            "parse" => {
+                                repl_mode = ReplMode::Parse;
+                            }
+                            "lex" => {
+                                repl_mode = ReplMode::Lex;
+                            }
+                            _ => {
+                                println!(
+                                    "Invalid repl mode: '{new_mode}'. Please use 'interpret', 'compile', 'disassemble', 'parse', or 'lex'\n"
+                                );
+                            }
+                        }
+                    }
+
+                    println!("Current Mode: {repl_mode:#?}");
+                    continue;
+                }
+
                 if env_pattern.is_match(&source) {
                     println!("{env:#?}");
                     continue;
@@ -99,11 +137,34 @@ fn main() {
                 let lexer: Lexer<'_> = Lexer::new(&source);
                 let tokens = lexer.collect::<Vec<_>>();
 
+                if repl_mode == ReplMode::Lex {
+                    println!("{tokens:#?}");
+                    continue;
+                }
+
                 let ast: Expr = ExprParser::new()
                     .parse(tokens)
                     .expect("should parse tokens to ast");
 
+                if repl_mode == ReplMode::Parse {
+                    println!("{ast:#?}");
+                    continue;
+                }
+
                 let bytecode = compile(&ast, &env);
+
+                if repl_mode == ReplMode::Compile {
+                    println!("{bytecode:#?}");
+                    continue;
+                }
+
+                if repl_mode == ReplMode::Disassemble {
+                    let disassemble = Disassembler::new(&bytecode, &env);
+                    let disassembly = disassemble.disassemble(None);
+
+                    println!("{disassembly}");
+                    continue;
+                }
 
                 let _ = vm.interpret(bytecode.into(), &env, &runtime_env);
             }
@@ -116,6 +177,22 @@ fn main() {
             }
         }
     }
+}
+
+static SET_COMMAND_PATTERN: &str = r"/set (var|prompt|secret) ([a-zA-Z]+) = (.*)";
+static ENV_COMMAND_PATTERN: &str = r"/env";
+static MODE_SET_COMMAND_PATTERN: &str = r"^/mode (.+)$";
+static MODE_GET_COMMAND_PATTERN: &str = r"^/mode$";
+
+/// Controls what the repl does with input
+#[derive(PartialEq, Debug, Default)]
+enum ReplMode {
+    #[default]
+    Interpret,
+    Compile,
+    Disassemble,
+    Parse,
+    Lex,
 }
 
 #[derive(Parser, Debug)]
