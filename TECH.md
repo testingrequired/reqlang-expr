@@ -11,11 +11,19 @@ The lexer takes an input string and returns a stream of tokens.
 | `Identifier` | `[!?:]?[a-zA-Z][a-zA-Z0-9_]*` | Identifer referencing a builtin function, variable, prompt, or secret |
 | `String`     | `` `[^`]*` ``                 | A literal string of text delimited by backticks                       |
 
+### Usage
+
+```rust
+let source = "(noop)";
+let lexer: Lexer<'_> = Lexer::new(&source);
+let tokens = lexer.collect::<Vec<_>>();
+```
+
 See: [lexer.rs](./src/lexer.rs)
 
 ## Parser
 
-The [parser] takes a stream of tokens from the lexer and constructs an AST (Abstract Syntax Tree).
+The parser takes a stream of tokens from the lexer and constructs an AST (Abstract Syntax Tree).
 
 | Expression   | Description                                                                           |
 | ------------ | ------------------------------------------------------------------------------------- |
@@ -23,21 +31,31 @@ The [parser] takes a stream of tokens from the lexer and constructs an AST (Abst
 | `Identifier` | An identifier referencing a builtin, variable, prompt, or secret                      |
 | `String`     | A string literal of text                                                              |
 
+### Usage
+
+```rust
+let source = "(noop)";
+let lexer: Lexer<'_> = Lexer::new(&source);
+let tokens = lexer.collect::<Vec<_>>();
+
+let ast: Expr = ExprParser::new().parse(tokens).unwrap();
+```
+
 See: [exprlang.lalrpop](./src/exprlang.lalrpop), [ast.rs](./src/ast.rs)
 
 ## Compiler
 
-The compiler takes an AST from the parser and converts to bytecode.
+The compiler produces bytecode from an AST and a [compile time environment](#compile-time-environment).
 
 ### Op Codes
 
-| Op Code    | Byte | Args                                | Description                                                 |
-| ---------- | ---: | ----------------------------------- | ----------------------------------------------------------- |
-| `CALL`     |    0 | $INDEX, $ARG_COUNT                  | Call a function with N arguments.                           |
-| `GET`      |    1 | [$LOOK_TYPE](#lookup-types), $INDEX | Get a builtin/variable/prompt/secret from the env by index. |
-| `CONSTANT` |    2 | $INDEX                              | Get constant value by index.                                |
+| Op Code    | Op Byte | Args                                | Description                                                   |
+| ---------- | ------: | ----------------------------------- | ------------------------------------------------------------- |
+| `CALL`     |       0 | $INDEX, $ARG_COUNT                  | Call builtin `$INDEX` with `$ARG_COUNT` arguments             |
+| `GET`      |       1 | [$LOOK_TYPE](#lookup-types), $INDEX | Get a builtin/variable/prompt/secret from the env by `$INDEX` |
+| `CONSTANT` |       2 | $CONST_INDEX                        | Get constant value by `$CONST_INDEX`                          |
 
-#### Lookup Types
+### Lookup Types
 
 | Type      | Lookup Index |
 | --------- | -----------: |
@@ -46,10 +64,97 @@ The compiler takes an AST from the parser and converts to bytecode.
 | `PROMPT`  |            2 |
 | `SECRET`  |            3 |
 
+### Compile Time Environment
+
+The compiler's environment contains a lists of names for [builtin functions](#builtin-functions), variables, prompts, and secrets.
+
+```rust
+pub struct Env {
+    builtins: Vec<Rc<BuiltinFn>>,
+    vars: Vec<String>,
+    prompts: Vec<String>,
+    secrets: Vec<String>,
+}
+```
+
+#### Builtin Functions
+
+Builtins are functions provided by the compiler/VM and the only functions available.
+
+```rust
+pub struct BuiltinFn {
+    pub name: String,
+    pub arity: u8,
+    pub func: Rc<dyn Fn(Vec<Value>) -> Value>,
+}
+```
+
+### Usage
+
+```rust
+let source = "(noop)";
+let lexer: Lexer<'_> = Lexer::new(&source);
+let tokens = lexer.collect::<Vec<_>>();
+
+let ast: Expr = ExprParser::new().parse(tokens).unwrap();
+
+let var_names = vec![];
+let prompt_names = vec![];
+let secret_names = vec![];
+
+let mut env = Env::new(var_names, prompt_names, secret_names);
+
+let bytecode = compile(&ast, &env);
+```
+
 See: [compiler.rs](./src/compiler.rs)
 
 ## Virtual Machine
 
-The virtual machine (VM) reads through the stream of bytecode, pushing and popping values to a stack, interpreting the input expression.
+The virtual machine (VM) takes in a runtime environment, evaluates a stream of bytecode and produces a value.
+
+### Runtime Environment
+
+The VM's runtime environment contains a lists of values for variables, prompts, and secrets.
+
+```rust
+pub struct RuntimeEnv {
+    pub vars: Vec<String>,
+    pub prompts: Vec<String>,
+    pub secrets: Vec<String>,
+}
+```
+
+### Usage
+
+```rust
+let source = "(noop)";
+let lexer: Lexer<'_> = Lexer::new(&source);
+let tokens = lexer.collect::<Vec<_>>();
+
+let ast: Expr = ExprParser::new().parse(tokens).unwrap();
+
+let var_names = vec![];
+let prompt_names = vec![];
+let secret_names = vec![];
+
+let mut env = Env::new(var_names, prompt_names, secret_names);
+
+let bytecode = compile(&ast, &env);
+
+let mut vm = Vm::new();
+
+let var_values = vec![];
+let prompt_values = vec![];
+let secret_values = vec![];
+
+let runtime_env: RuntimeEnv = RuntimeEnv {
+    vars: var_values,
+    prompts: prompt_values,
+    secrets: secret_values,
+};
+
+let _ = vm.interpret(bytecode.into(), &env, &runtime_env);
+```
 
 See: [vm.rs](./src/vm.rs)
