@@ -254,16 +254,14 @@ cargo run -q --example disassembler_from_bytecode -- output.exprbin \
 Interpret an expression.
 
 ```sh
-cargo run -q --example interpreter -- spec/call_with_args.expr \
-    --vars a=a_value
+cargo run -q --example interpreter -- spec/variable.expr \
+    --vars b=b_value
 ```
 
 #### stdout
 
 ```
-String(
-    "a_value",
-)
+`b_value`
 ```
 
 ### REPL
@@ -313,7 +311,7 @@ interpret   > /set var key = value
 
 interpret   > :key
 
-value
+`value`
 ```
 
 ##### Set Prompt
@@ -323,7 +321,7 @@ interpret   > /set prompt key = value
 
 interpret   > ?key
 
-value
+`value`
 ```
 
 ##### Set Secret
@@ -333,7 +331,7 @@ interpret   > /set secret key = value
 
 interpret   > !key
 
-value
+`value`
 ```
 
 ##### Print Current Environment
@@ -383,5 +381,5 @@ Env {
 ```
 interpret   > (id :foo)
 
-bar
+`bar`
 ```
