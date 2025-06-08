@@ -36,7 +36,7 @@ impl From<&str> for Value {
 impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Value::String(string) => write!(f, "{}", string),
+            Value::String(string) => write!(f, "`{}`", string),
             Value::Fn(builtin) => write!(f, "builtin {}({})", builtin.name, builtin.arity),
         }
     }
