@@ -376,6 +376,12 @@ Env {
 }
 ```
 
+##### Exit
+
+```
+interpret   > /exit
+```
+
 #### Example
 
 ```

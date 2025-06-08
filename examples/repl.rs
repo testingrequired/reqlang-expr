@@ -12,6 +12,7 @@ use reqlang_expr::{
 fn main() {
     let set_pattern = Regex::new(SET_COMMAND_PATTERN).unwrap();
     let env_pattern = Regex::new(ENV_COMMAND_PATTERN).unwrap();
+    let exit_pattern = Regex::new(EXIT_COMMAND_PATTERN).unwrap();
     let mode_set_pattern = Regex::new(MODE_SET_COMMAND_PATTERN).unwrap();
     let mode_get_pattern = Regex::new(MODE_GET_COMMAND_PATTERN).unwrap();
 
@@ -57,6 +58,10 @@ fn main() {
             Ok(Signal::Success(source)) => {
                 if source.trim().is_empty() {
                     continue;
+                }
+
+                if exit_pattern.is_match(&source) {
+                    break;
                 }
 
                 if mode_get_pattern.is_match(&source) {
@@ -181,6 +186,7 @@ fn main() {
 
 static SET_COMMAND_PATTERN: &str = r"/set (var|prompt|secret) ([a-zA-Z]+) = (.*)";
 static ENV_COMMAND_PATTERN: &str = r"/env";
+static EXIT_COMMAND_PATTERN: &str = r"^/exit$";
 static MODE_SET_COMMAND_PATTERN: &str = r"^/mode (.+)$";
 static MODE_GET_COMMAND_PATTERN: &str = r"^/mode$";
 
