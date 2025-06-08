@@ -1,7 +1,7 @@
 use core::fmt;
 use std::rc::Rc;
 
-use crate::{ast, vm::Value};
+use crate::{ast::Expr, vm::Value};
 
 pub mod opcode {
     iota::iota! {
@@ -186,19 +186,19 @@ impl ExprByteCode {
 }
 
 /// Compile an [`ast::Expr`] into [`ExprByteCode`]
-pub fn compile(expr: &ast::Expr, env: &Env) -> ExprByteCode {
+pub fn compile(expr: &Expr, env: &Env) -> ExprByteCode {
     let mut strings: Vec<String> = vec![];
     let codes = compile_expr(expr, env, &mut strings);
     ExprByteCode { codes, strings }
 }
 
-fn compile_expr(expr: &ast::Expr, env: &Env, strings: &mut Vec<String>) -> Vec<u8> {
+fn compile_expr(expr: &Expr, env: &Env, strings: &mut Vec<String>) -> Vec<u8> {
     use opcode::*;
 
     let mut codes = vec![];
 
     match expr {
-        ast::Expr::String(string) => {
+        Expr::String(string) => {
             if let Some(index) = strings.iter().position(|x| x == &string.0) {
                 codes.push(CONSTANT);
                 codes.push(index as u8);
@@ -209,7 +209,7 @@ fn compile_expr(expr: &ast::Expr, env: &Env, strings: &mut Vec<String>) -> Vec<u
                 codes.push(index as u8);
             }
         }
-        ast::Expr::Identifier(identifier) => {
+        Expr::Identifier(identifier) => {
             let identifier_name = identifier.0.as_str();
 
             if let Some((_, index)) = env.get_builtin_index(identifier_name) {
@@ -246,7 +246,7 @@ fn compile_expr(expr: &ast::Expr, env: &Env, strings: &mut Vec<String>) -> Vec<u
                 };
             }
         }
-        ast::Expr::Call(expr_call) => {
+        Expr::Call(expr_call) => {
             codes.extend(compile_expr(&expr_call.callee.0, env, strings));
 
             for arg in expr_call.args.iter() {

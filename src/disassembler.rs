@@ -1,15 +1,15 @@
 use crate::{
-    compiler::{self, ExprByteCode},
+    compiler::{Env, ExprByteCode, opcode},
     prelude::lookup,
 };
 
 pub struct Disassembler<'bytecode, 'env> {
     bytecode: &'bytecode ExprByteCode,
-    env: &'env compiler::Env,
+    env: &'env Env,
 }
 
 impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
-    pub fn new(bytecode: &'bytecode ExprByteCode, env: &'env compiler::Env) -> Self {
+    pub fn new(bytecode: &'bytecode ExprByteCode, env: &'env Env) -> Self {
         Self { bytecode, env }
     }
 
@@ -62,9 +62,9 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
         };
 
         let (op_idx_inc, op_str): (usize, String) = match self.bytecode.codes[op_idx] {
-            compiler::opcode::GET => self.disassemble_op_get("GET", op_idx),
-            compiler::opcode::CALL => self.disassemble_op_call("CALL", op_idx),
-            compiler::opcode::CONSTANT => self.disassemble_op_constant("CONSTANT", op_idx),
+            opcode::GET => self.disassemble_op_get("GET", op_idx),
+            opcode::CALL => self.disassemble_op_call("CALL", op_idx),
+            opcode::CONSTANT => self.disassemble_op_constant("CONSTANT", op_idx),
             _ => (1, "".to_string()),
         };
 
@@ -73,7 +73,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
 
     fn disassemble_op_constant(&self, name: &str, op_idx: usize) -> (usize, String) {
         let constant_op = self.bytecode.codes[op_idx];
-        assert_eq!(constant_op, compiler::opcode::CONSTANT);
+        assert_eq!(constant_op, opcode::CONSTANT);
 
         let constant_idx = self.bytecode.codes[op_idx + 1] as usize;
 
@@ -90,7 +90,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
 
     fn disassemble_op_get(&self, name: &str, op_idx: usize) -> (usize, String) {
         let call_op = self.bytecode.codes[op_idx];
-        assert_eq!(call_op, compiler::opcode::GET);
+        assert_eq!(call_op, opcode::GET);
 
         let lookup_type = self.bytecode.codes[op_idx + 1];
         let constant_idx = self.bytecode.codes[op_idx + 2] as usize;
@@ -137,7 +137,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
 
     fn disassemble_op_call(&self, name: &str, op_idx: usize) -> (usize, String) {
         let call_op = self.bytecode.codes[op_idx];
-        assert_eq!(call_op, compiler::opcode::CALL);
+        assert_eq!(call_op, opcode::CALL);
 
         let arg_count = self.bytecode.codes[op_idx + 1];
 

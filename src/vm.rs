@@ -1,8 +1,9 @@
 use std::{fmt::Display, rc::Rc};
 
-use crate::{
-    compiler::{self, BuiltinFn, Env, ExprByteCode},
-    prelude::lookup,
+use crate::compiler::{
+    BuiltinFn, Env, ExprByteCode,
+    lookup::{BUILTIN, PROMPT, SECRET, VAR},
+    opcode,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -89,20 +90,16 @@ impl Vm {
 
     fn interpret_op(&mut self, env: &Env, runtime_env: &RuntimeEnv, op_code: u8) {
         match op_code {
-            compiler::opcode::CALL => self.op_call(),
-            compiler::opcode::CONSTANT => self.op_constant(),
-            compiler::opcode::GET => self.op_get(env, &runtime_env),
+            opcode::CALL => self.op_call(),
+            opcode::CONSTANT => self.op_constant(),
+            opcode::GET => self.op_get(env, &runtime_env),
             _ => panic!("Invalid OP code: {op_code}"),
         }
     }
 
     fn op_call(&mut self) {
         // Confirm the current op code is CALL
-        assert_eq!(
-            compiler::opcode::CALL,
-            self.read_u8(),
-            "Expected CALL opcode"
-        );
+        assert_eq!(opcode::CALL, self.read_u8(), "Expected CALL opcode");
 
         let arg_count = self.read_u8() as usize;
 
@@ -124,18 +121,18 @@ impl Vm {
     }
 
     fn op_get(&mut self, env: &Env, runtime_env: &RuntimeEnv) {
-        assert_eq!(compiler::opcode::GET, self.read_u8(), "Expected GET opcode");
+        assert_eq!(opcode::GET, self.read_u8(), "Expected GET opcode");
         let get_lookup = self.read_u8();
         let get_idx = self.read_u8() as usize;
 
         match get_lookup {
-            lookup::BUILTIN => {
+            BUILTIN => {
                 let value = env
                     .get_builtin(get_idx)
                     .expect(&format! {"undefined builtin: {get_idx}"});
                 self.stack_push(Value::Fn(value.clone()));
             }
-            lookup::VAR => {
+            VAR => {
                 let value = env
                     .get_var(get_idx)
                     .and_then(|_| runtime_env.vars.get(get_idx))
@@ -143,7 +140,7 @@ impl Vm {
 
                 self.stack_push(Value::String(value.clone()));
             }
-            lookup::PROMPT => {
+            PROMPT => {
                 let value = env
                     .get_prompt(get_idx)
                     .and_then(|_| runtime_env.prompts.get(get_idx))
@@ -151,7 +148,7 @@ impl Vm {
 
                 self.stack_push(Value::String(value.clone()));
             }
-            lookup::SECRET => {
+            SECRET => {
                 let value = env
                     .get_secret(get_idx)
                     .and_then(|_| runtime_env.secrets.get(get_idx))
@@ -164,11 +161,7 @@ impl Vm {
     }
 
     fn op_constant(&mut self) {
-        assert_eq!(
-            compiler::opcode::CONSTANT,
-            self.read_u8(),
-            "Expected CONSTANT opcode"
-        );
+        assert_eq!(opcode::CONSTANT, self.read_u8(), "Expected CONSTANT opcode");
 
         let get_idx = self.read_u8() as usize;
 
