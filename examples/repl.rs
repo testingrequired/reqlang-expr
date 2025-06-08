@@ -3,10 +3,17 @@ use std::rc::Rc;
 use clap::Parser;
 use reedline::{DefaultPrompt, DefaultPromptSegment, Reedline, Signal};
 use regex::Regex;
-use reqlang_expr::{cli::parse_key_val, disassembler::Disassembler, prelude::*};
+use reqlang_expr::{
+    cli::{parse_key_val, split_key_values},
+    disassembler::Disassembler,
+    prelude::*,
+};
 
 fn main() {
-    let mut repl_mode = ReplMode::default();
+    let set_pattern = Regex::new(SET_COMMAND_PATTERN).unwrap();
+    let env_pattern = Regex::new(ENV_COMMAND_PATTERN).unwrap();
+    let mode_set_pattern = Regex::new(MODE_SET_COMMAND_PATTERN).unwrap();
+    let mode_get_pattern = Regex::new(MODE_GET_COMMAND_PATTERN).unwrap();
 
     let args = Args::parse();
 
@@ -29,34 +36,13 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    let vars: &Vec<(String, String)> = &args.vars;
-    let mut var_keys: Vec<String> = vars.clone().into_iter().map(|(key, _)| key).collect();
-    let mut var_values: Vec<String> = vars.clone().into_iter().map(|(_, value)| value).collect();
+    let (mut var_keys, mut var_values) = split_key_values(&args.vars);
+    let (mut prompt_keys, mut prompt_values) = split_key_values(&args.prompts);
+    let (mut secret_keys, mut secret_values) = split_key_values(&args.secrets);
 
-    let prompts: &Vec<(String, String)> = &args.prompts;
-    let mut prompt_keys: Vec<String> = prompts.clone().into_iter().map(|(key, _)| key).collect();
-    let mut prompt_values: Vec<String> = prompts
-        .clone()
-        .into_iter()
-        .map(|(_, value)| value)
-        .collect();
-
-    let secrets: &Vec<(String, String)> = &args.secrets;
-    let mut secret_keys: Vec<String> = secrets.clone().into_iter().map(|(key, _)| key).collect();
-    let mut secret_values: Vec<String> = secrets
-        .clone()
-        .into_iter()
-        .map(|(_, value)| value)
-        .collect();
-
-    let set_pattern = Regex::new(SET_COMMAND_PATTERN).unwrap();
-    let env_pattern = Regex::new(ENV_COMMAND_PATTERN).unwrap();
-    let mode_set_pattern = Regex::new(MODE_SET_COMMAND_PATTERN).unwrap();
-    let mode_get_pattern = Regex::new(MODE_GET_COMMAND_PATTERN).unwrap();
+    let mut repl_mode = ReplMode::default();
 
     loop {
-        let sig = line_editor.read_line(&prompt);
-
         let mut env = Env::new(var_keys.clone(), prompt_keys.clone(), secret_keys.clone());
 
         env.add_builtins(builtins.clone());
@@ -67,7 +53,7 @@ fn main() {
             secrets: secret_values.clone(),
         };
 
-        match sig {
+        match line_editor.read_line(&prompt) {
             Ok(Signal::Success(source)) => {
                 if source.trim().is_empty() {
                     continue;

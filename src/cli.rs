@@ -4,6 +4,13 @@ use std::{
     io::{Read, stdin},
 };
 
+pub fn split_key_values(input: &Vec<(String, String)>) -> (Vec<String>, Vec<String>) {
+    let keys: Vec<String> = input.clone().into_iter().map(|(key, _)| key).collect();
+    let values: Vec<String> = input.clone().into_iter().map(|(_, value)| value).collect();
+
+    (keys, values)
+}
+
 /// Parse a single key-value pair
 pub fn parse_key_val<T, U>(value: &str) -> Result<(T, U), Box<dyn Error + Send + Sync + 'static>>
 where

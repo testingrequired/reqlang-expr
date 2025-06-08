@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use clap::Parser;
 use reqlang_expr::{
-    cli::{parse_key_val, read_in_source},
+    cli::{parse_key_val, read_in_source, split_key_values},
     prelude::*,
 };
 
@@ -30,42 +30,9 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    let var_keys = args.vars.clone().into_iter().map(|(key, _)| key).collect();
-
-    let var_values = args
-        .vars
-        .clone()
-        .into_iter()
-        .map(|(_, value)| value)
-        .collect();
-
-    let prompt_keys = args
-        .prompts
-        .clone()
-        .into_iter()
-        .map(|(key, _)| key)
-        .collect();
-
-    let prompt_values = args
-        .prompts
-        .clone()
-        .into_iter()
-        .map(|(_, value)| value)
-        .collect();
-
-    let secret_keys = args
-        .secrets
-        .clone()
-        .into_iter()
-        .map(|(key, _)| key)
-        .collect();
-
-    let secret_values = args
-        .secrets
-        .clone()
-        .into_iter()
-        .map(|(_, value)| value)
-        .collect();
+    let (var_keys, var_values) = split_key_values(&args.vars);
+    let (prompt_keys, prompt_values) = split_key_values(&args.prompts);
+    let (secret_keys, secret_values) = split_key_values(&args.secrets);
 
     let mut env = Env::new(var_keys, prompt_keys, secret_keys);
 
