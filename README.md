@@ -307,6 +307,10 @@ Current Mode: Interpret
 The last returned string value can be referenced using `%`.
 
 ```
+interpret   > %
+
+No expression has been interpeted yet.
+
 interpret   > `value`
 
 interpret   > %
