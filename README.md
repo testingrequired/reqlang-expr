@@ -272,9 +272,7 @@ A simple REPL to interpret expressions.
 cargo run -q --example repl
 ```
 
-#### Commands
-
-##### Repl Mode
+#### Repl Mode
 
 The REPL works in different modes:
 
@@ -304,7 +302,23 @@ interpret   > /mode
 Current Mode: Interpret
 ```
 
-##### Set Variable
+#### Reference Last String Value
+
+The last returned string value can be referenced using `%`.
+
+```
+interpret   > `value`
+
+interpret   > %
+
+`value`
+
+interpret   > (id %)
+
+`value`
+```
+
+#### Set Variable
 
 ```
 interpret   > /set var key = value
@@ -314,7 +328,7 @@ interpret   > :key
 `value`
 ```
 
-##### Set Prompt
+#### Set Prompt
 
 ```
 interpret   > /set prompt key = value
@@ -324,7 +338,7 @@ interpret   > ?key
 `value`
 ```
 
-##### Set Secret
+#### Set Secret
 
 ```
 interpret   > /set secret key = value
@@ -334,7 +348,7 @@ interpret   > !key
 `value`
 ```
 
-##### Print Current Environment
+#### Print Current Environment
 
 ```
 interpret   > /env
@@ -376,7 +390,7 @@ Env {
 }
 ```
 
-##### Exit
+#### Exit
 
 ```
 interpret   > /exit

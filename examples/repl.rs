@@ -43,6 +43,8 @@ fn main() {
 
     let mut repl_mode = ReplMode::default();
 
+    let mut last_value: Option<Value> = None;
+
     loop {
         let mut env = Env::new(var_keys.clone(), prompt_keys.clone(), secret_keys.clone());
 
@@ -55,7 +57,7 @@ fn main() {
         };
 
         match line_editor.read_line(&prompt) {
-            Ok(Signal::Success(source)) => {
+            Ok(Signal::Success(mut source)) => {
                 if source.trim().is_empty() {
                     continue;
                 }
@@ -115,6 +117,13 @@ fn main() {
                     continue;
                 }
 
+                if let Some(last_value) = &last_value {
+                    source = source.replace(REPL_LAST_VALUE_PLACEHOLDER, &last_value.to_string());
+                } else if source.contains(REPL_LAST_VALUE_PLACEHOLDER) {
+                    println!("No expression has been interpeted yet.");
+                    continue;
+                }
+
                 if set_pattern.is_match(&source) {
                     for (_, [set_type, key, value]) in
                         set_pattern.captures_iter(&source).map(|c| c.extract())
@@ -147,31 +156,42 @@ fn main() {
                     continue;
                 }
 
-                let ast: Expr = ExprParser::new()
-                    .parse(tokens)
-                    .expect("should parse tokens to ast");
+                let ast = ExprParser::new().parse(tokens);
 
-                if repl_mode == ReplMode::Parse {
-                    println!("{ast:#?}");
-                    continue;
+                match ast {
+                    Ok(ast) => {
+                        if repl_mode == ReplMode::Parse {
+                            println!("{ast:#?}");
+                            continue;
+                        }
+
+                        let bytecode = compile(&ast, &env);
+
+                        if repl_mode == ReplMode::Compile {
+                            println!("{bytecode:#?}");
+                            continue;
+                        }
+
+                        if repl_mode == ReplMode::Disassemble {
+                            let disassemble = Disassembler::new(&bytecode, &env);
+                            let disassembly = disassemble.disassemble(None);
+
+                            println!("{disassembly}");
+                            continue;
+                        }
+
+                        let value = vm.interpret(bytecode.into(), &env, &runtime_env).ok();
+
+                        if let Some(value) = value {
+                            if let Value::String(_) = value {
+                                last_value = Some(value);
+                            }
+                        }
+                    }
+                    Err(err) => {
+                        println!("{err:#?}");
+                    }
                 }
-
-                let bytecode = compile(&ast, &env);
-
-                if repl_mode == ReplMode::Compile {
-                    println!("{bytecode:#?}");
-                    continue;
-                }
-
-                if repl_mode == ReplMode::Disassemble {
-                    let disassemble = Disassembler::new(&bytecode, &env);
-                    let disassembly = disassemble.disassemble(None);
-
-                    println!("{disassembly}");
-                    continue;
-                }
-
-                let _ = vm.interpret(bytecode.into(), &env, &runtime_env);
             }
             Ok(Signal::CtrlD) | Ok(Signal::CtrlC) => {
                 println!("\nAborted!");
@@ -183,6 +203,8 @@ fn main() {
         }
     }
 }
+
+static REPL_LAST_VALUE_PLACEHOLDER: &'static str = "%";
 
 static SET_COMMAND_PATTERN: &str = r"/set (var|prompt|secret) ([a-zA-Z]+) = (.*)";
 static ENV_COMMAND_PATTERN: &str = r"/env";
