@@ -21,7 +21,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
 
         let mut op_idx = 0;
 
-        while op_idx < self.bytecode.codes.len() {
+        while op_idx < self.bytecode.codes().len() {
             let (op_byte_size, disassembled_byte_idx, disassembled_op) =
                 self.disassemble_op(op_idx, level);
 
@@ -61,7 +61,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             )
         };
 
-        let (op_idx_inc, op_str): (usize, String) = match self.bytecode.codes[op_idx] {
+        let (op_idx_inc, op_str): (usize, String) = match self.bytecode.codes()[op_idx] {
             opcode::GET => self.disassemble_op_get("GET", op_idx),
             opcode::CALL => self.disassemble_op_call("CALL", op_idx),
             opcode::CONSTANT => self.disassemble_op_constant("CONSTANT", op_idx),
@@ -72,14 +72,14 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
     }
 
     fn disassemble_op_constant(&self, name: &str, op_idx: usize) -> (usize, String) {
-        let constant_op = self.bytecode.codes[op_idx];
+        let constant_op = self.bytecode.codes()[op_idx];
         assert_eq!(constant_op, opcode::CONSTANT);
 
-        let constant_idx = self.bytecode.codes[op_idx + 1] as usize;
+        let constant_idx = self.bytecode.codes()[op_idx + 1] as usize;
 
         let value = self
             .bytecode
-            .strings
+            .strings()
             .get(constant_idx)
             .expect("should have string at index");
 
@@ -89,11 +89,11 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
     }
 
     fn disassemble_op_get(&self, name: &str, op_idx: usize) -> (usize, String) {
-        let call_op = self.bytecode.codes[op_idx];
+        let call_op = self.bytecode.codes()[op_idx];
         assert_eq!(call_op, opcode::GET);
 
-        let lookup_type = self.bytecode.codes[op_idx + 1];
-        let constant_idx = self.bytecode.codes[op_idx + 2] as usize;
+        let lookup_type = self.bytecode.codes()[op_idx + 1];
+        let constant_idx = self.bytecode.codes()[op_idx + 2] as usize;
 
         let value = match lookup_type {
             lookup::BUILTIN => {
@@ -136,10 +136,10 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
     }
 
     fn disassemble_op_call(&self, name: &str, op_idx: usize) -> (usize, String) {
-        let call_op = self.bytecode.codes[op_idx];
+        let call_op = self.bytecode.codes()[op_idx];
         assert_eq!(call_op, opcode::CALL);
 
-        let arg_count = self.bytecode.codes[op_idx + 1];
+        let arg_count = self.bytecode.codes()[op_idx + 1];
 
         let string = format!("{name:16} ({arg_count} args)\n",);
 

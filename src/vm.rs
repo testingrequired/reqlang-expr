@@ -41,7 +41,7 @@ impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Value::String(string) => write!(f, "`{}`", string),
-            Value::Fn(builtin) => write!(f, "builtin {}({})", builtin.name, builtin.arity),
+            Value::Fn(builtin) => write!(f, "{builtin:?}"),
         }
     }
 }
@@ -78,7 +78,11 @@ impl Vm {
         self.bytecode = Some(bytecode.into());
         self.ip = 0;
 
-        while let Some(op_code) = self.bytecode.as_ref().and_then(|bc| bc.codes.get(self.ip)) {
+        while let Some(op_code) = self
+            .bytecode
+            .as_ref()
+            .and_then(|bc| bc.codes().get(self.ip))
+        {
             self.interpret_op(env, runtime_env, *op_code);
         }
 
@@ -170,7 +174,7 @@ impl Vm {
             .bytecode
             .as_ref()
             .expect("should have bytecode")
-            .strings
+            .strings()
             .get(get_idx)
             .expect(&format!("undefined string: {}", get_idx));
 
@@ -198,7 +202,7 @@ impl Vm {
         self.bytecode
             .as_ref()
             .expect("should have bytecode")
-            .codes
+            .codes()
             .get(current_ip as usize)
             .expect("should have op in bytecode at {}")
             .clone()

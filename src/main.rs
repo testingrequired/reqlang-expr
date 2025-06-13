@@ -35,7 +35,7 @@ fn main() -> ExprResult<()> {
 
     let bytecode: Box<ExprByteCode> = read_in_bytecode(&args, &env)?.into();
 
-    if bytecode.codes.is_empty() {
+    if bytecode.codes().is_empty() {
         println!("No bytecode found");
         exit(1);
     }
@@ -105,7 +105,7 @@ fn read_in_bytecode(args: &Args, env: &Env) -> ExprResult<ExprByteCode> {
                 .expect("should be able to read source from file")
         };
 
-        Ok(ExprByteCode::from(bytecode))
+        Ok(ExprByteCode::new(bytecode, vec![]))
     } else {
         let source = if args.stdin {
             let mut source = String::new();
@@ -155,10 +155,10 @@ fn write_out_bytecode(args: Args, bytecode: Box<ExprByteCode>) {
     if let Some(out_path) = args.out_path {
         let mut file = File::create(out_path).expect("should create output file");
 
-        file.write_all(&bytecode.codes)
+        file.write_all(&bytecode.codes())
             .expect("should write bytecode to output file");
     } else {
-        let _ = stdout().write_all(&bytecode.codes);
+        let _ = stdout().write_all(&bytecode.codes());
 
         exit(0);
     }

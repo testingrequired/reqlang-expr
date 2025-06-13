@@ -41,7 +41,7 @@ fn main() -> ExprResult<()> {
 
     eprintln!("{bytecode:#?}");
 
-    let _ = stdout().write_all(&bytecode.codes);
+    let _ = stdout().write_all(&bytecode.codes());
 
     Ok(())
 }

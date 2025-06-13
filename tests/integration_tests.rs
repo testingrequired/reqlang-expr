@@ -43,7 +43,7 @@ macro_rules! test {
                         let op_codes = ::reqlang_expr::compiler::compile(&ast, &env).unwrap();
                         let expected_op_codes: Vec<u8> = $expected_op_codes;
 
-                        ::pretty_assertions::assert_eq!(expected_op_codes, op_codes.codes);
+                        ::pretty_assertions::assert_eq!(expected_op_codes, op_codes.codes());
                     }
                 }
 
@@ -151,6 +151,34 @@ mod valid {
         };
 
         interpets to: Ok(Value::String("noop".to_string()));
+    }
+
+    test! {
+        "noop";
+
+        scenario: reference builtin;
+
+        tokens should be: vec![
+            Ok((0, Token::identifier("noop"), 4))
+        ];
+
+        ast should be: Ok(Expr::identifier("noop"));
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![
+            opcode::GET, lookup::BUILTIN, 1
+        ];
+
+        disassembles to: "0000 GET                 1 == 'noop'\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Fn(BuiltinFn { name: "noop".to_string(), arity: 0, func: std::rc::Rc::new(|_| Value::String("noop".to_string())) }.into()));
     }
 
     test! {

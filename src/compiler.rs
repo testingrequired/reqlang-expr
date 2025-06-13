@@ -52,20 +52,7 @@ impl PartialEq for BuiltinFn {
 
 impl fmt::Debug for BuiltinFn {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("BuiltinFn")
-            .field("name", &self.name)
-            .field("arity", &self.arity)
-            .finish()
-    }
-}
-
-impl<'a> From<&'a (String, u8)> for BuiltinFn {
-    fn from(value: &'a (String, u8)) -> Self {
-        BuiltinFn {
-            name: value.0.clone(),
-            arity: value.1.clone(),
-            func: Rc::new(|_| "".into()),
-        }
+        write!(f, "builtin {}({})", self.name, self.arity)
     }
 }
 
@@ -161,27 +148,21 @@ impl Env {
 /// The compiled bytecode for an expression
 #[derive(Debug, Clone)]
 pub struct ExprByteCode {
-    pub codes: Vec<u8>,
-    pub strings: Vec<String>,
+    codes: Vec<u8>,
+    strings: Vec<String>,
 }
 
 impl ExprByteCode {
-    pub fn new() -> Self {
-        Self {
-            codes: vec![],
-            strings: vec![],
-        }
+    pub fn new(codes: Vec<u8>, strings: Vec<String>) -> Self {
+        Self { codes, strings }
     }
 
-    pub fn from(codes: Vec<u8>) -> Self {
-        Self {
-            codes,
-            strings: vec![],
-        }
+    pub fn codes(&self) -> &[u8] {
+        &self.codes
     }
 
-    pub fn push_string(&mut self, string: &str) {
-        self.strings.push(string.to_string());
+    pub fn strings(&self) -> &[String] {
+        &self.strings
     }
 }
 
@@ -189,7 +170,7 @@ impl ExprByteCode {
 pub fn compile(expr: &Expr, env: &Env) -> ExprResult<ExprByteCode> {
     let mut strings: Vec<String> = vec![];
     let codes = compile_expr(expr, env, &mut strings)?;
-    Ok(ExprByteCode { codes, strings })
+    Ok(ExprByteCode::new(codes, strings))
 }
 
 fn compile_expr(expr: &Expr, env: &Env, strings: &mut Vec<String>) -> ExprResult<Vec<u8>> {
@@ -263,4 +244,54 @@ fn compile_expr(expr: &Expr, env: &Env, strings: &mut Vec<String>) -> ExprResult
     }
 
     Ok(codes)
+}
+
+#[cfg(test)]
+mod value_tests {
+    use super::*;
+
+    #[test]
+    fn test_builtins_debug_0_arity() {
+        assert_eq!(
+            "builtin test_builtin(0)",
+            format!(
+                "{:#?}",
+                BuiltinFn {
+                    name: "test_builtin".to_string(),
+                    arity: 0,
+                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                }
+            )
+        )
+    }
+
+    #[test]
+    fn test_builtins_debug_1_arity() {
+        assert_eq!(
+            "builtin test_builtin(1)",
+            format!(
+                "{:#?}",
+                BuiltinFn {
+                    name: "test_builtin".to_string(),
+                    arity: 1,
+                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                }
+            )
+        )
+    }
+
+    #[test]
+    fn test_builtins_debug_2_arity() {
+        assert_eq!(
+            "builtin test_builtin(2)",
+            format!(
+                "{:#?}",
+                BuiltinFn {
+                    name: "test_builtin".to_string(),
+                    arity: 2,
+                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                }
+            )
+        )
+    }
 }
