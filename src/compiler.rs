@@ -1,7 +1,7 @@
 use core::fmt;
 use std::rc::Rc;
 
-use crate::{ast::Expr, vm::Value};
+use crate::{ast::Expr, errors::ExprResult, vm::Value};
 
 pub mod opcode {
     iota::iota! {
@@ -186,13 +186,13 @@ impl ExprByteCode {
 }
 
 /// Compile an [`ast::Expr`] into [`ExprByteCode`]
-pub fn compile(expr: &Expr, env: &Env) -> ExprByteCode {
+pub fn compile(expr: &Expr, env: &Env) -> ExprResult<ExprByteCode> {
     let mut strings: Vec<String> = vec![];
-    let codes = compile_expr(expr, env, &mut strings);
-    ExprByteCode { codes, strings }
+    let codes = compile_expr(expr, env, &mut strings)?;
+    Ok(ExprByteCode { codes, strings })
 }
 
-fn compile_expr(expr: &Expr, env: &Env, strings: &mut Vec<String>) -> Vec<u8> {
+fn compile_expr(expr: &Expr, env: &Env, strings: &mut Vec<String>) -> ExprResult<Vec<u8>> {
     use opcode::*;
 
     let mut codes = vec![];
@@ -247,10 +247,14 @@ fn compile_expr(expr: &Expr, env: &Env, strings: &mut Vec<String>) -> Vec<u8> {
             }
         }
         Expr::Call(expr_call) => {
-            codes.extend(compile_expr(&expr_call.callee.0, env, strings));
+            let callee_bytecode = compile_expr(&expr_call.callee.0, env, strings)?;
+
+            codes.extend(callee_bytecode);
 
             for arg in expr_call.args.iter() {
-                codes.extend(compile_expr(&arg.0, env, strings));
+                let arg_bytecode = compile_expr(&arg.0, env, strings)?;
+
+                codes.extend(arg_bytecode);
             }
 
             codes.push(opcode::CALL);
@@ -258,5 +262,5 @@ fn compile_expr(expr: &Expr, env: &Env, strings: &mut Vec<String>) -> Vec<u8> {
         }
     }
 
-    codes
+    Ok(codes)
 }

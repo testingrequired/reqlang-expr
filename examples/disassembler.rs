@@ -5,7 +5,7 @@ use reqlang_expr::{
     prelude::*,
 };
 
-fn main() {
+fn main() -> ExprResult<()> {
     let args = Args::parse();
 
     let source = read_in_source(args.path);
@@ -19,12 +19,14 @@ fn main() {
 
     let env = Env::new(args.vars, args.prompts, args.secrets);
 
-    let bytecode = compile(&ast, &env);
+    let bytecode = compile(&ast, &env)?;
 
     let disassemble = Disassembler::new(&bytecode, &env);
     let disassembly = disassemble.disassemble(None);
 
     eprintln!("{disassembly}");
+
+    Ok(())
 }
 
 #[derive(Parser, Debug)]

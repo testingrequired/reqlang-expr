@@ -6,7 +6,7 @@ use reqlang_expr::{
     prelude::*,
 };
 
-fn main() {
+fn main() -> ExprResult<()> {
     let args = Args::parse();
 
     let source = read_in_source(args.path);
@@ -38,7 +38,7 @@ fn main() {
 
     env.add_builtins(builtins);
 
-    let bytecode = compile(&ast, &env);
+    let bytecode = compile(&ast, &env)?;
 
     let mut vm = Vm::new();
 
@@ -49,6 +49,8 @@ fn main() {
     };
 
     let _ = vm.interpret(bytecode.into(), &env, &runtime_env);
+
+    Ok(())
 }
 
 #[derive(Parser, Debug)]

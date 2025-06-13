@@ -40,7 +40,7 @@ macro_rules! test {
                     let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
-                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env).unwrap();
                         let expected_op_codes: Vec<u8> = $expected_op_codes;
 
                         ::pretty_assertions::assert_eq!(expected_op_codes, op_codes.codes);
@@ -57,7 +57,7 @@ macro_rules! test {
                     let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
-                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env).unwrap();
                         let expected_disassembly: String = $expected_disassembly.to_string();
                         let disassemble = ::reqlang_expr::disassembler::Disassembler::new(&op_codes, &env);
                         let disassembly = disassemble.disassemble(None);
@@ -76,14 +76,14 @@ macro_rules! test {
                     let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
-                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env);
+                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env).unwrap();
 
                         let mut vm = Vm::new();
                         let runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
 
                         let value = vm.interpret(op_codes.into(), &env, &runtime_env);
 
-                        let expected_interpretation: Result<Value, ()> = $expected_interpretation;
+                        let expected_interpretation: ::reqlang_expr::errors::ExprResult<Value> = $expected_interpretation;
 
                         ::pretty_assertions::assert_eq!(expected_interpretation, value);
                     }
@@ -805,12 +805,12 @@ mod invalid {
         scenario: identifier starting with invalid character;
 
         tokens should be: vec![
-            Err((LexicalError::InvalidToken, 0..0)),
+            Err((LexicalError::InvalidToken.into(), 0..0)),
             Ok((1, Token::identifier("foo"), 4))
         ];
 
         ast should be: Err(lalrpop_util::ParseError::User {
-            error: (LexicalError::InvalidToken, 0..0)
+            error: (LexicalError::InvalidToken.into(), 0..0)
         });
 
         env: (vec![], vec![], vec![]);
@@ -894,11 +894,11 @@ mod invalid {
         scenario: unterminated string;
 
         tokens should be: vec![
-            Err((LexicalError::InvalidToken, 0..0)),
+            Err((LexicalError::InvalidToken.into(), 0..0)),
         ];
 
         ast should be: Err(lalrpop_util::ParseError::User {
-            error: (LexicalError::InvalidToken, 0..0)
+            error: (LexicalError::InvalidToken.into(), 0..0)
         });
 
         env: (vec![], vec![], vec![]);
@@ -915,6 +915,6 @@ mod invalid {
             ..Default::default()
         };
 
-        interpets to: Err(());
+        interpets to: Err(vec![]);
     }
 }

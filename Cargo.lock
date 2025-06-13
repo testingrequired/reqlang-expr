@@ -767,6 +767,7 @@ dependencies = [
  "pretty_assertions",
  "reedline",
  "regex",
+ "thiserror",
 ]
 
 [[package]]

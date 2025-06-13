@@ -9,7 +9,7 @@ use reqlang_expr::{
     prelude::*,
 };
 
-fn main() {
+fn main() -> ExprResult<()> {
     let set_pattern = Regex::new(SET_COMMAND_PATTERN).unwrap();
     let env_pattern = Regex::new(ENV_COMMAND_PATTERN).unwrap();
     let exit_pattern = Regex::new(EXIT_COMMAND_PATTERN).unwrap();
@@ -165,7 +165,7 @@ fn main() {
                             continue;
                         }
 
-                        let bytecode = compile(&ast, &env);
+                        let bytecode = compile(&ast, &env)?;
 
                         if repl_mode == ReplMode::Compile {
                             println!("{bytecode:#?}");
@@ -180,11 +180,16 @@ fn main() {
                             continue;
                         }
 
-                        let value = vm.interpret(bytecode.into(), &env, &runtime_env).ok();
+                        match vm.interpret(bytecode.into(), &env, &runtime_env) {
+                            Ok(value) => {
+                                println!("{value}");
 
-                        if let Some(value) = value {
-                            if let Value::String(_) = value {
-                                last_value = Some(value);
+                                if matches!(value, Value::String(_)) {
+                                    last_value = Some(value);
+                                }
+                            }
+                            Err(err) => {
+                                println!("{err:#?}");
                             }
                         }
                     }
@@ -202,6 +207,8 @@ fn main() {
             }
         }
     }
+
+    Ok(())
 }
 
 static REPL_LAST_VALUE_PLACEHOLDER: &'static str = "%";

@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use reqlang_expr::prelude::*;
 
-fn main() {
+fn main() -> ExprResult<()> {
     let source = "(id2 (id (id2 (noop))))";
 
     let lexer: Lexer<'_> = Lexer::new(&source);
@@ -30,7 +30,7 @@ fn main() {
 
     env.add_builtins(builtins);
 
-    let bytecode = compile(&ast, &env);
+    let bytecode = compile(&ast, &env)?;
 
     let mut vm = Vm::new();
 
@@ -44,4 +44,6 @@ fn main() {
         .expect("should be ok");
 
     assert_eq!("noop", result.get_string());
+
+    Ok(())
 }

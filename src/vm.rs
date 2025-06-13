@@ -1,9 +1,12 @@
 use std::{fmt::Display, rc::Rc};
 
-use crate::compiler::{
-    BuiltinFn, Env, ExprByteCode,
-    lookup::{BUILTIN, PROMPT, SECRET, VAR},
-    opcode,
+use crate::{
+    compiler::{
+        BuiltinFn, Env, ExprByteCode,
+        lookup::{BUILTIN, PROMPT, SECRET, VAR},
+        opcode,
+    },
+    errors::ExprResult,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -71,7 +74,7 @@ impl Vm {
         bytecode: Box<ExprByteCode>,
         env: &Env,
         runtime_env: &RuntimeEnv,
-    ) -> Result<Value, ()> {
+    ) -> ExprResult<Value> {
         self.bytecode = Some(bytecode.into());
         self.ip = 0;
 
@@ -82,8 +85,6 @@ impl Vm {
         assert_eq!(1, self.stack.len());
 
         let value = self.stack_pop();
-
-        eprintln!("{value}");
 
         Ok(value)
     }

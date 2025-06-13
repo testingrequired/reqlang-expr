@@ -8,7 +8,7 @@ use std::{
 use clap::Parser;
 use reqlang_expr::{cli::parse_key_val, prelude::*};
 
-fn main() {
+fn main() -> ExprResult<()> {
     let args = Args::parse();
 
     let builtins = args
@@ -33,7 +33,7 @@ fn main() {
 
     eprintln!("Env:\n\n{env:#?}\n");
 
-    let bytecode: Box<ExprByteCode> = read_in_bytecode(&args, &env).into();
+    let bytecode: Box<ExprByteCode> = read_in_bytecode(&args, &env)?.into();
 
     if bytecode.codes.is_empty() {
         println!("No bytecode found");
@@ -45,6 +45,8 @@ fn main() {
     }
 
     write_out_bytecode(args, bytecode);
+
+    Ok(())
 }
 
 #[derive(Parser, Debug)]
@@ -88,7 +90,7 @@ struct Args {
     builtins: Vec<(String, u8)>,
 }
 
-fn read_in_bytecode(args: &Args, env: &Env) -> ExprByteCode {
+fn read_in_bytecode(args: &Args, env: &Env) -> ExprResult<ExprByteCode> {
     let bytecode = if args.bytecode {
         let bytecode = if args.stdin {
             let mut bytecode = vec![];
@@ -103,7 +105,7 @@ fn read_in_bytecode(args: &Args, env: &Env) -> ExprByteCode {
                 .expect("should be able to read source from file")
         };
 
-        ExprByteCode::from(bytecode)
+        Ok(ExprByteCode::from(bytecode))
     } else {
         let source = if args.stdin {
             let mut source = String::new();

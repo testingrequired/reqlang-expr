@@ -1,4 +1,4 @@
-use crate::errors::LexicalError;
+use crate::errors::ExprError;
 use crate::ast;
 use crate::lexer::Token;
 
@@ -49,7 +49,7 @@ Args<E>: Vec<E> = {
 
 extern {
     type Location = usize;
-    type Error = (LexicalError, std::ops::Range<usize>);
+    type Error = (ExprError, std::ops::Range<usize>);
 
     enum Token {
         "(" => Token::LParan,

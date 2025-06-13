@@ -1,7 +1,7 @@
 use logos::Logos;
 use std::ops::Range;
 
-use crate::errors::{self, LexicalError};
+use crate::errors::{self, ExprError};
 
 /// Converts a [`String`] source in to a vector of [`Token`]
 #[derive(Debug)]
@@ -20,7 +20,7 @@ impl<'a> Lexer<'a> {
 }
 
 impl<'a> Iterator for Lexer<'a> {
-    type Item = Result<(usize, Token, usize), (LexicalError, Range<usize>)>;
+    type Item = Result<(usize, Token, usize), (ExprError, Range<usize>)>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(token) = self.pending.take() {
@@ -29,8 +29,13 @@ impl<'a> Iterator for Lexer<'a> {
 
         match self.inner.next()? {
             token => {
-                let span = self.inner.span();
-                Some(token.map(|t| (span.start, t, span.end)))
+                let Range { start, end } = self.inner.span();
+
+                Some(
+                    token
+                        .map(|token| (start, token, end))
+                        .map_err(|(err, err_span)| (err.into(), err_span)),
+                )
             }
         }
     }

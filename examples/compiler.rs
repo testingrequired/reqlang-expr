@@ -9,7 +9,7 @@ use reqlang_expr::{
     prelude::*,
 };
 
-fn main() {
+fn main() -> ExprResult<()> {
     let args = Args::parse();
 
     let source = read_in_source(args.path);
@@ -37,11 +37,13 @@ fn main() {
 
     env.add_builtins(builtins);
 
-    let bytecode = compile(&ast, &env);
+    let bytecode = compile(&ast, &env)?;
 
     eprintln!("{bytecode:#?}");
 
     let _ = stdout().write_all(&bytecode.codes);
+
+    Ok(())
 }
 
 #[derive(Parser, Debug)]
