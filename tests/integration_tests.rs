@@ -513,9 +513,9 @@ mod valid {
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 8, opcode::CALL, 0];
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 9, opcode::CALL, 0];
 
-        disassembles to: "0000 GET                 8 == 'foo'\n0003 CALL             (0 args)\n";
+        disassembles to: "0000 GET                 9 == 'foo'\n0003 CALL             (0 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -549,9 +549,9 @@ mod valid {
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 8, opcode::GET, lookup::VAR, 0, opcode::CALL, 1];
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 9, opcode::GET, lookup::VAR, 0, opcode::CALL, 1];
 
-        disassembles to: "0000 GET                 8 == 'foo'\n0003 GET                 0 == 'a'\n0006 CALL             (1 args)\n";
+        disassembles to: "0000 GET                 9 == 'foo'\n0003 GET                 0 == 'a'\n0006 CALL             (1 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -640,11 +640,11 @@ mod valid {
         compiles to: vec![
             opcode::GET,
             lookup::BUILTIN, // foo
-            8,
+            9,
 
             opcode::GET,
             lookup::BUILTIN, // bar
-            9,
+            10,
             opcode::GET,
             lookup::VAR, // :a
             0,
@@ -653,7 +653,7 @@ mod valid {
 
             opcode::GET,
             lookup::BUILTIN, // fiz
-            10,
+            11,
             opcode::GET,
             lookup::PROMPT, // ?b
             0,
@@ -662,7 +662,7 @@ mod valid {
 
             opcode::GET,
             lookup::BUILTIN, // baz
-            11,
+            12,
             opcode::GET,
             lookup::SECRET, // !c
             0,
@@ -673,7 +673,7 @@ mod valid {
             3
         ];
 
-        disassembles to: "0000 GET                 8 == 'foo'\n0003 GET                 9 == 'bar'\n0006 GET                 0 == 'a'\n0009 CALL             (1 args)\n0011 GET                10 == 'fiz'\n0014 GET                 0 == 'b'\n0017 CALL             (1 args)\n0019 GET                11 == 'baz'\n0022 GET                 0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
+        disassembles to: "0000 GET                 9 == 'foo'\n0003 GET                10 == 'bar'\n0006 GET                 0 == 'a'\n0009 CALL             (1 args)\n0011 GET                11 == 'fiz'\n0014 GET                 0 == 'b'\n0017 CALL             (1 args)\n0019 GET                12 == 'baz'\n0022 GET                 0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -1205,6 +1205,70 @@ mod valid {
 
         interpets to: Ok(Value::String("noop".to_string()));
     }
+
+    test! {
+        "(concat `foo` `bar`)";
+
+        scenario: concat two strings;
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("foobar".to_string()));
+    }
+
+    test! {
+        "(concat `foo` false)";
+
+        scenario: concat string and bool;
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("foofalse".to_string()));
+    }
+
+    test! {
+        "(concat `a` `b` `c` `d` `e` `f` `g` `h` `i` `j`)";
+
+        scenario: concat max number of ten args;
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("abcdefghij".to_string()));
+    }
+
+    test! {
+        "(concat `a` true `c` false `e` `f` `g` `h` id `j`)";
+
+        scenario: concat max number of ten args mixed types;
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("atruecfalseefghbuiltin id(1)j".to_string()));
+    }
 }
 
 mod invalid {
@@ -1229,9 +1293,9 @@ mod invalid {
             }.into()
         ];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 8];
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 9];
 
-        disassembles to: "0000 GET                 8 == 'foo'\n";
+        disassembles to: "0000 GET                 9 == 'foo'\n";
 
         runtime env: {
             ..Default::default()
@@ -1295,10 +1359,6 @@ mod invalid {
         compiles to: vec![
             opcode::GET,
             lookup::BUILTIN,
-            8,
-
-            opcode::GET,
-            lookup::BUILTIN,
             9,
 
             opcode::GET,
@@ -1309,11 +1369,15 @@ mod invalid {
             lookup::BUILTIN,
             11,
 
+            opcode::GET,
+            lookup::BUILTIN,
+            12,
+
             opcode::CALL,
             3
         ];
 
-        disassembles to: "0000 GET                 8 == 'foo'\n0003 GET                 9 == 'bar'\n0006 GET                10 == 'fiz'\n0009 GET                11 == 'baz'\n0012 CALL             (3 args)\n";
+        disassembles to: "0000 GET                 9 == 'foo'\n0003 GET                10 == 'bar'\n0006 GET                11 == 'fiz'\n0009 GET                12 == 'baz'\n0012 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()

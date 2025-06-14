@@ -142,6 +142,21 @@ impl BuiltinFns {
             _ => Value::String(value_arg.to_string()),
         }
     }
+
+    pub fn concat(args: Vec<Value>) -> Value {
+        let mut result = String::new();
+
+        for arg in args {
+            let value = match arg {
+                Value::String(string) => string,
+                _ => arg.to_string(),
+            };
+
+            result.push_str(value.as_str());
+        }
+
+        Value::String(result)
+    }
 }
 
 #[derive(Debug)]
@@ -195,6 +210,11 @@ impl Default for Env {
                     name: String::from("to_str"),
                     arity: 1,
                     func: Rc::new(BuiltinFns::to_str),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("concat"),
+                    arity: 10,
+                    func: Rc::new(BuiltinFns::concat),
                 }),
             ],
             vars: Vec::new(),
