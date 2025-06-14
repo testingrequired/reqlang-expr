@@ -1,13 +1,13 @@
 use lalrpop_util::lalrpop_mod;
 
-lalrpop_mod!(pub exprlang);
+lalrpop_mod!(pub parser);
 
 pub mod prelude {
     pub use crate::ast::*;
     pub use crate::compiler::*;
     pub use crate::errors::*;
-    pub use crate::exprlang::*;
     pub use crate::lexer::*;
+    pub use crate::parser::*;
     pub use crate::vm::*;
 }
 

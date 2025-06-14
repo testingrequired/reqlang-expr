@@ -25,7 +25,7 @@ macro_rules! test {
                 #[test]
                 fn [< $test_name:lower $(_ $test_name2:lower)* _ast >]() {
                     let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                    let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+                    let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
 
                     ::pretty_assertions::assert_eq!($expected_ast, ast);
                 }
@@ -37,7 +37,7 @@ macro_rules! test {
                     env.add_builtins(vec!$builtins);
 
                     let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                    let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+                    let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
                         let op_codes = ::reqlang_expr::compiler::compile(&ast, &env).unwrap();
@@ -54,7 +54,7 @@ macro_rules! test {
                     env.add_builtins(vec!$builtins);
 
                     let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                    let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+                    let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
                         let op_codes = ::reqlang_expr::compiler::compile(&ast, &env).unwrap();
@@ -73,7 +73,7 @@ macro_rules! test {
                     env.add_builtins(vec!$builtins);
 
                     let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                    let ast = ::reqlang_expr::exprlang::ExprParser::new().parse(tokens);
+                    let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
                         let op_codes = ::reqlang_expr::compiler::compile(&ast, &env).unwrap();
