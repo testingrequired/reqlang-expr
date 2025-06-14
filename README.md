@@ -8,7 +8,7 @@ A small (tiny) WIP expression language for [reqlang](https://github.com/testingr
 
 ```toml
 [dependencies]
-reqlang-expr = "0.1.1"
+reqlang-expr = "0.2.0"
 ```
 
 ```sh
