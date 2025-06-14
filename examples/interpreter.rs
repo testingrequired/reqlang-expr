@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use clap::Parser;
 use reqlang_expr::{
-    cli::{parse_key_val, read_in_source, split_key_values},
+    cli::{parse_key_val, read_in_source, unzip_key_values},
     prelude::*,
 };
 
@@ -30,9 +30,9 @@ fn main() -> ExprResult<()> {
         })
         .collect::<Vec<_>>();
 
-    let (var_keys, var_values) = split_key_values(&args.vars);
-    let (prompt_keys, prompt_values) = split_key_values(&args.prompts);
-    let (secret_keys, secret_values) = split_key_values(&args.secrets);
+    let (var_keys, var_values) = unzip_key_values(args.vars);
+    let (prompt_keys, prompt_values) = unzip_key_values(args.prompts);
+    let (secret_keys, secret_values) = unzip_key_values(args.secrets);
 
     let mut env = Env::new(var_keys, prompt_keys, secret_keys);
 

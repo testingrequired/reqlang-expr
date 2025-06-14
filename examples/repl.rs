@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 use reedline::{DefaultPrompt, DefaultPromptSegment, Reedline, Signal};
 use regex::Regex;
 use reqlang_expr::{
-    cli::{parse_key_val, split_key_values},
+    cli::{parse_key_val, unzip_key_values},
     disassembler::Disassembler,
     prelude::*,
 };
@@ -32,9 +32,9 @@ fn main() -> ExprResult<()> {
         })
         .collect::<Vec<_>>();
 
-    let (mut var_keys, mut var_values) = split_key_values(&args.vars);
-    let (mut prompt_keys, mut prompt_values) = split_key_values(&args.prompts);
-    let (mut secret_keys, mut secret_values) = split_key_values(&args.secrets);
+    let (mut var_keys, mut var_values) = unzip_key_values(args.vars);
+    let (mut prompt_keys, mut prompt_values) = unzip_key_values(args.prompts);
+    let (mut secret_keys, mut secret_values) = unzip_key_values(args.secrets);
 
     let mut repl_mode = ReplMode::default();
 
@@ -208,8 +208,6 @@ fn main() -> ExprResult<()> {
 
 static REPL_LAST_VALUE_PLACEHOLDER: &'static str = "%";
 
-static INVALID_REGEX_ERROR: &str = "should be a valid regex pattern";
-
 /// # Set Command
 ///
 /// ```repl
@@ -275,6 +273,8 @@ static MODE_SET_PATTERN: Lazy<Regex> =
 /// - `lex`
 static MODE_GET_PATTERN: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"^/mode$").expect(INVALID_REGEX_ERROR));
+
+static INVALID_REGEX_ERROR: &str = "should be a valid regex pattern";
 
 /// Controls what the repl does with input
 #[derive(PartialEq, Debug, Default)]
