@@ -32,6 +32,13 @@ impl Value {
             _ => panic!("Value is not a function"),
         }
     }
+
+    pub fn get_bool(&self) -> bool {
+        match self {
+            Value::Bool(s) => s.clone(),
+            _ => panic!("Value is not a string"),
+        }
+    }
 }
 
 impl From<&str> for Value {

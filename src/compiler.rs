@@ -72,6 +72,67 @@ impl BuiltinFns {
     pub fn noop(_: Vec<Value>) -> Value {
         Value::String(String::from("noop"))
     }
+
+    pub fn is_empty(args: Vec<Value>) -> Value {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string();
+
+        Value::Bool(string_arg.is_empty())
+    }
+
+    pub fn not(args: Vec<Value>) -> Value {
+        let bool_arg = args
+            .first()
+            .expect("should have boolean expression passed")
+            .get_bool();
+
+        Value::Bool(!bool_arg)
+    }
+
+    pub fn and(args: Vec<Value>) -> Value {
+        let a_arg = args
+            .first()
+            .expect("should have first expression passed")
+            .get_bool();
+        let b_arg = args
+            .get(1)
+            .expect("should have second expression passed")
+            .get_bool();
+
+        Value::Bool(a_arg && b_arg)
+    }
+
+    pub fn or(args: Vec<Value>) -> Value {
+        let a_arg = args
+            .first()
+            .expect("should have first expression passed")
+            .get_bool();
+        let b_arg = args
+            .get(1)
+            .expect("should have second expression passed")
+            .get_bool();
+
+        Value::Bool(a_arg || b_arg)
+    }
+
+    pub fn cond(args: Vec<Value>) -> Value {
+        let cond_arg = args
+            .first()
+            .expect("should have cond expression passed")
+            .get_bool();
+        let then_arg = args
+            .get(1)
+            .cloned()
+            .expect("should have then expression passed");
+        let else_arg = args
+            .get(2)
+            .cloned()
+            .expect("should have else expression passed");
+
+        if cond_arg { then_arg } else { else_arg }
+    }
 }
 
 #[derive(Debug)]
@@ -95,6 +156,31 @@ impl Default for Env {
                     name: String::from("noop"),
                     arity: 0,
                     func: Rc::new(BuiltinFns::noop),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("is_empty"),
+                    arity: 1,
+                    func: Rc::new(BuiltinFns::is_empty),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("not"),
+                    arity: 1,
+                    func: Rc::new(BuiltinFns::not),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("and"),
+                    arity: 2,
+                    func: Rc::new(BuiltinFns::and),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("or"),
+                    arity: 2,
+                    func: Rc::new(BuiltinFns::or),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("cond"),
+                    arity: 3,
+                    func: Rc::new(BuiltinFns::cond),
                 }),
             ],
             vars: Vec::new(),

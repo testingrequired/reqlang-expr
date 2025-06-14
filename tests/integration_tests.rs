@@ -91,6 +91,44 @@ macro_rules! test {
             }
         }
     };
+
+    (
+        $source:expr;
+        scenario: $test_name:ident $( $test_name2:ident)*;
+        env: $env:tt;
+        builtins: $builtins:tt;
+        runtime env: $runtime_env:tt;
+        interpets to: $expected_interpretation:expr;
+    ) => {
+        ::pastey::paste! {
+            mod [< $test_name:lower $(_ $test_name2:lower)* _tests >] {
+                use reqlang_expr::prelude::*;
+
+                #[test]
+                fn [< $test_name:lower $(_ $test_name2:lower)* _interprets_without_error >]() {
+                    let mut env: Env = Env::new$env;
+
+                    env.add_builtins(vec!$builtins);
+
+                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
+                    let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
+
+                    if let Ok(ast) = ast {
+                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env).unwrap();
+
+                        let mut vm = Vm::new();
+                        let runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
+
+                        let value = vm.interpret(op_codes.into(), &env, &runtime_env);
+
+                        let expected_interpretation: ::reqlang_expr::errors::ExprResult<Value> = $expected_interpretation;
+
+                        ::pretty_assertions::assert_eq!(expected_interpretation, value);
+                    }
+                }
+            }
+        }
+    };
 }
 
 mod valid {
@@ -475,9 +513,9 @@ mod valid {
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 2, opcode::CALL, 0];
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 7, opcode::CALL, 0];
 
-        disassembles to: "0000 GET                 2 == 'foo'\n0003 CALL             (0 args)\n";
+        disassembles to: "0000 GET                 7 == 'foo'\n0003 CALL             (0 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -511,9 +549,9 @@ mod valid {
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 2, opcode::GET, lookup::VAR, 0, opcode::CALL, 1];
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 7, opcode::GET, lookup::VAR, 0, opcode::CALL, 1];
 
-        disassembles to: "0000 GET                 2 == 'foo'\n0003 GET                 0 == 'a'\n0006 CALL             (1 args)\n";
+        disassembles to: "0000 GET                 7 == 'foo'\n0003 GET                 0 == 'a'\n0006 CALL             (1 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -602,11 +640,11 @@ mod valid {
         compiles to: vec![
             opcode::GET,
             lookup::BUILTIN, // foo
-            2,
+            7,
 
             opcode::GET,
             lookup::BUILTIN, // bar
-            3,
+            8,
             opcode::GET,
             lookup::VAR, // :a
             0,
@@ -615,7 +653,7 @@ mod valid {
 
             opcode::GET,
             lookup::BUILTIN, // fiz
-            4,
+            9,
             opcode::GET,
             lookup::PROMPT, // ?b
             0,
@@ -624,7 +662,7 @@ mod valid {
 
             opcode::GET,
             lookup::BUILTIN, // baz
-            5,
+            10,
             opcode::GET,
             lookup::SECRET, // !c
             0,
@@ -635,7 +673,7 @@ mod valid {
             3
         ];
 
-        disassembles to: "0000 GET                 2 == 'foo'\n0003 GET                 3 == 'bar'\n0006 GET                 0 == 'a'\n0009 CALL             (1 args)\n0011 GET                 4 == 'fiz'\n0014 GET                 0 == 'b'\n0017 CALL             (1 args)\n0019 GET                 5 == 'baz'\n0022 GET                 0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
+        disassembles to: "0000 GET                 7 == 'foo'\n0003 GET                 8 == 'bar'\n0006 GET                 0 == 'a'\n0009 CALL             (1 args)\n0011 GET                 9 == 'fiz'\n0014 GET                 0 == 'b'\n0017 CALL             (1 args)\n0019 GET                10 == 'baz'\n0022 GET                 0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -698,6 +736,395 @@ mod valid {
 
         interpets to: Ok(Value::Bool(false));
     }
+
+    test! {
+        "(not false)";
+
+        scenario: not;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("not"), 4)),
+            Ok((5, Token::False, 10)),
+            Ok((10, Token::RParan, 11)),
+        ];
+
+        ast should be: Ok(
+            Expr::Call(ExprCall {
+                callee: (Expr::identifier("not"), 1..4),
+                args: vec![(
+                    Expr::bool(false),
+                    5..10
+                )]
+            }.into())
+        );
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 3, opcode::FALSE, opcode::CALL, 1];
+
+        disassembles to: "0000 GET                 3 == 'not'\n0003 FALSE\n0004 CALL             (1 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(and true false)";
+
+        scenario: and true false;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("and"), 4)),
+            Ok((5, Token::True, 9)),
+            Ok((10, Token::False, 15)),
+            Ok((15, Token::RParan, 16)),
+        ];
+
+        ast should be: Ok(
+            Expr::Call(ExprCall {
+                callee: (Expr::identifier("and"), 1..4),
+                args: vec![
+                    (Expr::bool(true), 5..9),
+                    (Expr::bool(false), 10..15)
+                ]
+            }.into())
+        );
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 4, opcode::TRUE, opcode::FALSE, opcode::CALL, 2];
+
+        disassembles to: "0000 GET                 4 == 'and'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(false));
+    }
+
+    test! {
+        "(and true true)";
+
+        scenario: and true true;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("and"), 4)),
+            Ok((5, Token::True, 9)),
+            Ok((10, Token::True, 14)),
+            Ok((14, Token::RParan, 15)),
+        ];
+
+        ast should be: Ok(
+            Expr::Call(ExprCall {
+                callee: (Expr::identifier("and"), 1..4),
+                args: vec![
+                    (Expr::bool(true), 5..9),
+                    (Expr::bool(true), 10..14)
+                ]
+            }.into())
+        );
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 4, opcode::TRUE, opcode::TRUE, opcode::CALL, 2];
+
+        disassembles to: "0000 GET                 4 == 'and'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(and false true)";
+
+        scenario: and false true;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("and"), 4)),
+            Ok((5, Token::False, 10)),
+            Ok((11, Token::True, 15)),
+            Ok((15, Token::RParan, 16)),
+        ];
+
+        ast should be: Ok(
+            Expr::Call(ExprCall {
+                callee: (Expr::identifier("and"), 1..4),
+                args: vec![
+                    (Expr::bool(false), 5..10),
+                    (Expr::bool(true), 11..15)
+                ]
+            }.into())
+        );
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 4, opcode::FALSE, opcode::TRUE, opcode::CALL, 2];
+
+        disassembles to: "0000 GET                 4 == 'and'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(false));
+    }
+
+    test! {
+        "(or true false)";
+
+        scenario: or true false;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("or"), 3)),
+            Ok((4, Token::True, 8)),
+            Ok((9, Token::False, 14)),
+            Ok((14, Token::RParan, 15)),
+        ];
+
+        ast should be: Ok(
+            Expr::Call(ExprCall {
+                callee: (Expr::identifier("or"), 1..3),
+                args: vec![
+                    (Expr::bool(true), 4..8),
+                    (Expr::bool(false), 9..14)
+                ]
+            }.into())
+        );
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 5, opcode::TRUE, opcode::FALSE, opcode::CALL, 2];
+
+        disassembles to: "0000 GET                 5 == 'or'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(or true true)";
+
+        scenario: or true true;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("or"), 3)),
+            Ok((4, Token::True, 8)),
+            Ok((9, Token::True, 13)),
+            Ok((13, Token::RParan, 14)),
+        ];
+
+        ast should be: Ok(
+            Expr::Call(ExprCall {
+                callee: (Expr::identifier("or"), 1..3),
+                args: vec![
+                    (Expr::bool(true), 4..8),
+                    (Expr::bool(true), 9..13)
+                ]
+            }.into())
+        );
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 5, opcode::TRUE, opcode::TRUE, opcode::CALL, 2];
+
+        disassembles to: "0000 GET                 5 == 'or'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(or false true)";
+
+        scenario: or false true;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("or"), 3)),
+            Ok((4, Token::False, 9)),
+            Ok((10, Token::True, 14)),
+            Ok((14, Token::RParan, 15)),
+        ];
+
+        ast should be: Ok(
+            Expr::Call(ExprCall {
+                callee: (Expr::identifier("or"), 1..3),
+                args: vec![
+                    (Expr::bool(false), 4..9),
+                    (Expr::bool(true), 10..14)
+                ]
+            }.into())
+        );
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 5, opcode::FALSE, opcode::TRUE, opcode::CALL, 2];
+
+        disassembles to: "0000 GET                 5 == 'or'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(cond true `foo` `bar`)";
+
+        scenario: cond true;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("cond"), 5)),
+            Ok((6, Token::True, 10)),
+            Ok((11, Token::String("foo".to_string()), 16)),
+            Ok((17, Token::String("bar".to_string()), 22)),
+            Ok((22, Token::RParan, 23))
+        ];
+
+        ast should be: Ok(
+            Expr::Call(ExprCall {
+                callee: (Expr::identifier("cond"), 1..5),
+                args: vec![
+                    (Expr::bool(true), 6..10),
+                    (Expr::string("foo"), 11..16),
+                    (Expr::string("bar"), 17..22)
+                ]
+            }.into())
+        );
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![
+            opcode::GET, lookup::BUILTIN, 6,
+            opcode::TRUE,
+            opcode::CONSTANT, 0,
+            opcode::CONSTANT, 1,
+            opcode::CALL, 3
+        ];
+
+        disassembles to: "0000 GET                 6 == 'cond'\n0003 TRUE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("foo".to_string()));
+    }
+
+    test! {
+        "(cond false `foo` `bar`)";
+
+        scenario: cond false;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("cond"), 5)),
+            Ok((6, Token::False, 11)),
+            Ok((12, Token::String("foo".to_string()), 17)),
+            Ok((18, Token::String("bar".to_string()), 23)),
+            Ok((23, Token::RParan, 24))
+        ];
+
+        ast should be: Ok(
+            Expr::Call(ExprCall {
+                callee: (Expr::identifier("cond"), 1..5),
+                args: vec![
+                    (Expr::bool(false), 6..11),
+                    (Expr::string("foo"), 12..17),
+                    (Expr::string("bar"), 18..23)
+                ]
+            }.into())
+        );
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![
+            opcode::GET, lookup::BUILTIN, 6,
+            opcode::FALSE,
+            opcode::CONSTANT, 0,
+            opcode::CONSTANT, 1,
+            opcode::CALL, 3
+        ];
+
+        disassembles to: "0000 GET                 6 == 'cond'\n0003 FALSE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("bar".to_string()));
+    }
+
+    test! {
+        "(is_empty ``)";
+
+        scenario: call is_empty with empty string;
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(is_empty `foo`)";
+
+        scenario: call is_empty with non empty string;
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(false));
+    }
 }
 
 mod invalid {
@@ -722,9 +1149,9 @@ mod invalid {
             }.into()
         ];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 2];
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 7];
 
-        disassembles to: "0000 GET                 2 == 'foo'\n";
+        disassembles to: "0000 GET                 7 == 'foo'\n";
 
         runtime env: {
             ..Default::default()
@@ -788,25 +1215,25 @@ mod invalid {
         compiles to: vec![
             opcode::GET,
             lookup::BUILTIN,
-            2,
+            7,
 
             opcode::GET,
             lookup::BUILTIN,
-            3,
+            8,
 
             opcode::GET,
             lookup::BUILTIN,
-            4,
+            9,
 
             opcode::GET,
             lookup::BUILTIN,
-            5,
+            10,
 
             opcode::CALL,
             3
         ];
 
-        disassembles to: "0000 GET                 2 == 'foo'\n0003 GET                 3 == 'bar'\n0006 GET                 4 == 'fiz'\n0009 GET                 5 == 'baz'\n0012 CALL             (3 args)\n";
+        disassembles to: "0000 GET                 7 == 'foo'\n0003 GET                 8 == 'bar'\n0006 GET                 9 == 'fiz'\n0009 GET                10 == 'baz'\n0012 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()

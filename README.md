@@ -36,10 +36,15 @@ These expressions will be embedded in places where double quotes are common (e.g
 
 ### Builtin Functions
 
-| Name   | Arity | Description                              | Usage         |
-| ------ | ----: | ---------------------------------------- | ------------- |
-| `id`   |     1 | Returns the string arugment passed to it | `(id (noop))` |
-| `noop` |     0 | Returns the string "noop"                | `(noop)`      |
+| Name       | Arity | Description                                          | Usage                         |
+| ---------- | ----: | ---------------------------------------------------- | ----------------------------- |
+| `id`       |     1 | Returns the string arugment passed to it             | `(id (noop))`                 |
+| `noop`     |     0 | Returns the string "noop"                            | `(noop)`                      |
+| `is_empty` |     1 | Checks if the given string is empty                  | ` (is_empty ``) `             |
+| `not`      |     1 | Logical NOT operation on a boolean value             | `(not true)`                  |
+| `and`      |     2 | Logical AND operation between two booleans           | `(and true false)`            |
+| `or`       |     2 | Logical OR operation between two booleans            | `(or true false)`             |
+| `cond`     |     3 | If condition, returns second arg if true, else third | `` (cond true `foo` `bar`) `` |
 
 ## Project
 
