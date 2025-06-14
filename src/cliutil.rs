@@ -9,12 +9,14 @@ use std::{
 /// Unzip a vector of key-value pairs into separate vectors for keys and values.
 ///
 /// ```
+/// use reqlang_expr::cliutil::unzip_key_values;
+///
 /// let keys_values: Vec<(String, String)> = vec![
 ///     ("key1".to_string(), "val1".to_string()),
 ///     ("key2".to_string(), "val2".to_string())
 /// ];
 ///
-/// let (keys, values): (Vec<String>, Vec<String>) = keys_values.into_iter().unzip();
+/// let (keys, values): (Vec<String>, Vec<String>) = unzip_key_values(keys_values);
 ///
 /// assert_eq!(vec!["key1", "key2"], keys);
 /// assert_eq!(vec!["val1", "val2"], values);
