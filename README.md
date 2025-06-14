@@ -45,6 +45,7 @@ These expressions will be embedded in places where double quotes are common (e.g
 | `and`      |     2 | Logical AND operation between two booleans           | `(and true false)`            |
 | `or`       |     2 | Logical OR operation between two booleans            | `(or true false)`             |
 | `cond`     |     3 | If condition, returns second arg if true, else third | `` (cond true `foo` `bar`) `` |
+| `to_str`   |     1 | Converts a value to its string representation        | `(to_str true)`               |
 
 ## Project
 

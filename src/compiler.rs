@@ -133,6 +133,15 @@ impl BuiltinFns {
 
         if cond_arg { then_arg } else { else_arg }
     }
+
+    pub fn to_str(args: Vec<Value>) -> Value {
+        let value_arg = args.first().expect("should have string expression passed");
+
+        match value_arg {
+            Value::String(_) => value_arg.clone(),
+            _ => Value::String(value_arg.to_string()),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -181,6 +190,11 @@ impl Default for Env {
                     name: String::from("cond"),
                     arity: 3,
                     func: Rc::new(BuiltinFns::cond),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("to_str"),
+                    arity: 1,
+                    func: Rc::new(BuiltinFns::to_str),
                 }),
             ],
             vars: Vec::new(),
