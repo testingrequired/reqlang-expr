@@ -1464,6 +1464,54 @@ mod valid {
 
         interpets to: Ok(Value::Bool(false));
     }
+
+    test! {
+        "(trim ` foo `)";
+
+        scenario: trim;
+
+        env: (vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("foo".to_string()));
+    }
+
+    test! {
+        "(trim_start ` foo `)";
+
+        scenario: trim start;
+
+        env: (vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("foo ".to_string()));
+    }
+
+    test! {
+        "(trim_end ` foo `)";
+
+        scenario: trim end;
+
+        env: (vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String(" foo".to_string()));
+    }
 }
 
 mod invalid {

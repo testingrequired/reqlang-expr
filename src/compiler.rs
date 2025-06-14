@@ -171,6 +171,33 @@ impl BuiltinFns {
 
         Value::Bool(haystack_arg.contains(needle_arg))
     }
+
+    pub fn trim(args: Vec<Value>) -> Value {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string();
+
+        Value::String(string_arg.trim().to_string())
+    }
+
+    pub fn trim_start(args: Vec<Value>) -> Value {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string();
+
+        Value::String(string_arg.trim_start().to_string())
+    }
+
+    pub fn trim_end(args: Vec<Value>) -> Value {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string();
+
+        Value::String(string_arg.trim_end().to_string())
+    }
 }
 
 #[derive(Debug)]
@@ -235,6 +262,21 @@ impl Default for Env {
                     name: String::from("contains"),
                     arity: 2,
                     func: Rc::new(BuiltinFns::contains),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("trim"),
+                    arity: 1,
+                    func: Rc::new(BuiltinFns::trim),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("trim_start"),
+                    arity: 1,
+                    func: Rc::new(BuiltinFns::trim_start),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("trim_end"),
+                    arity: 1,
+                    func: Rc::new(BuiltinFns::trim_end),
                 }),
             ],
             user_builtins: vec![],
