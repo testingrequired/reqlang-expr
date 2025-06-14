@@ -9,6 +9,7 @@ use crate::{
         opcode,
     },
     errors::ExprResult,
+    prelude::lookup::USER_BUILTIN,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -148,6 +149,12 @@ impl Vm {
                 let value = env
                     .get_builtin(get_idx)
                     .expect(&format! {"undefined builtin: {get_idx}"});
+                self.stack_push(Value::Fn(value.clone()));
+            }
+            USER_BUILTIN => {
+                let value = env
+                    .get_user_builtin(get_idx)
+                    .expect(&format! {"undefined user builtin: {get_idx}"});
                 self.stack_push(Value::Fn(value.clone()));
             }
             VAR => {

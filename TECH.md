@@ -62,12 +62,13 @@ The compiler produces bytecode from an AST and a [compile time environment](#com
 
 ### Lookup Types
 
-| Type      | Lookup Index |
-| --------- | -----------: |
-| `BUILTIN` |            0 |
-| `VAR`     |            1 |
-| `PROMPT`  |            2 |
-| `SECRET`  |            3 |
+| Type           | Lookup Index |
+| -------------- | -----------: |
+| `BUILTIN`      |            0 |
+| `VAR`          |            1 |
+| `PROMPT`       |            2 |
+| `SECRET`       |            3 |
+| `USER_BUILTIN` |            4 |
 
 ### Compile Time Environment
 
@@ -76,6 +77,7 @@ The compiler's environment contains a lists of names for [builtin functions](#bu
 ```rust
 pub struct Env {
     builtins: Vec<Rc<BuiltinFn>>,
+    user_builtins: Vec<Rc<BuiltinFn>>,
     vars: Vec<String>,
     prompts: Vec<String>,
     secrets: Vec<String>,

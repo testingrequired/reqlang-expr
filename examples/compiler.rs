@@ -35,7 +35,7 @@ fn main() -> ExprResult<()> {
 
     let mut env = Env::new(args.vars.clone(), vec![], vec![]);
 
-    env.add_builtins(builtins);
+    env.add_user_builtins(builtins);
 
     let bytecode = compile(&ast, &env)?;
 

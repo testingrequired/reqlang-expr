@@ -29,7 +29,7 @@ fn main() -> ExprResult<()> {
         args.secrets.clone(),
     );
 
-    env.add_builtins(builtins);
+    env.add_user_builtins(builtins);
 
     eprintln!("Env:\n\n{env:#?}\n");
 

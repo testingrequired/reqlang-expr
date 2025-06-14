@@ -43,7 +43,7 @@ fn main() -> ExprResult<()> {
     loop {
         let mut env = Env::new(var_keys.clone(), prompt_keys.clone(), secret_keys.clone());
 
-        env.add_builtins(builtins.clone());
+        env.add_user_builtins(builtins.clone());
 
         let runtime_env: RuntimeEnv = RuntimeEnv {
             vars: var_values.clone(),

@@ -5,7 +5,7 @@ macro_rules! test {
         tokens should be: $expected_tokens:expr;
         ast should be: $expected_ast:expr;
         env: $env:tt;
-        builtins: $builtins:tt;
+        user builtins: $builtins:tt;
         compiles to: $expected_op_codes:expr;
         disassembles to: $expected_disassembly:expr;
         runtime env: $runtime_env:tt;
@@ -34,7 +34,7 @@ macro_rules! test {
                 fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes >]() {
                     let mut env: Env = Env::new$env;
 
-                    env.add_builtins(vec!$builtins);
+                    env.add_user_builtins(vec!$builtins);
 
                     let tokens = ::reqlang_expr::lexer::Lexer::new($source);
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
@@ -51,7 +51,7 @@ macro_rules! test {
                 fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes_disassemble_to >]() {
                     let mut env: Env = ::reqlang_expr::compiler::Env::new$env;
 
-                    env.add_builtins(vec!$builtins);
+                    env.add_user_builtins(vec!$builtins);
 
                     let tokens = ::reqlang_expr::lexer::Lexer::new($source);
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
@@ -70,7 +70,7 @@ macro_rules! test {
                 fn [< $test_name:lower $(_ $test_name2:lower)* _interprets_without_error >]() {
                     let mut env: Env = Env::new$env;
 
-                    env.add_builtins(vec!$builtins);
+                    env.add_user_builtins(vec!$builtins);
 
                     let tokens = ::reqlang_expr::lexer::Lexer::new($source);
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
@@ -96,7 +96,7 @@ macro_rules! test {
         $source:expr;
         scenario: $test_name:ident $( $test_name2:ident)*;
         env: $env:tt;
-        builtins: $builtins:tt;
+        user builtins: $builtins:tt;
         runtime env: $runtime_env:tt;
         interpets to: $expected_interpretation:expr;
     ) => {
@@ -108,7 +108,7 @@ macro_rules! test {
                 fn [< $test_name:lower $(_ $test_name2:lower)* _interprets_without_error >]() {
                     let mut env: Env = Env::new$env;
 
-                    env.add_builtins(vec!$builtins);
+                    env.add_user_builtins(vec!$builtins);
 
                     let tokens = ::reqlang_expr::lexer::Lexer::new($source);
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
@@ -145,7 +145,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![
             opcode::CONSTANT, 0
@@ -175,7 +175,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![
             opcode::GET, lookup::BUILTIN, 1,
@@ -204,7 +204,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![
             opcode::GET, lookup::BUILTIN, 1
@@ -239,7 +239,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![
             opcode::GET, lookup::BUILTIN, 0,
@@ -276,7 +276,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![
             opcode::GET, lookup::BUILTIN, 0,
@@ -312,7 +312,7 @@ mod valid {
 
         env: (vec!["a".to_string(), "b".to_string()], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 0, opcode::GET, lookup::VAR, 1, opcode::CALL, 1];
 
@@ -350,7 +350,7 @@ mod valid {
 
         env: (vec!["a".to_string(), "b".to_string()], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![
             opcode::GET, lookup::BUILTIN, 0,
@@ -385,7 +385,7 @@ mod valid {
 
         env: (vec!["a".to_string(), "b".to_string()], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::GET, lookup::VAR, 1];
 
@@ -413,7 +413,7 @@ mod valid {
 
         env: (vec![], vec!["a".to_string(), "b".to_string()], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::GET, lookup::PROMPT, 1];
 
@@ -446,7 +446,7 @@ mod valid {
 
         env: (vec![], vec!["a".to_string(), "b".to_string()], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 0, opcode::GET, lookup::PROMPT, 1, opcode::CALL, 1];
 
@@ -474,7 +474,7 @@ mod valid {
 
         env: (vec![], vec![], vec!["a".to_string(), "b".to_string()]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::GET, lookup::SECRET, 1];
 
@@ -507,15 +507,15 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [BuiltinFn {
+        user builtins: [BuiltinFn {
             name: "foo".to_string(),
             arity: 0,
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 10, opcode::CALL, 0];
+        compiles to: vec![opcode::GET, lookup::USER_BUILTIN, 0, opcode::CALL, 0];
 
-        disassembles to: "0000 GET                10 == 'foo'\n0003 CALL             (0 args)\n";
+        disassembles to: "0000 GET                 0 == 'foo'\n0003 CALL             (0 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -543,15 +543,15 @@ mod valid {
 
         env: (vec!["a".to_string()], vec![], vec![]);
 
-        builtins: [BuiltinFn {
+        user builtins: [BuiltinFn {
             name: "foo".to_string(),
             arity: 0,
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 10, opcode::GET, lookup::VAR, 0, opcode::CALL, 1];
+        compiles to: vec![opcode::GET, lookup::USER_BUILTIN, 0, opcode::GET, lookup::VAR, 0, opcode::CALL, 1];
 
-        disassembles to: "0000 GET                10 == 'foo'\n0003 GET                 0 == 'a'\n0006 CALL             (1 args)\n";
+        disassembles to: "0000 GET                 0 == 'foo'\n0003 GET                 0 == 'a'\n0006 CALL             (1 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -614,7 +614,7 @@ mod valid {
             vec!["c".to_string()]
         );
 
-        builtins: [
+        user builtins: [
             BuiltinFn {
                 name: "foo".to_string(),
                 arity: 3,
@@ -639,12 +639,12 @@ mod valid {
 
         compiles to: vec![
             opcode::GET,
-            lookup::BUILTIN, // foo
-            10,
+            lookup::USER_BUILTIN, // foo
+            0,
 
             opcode::GET,
-            lookup::BUILTIN, // bar
-            11,
+            lookup::USER_BUILTIN, // bar
+            1,
             opcode::GET,
             lookup::VAR, // :a
             0,
@@ -652,8 +652,8 @@ mod valid {
             1,
 
             opcode::GET,
-            lookup::BUILTIN, // fiz
-            12,
+            lookup::USER_BUILTIN, // fiz
+            2,
             opcode::GET,
             lookup::PROMPT, // ?b
             0,
@@ -661,8 +661,8 @@ mod valid {
             1,
 
             opcode::GET,
-            lookup::BUILTIN, // baz
-            13,
+            lookup::USER_BUILTIN, // baz
+            3,
             opcode::GET,
             lookup::SECRET, // !c
             0,
@@ -673,7 +673,7 @@ mod valid {
             3
         ];
 
-        disassembles to: "0000 GET                10 == 'foo'\n0003 GET                11 == 'bar'\n0006 GET                 0 == 'a'\n0009 CALL             (1 args)\n0011 GET                12 == 'fiz'\n0014 GET                 0 == 'b'\n0017 CALL             (1 args)\n0019 GET                13 == 'baz'\n0022 GET                 0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
+        disassembles to: "0000 GET                 0 == 'foo'\n0003 GET                 1 == 'bar'\n0006 GET                 0 == 'a'\n0009 CALL             (1 args)\n0011 GET                 2 == 'fiz'\n0014 GET                 0 == 'b'\n0017 CALL             (1 args)\n0019 GET                 3 == 'baz'\n0022 GET                 0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -698,7 +698,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::TRUE];
 
@@ -724,7 +724,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::FALSE];
 
@@ -761,7 +761,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 3, opcode::FALSE, opcode::CALL, 1];
 
@@ -799,7 +799,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 4, opcode::TRUE, opcode::FALSE, opcode::CALL, 2];
 
@@ -837,7 +837,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 4, opcode::TRUE, opcode::TRUE, opcode::CALL, 2];
 
@@ -875,7 +875,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 4, opcode::FALSE, opcode::TRUE, opcode::CALL, 2];
 
@@ -913,7 +913,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 5, opcode::TRUE, opcode::FALSE, opcode::CALL, 2];
 
@@ -951,7 +951,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 5, opcode::TRUE, opcode::TRUE, opcode::CALL, 2];
 
@@ -989,7 +989,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 5, opcode::FALSE, opcode::TRUE, opcode::CALL, 2];
 
@@ -1029,7 +1029,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![
             opcode::GET, lookup::BUILTIN, 6,
@@ -1075,7 +1075,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![
             opcode::GET, lookup::BUILTIN, 6,
@@ -1101,7 +1101,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             ..Default::default()
@@ -1117,7 +1117,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             ..Default::default()
@@ -1133,7 +1133,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             ..Default::default()
@@ -1149,7 +1149,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             ..Default::default()
@@ -1165,7 +1165,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             ..Default::default()
@@ -1181,7 +1181,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             ..Default::default()
@@ -1197,7 +1197,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             ..Default::default()
@@ -1213,7 +1213,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             ..Default::default()
@@ -1229,7 +1229,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             ..Default::default()
@@ -1245,7 +1245,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             ..Default::default()
@@ -1261,7 +1261,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             ..Default::default()
@@ -1277,7 +1277,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             ..Default::default()
@@ -1293,7 +1293,7 @@ mod valid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             ..Default::default()
@@ -1309,7 +1309,7 @@ mod valid {
 
         env: (vec!["a".to_string()], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             vars: vec!["foobar".to_string()],
@@ -1326,7 +1326,7 @@ mod valid {
 
         env: (vec!["a".to_string()], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             vars: vec!["foo".to_string()],
@@ -1361,7 +1361,7 @@ mod valid {
 
         env: (vec!["a".to_string(), "b".to_string()], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![
             opcode::GET, lookup::BUILTIN, 9,
@@ -1387,7 +1387,7 @@ mod valid {
 
         env: (vec!["a".to_string()], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             vars: vec!["foobar".to_string()],
@@ -1404,7 +1404,7 @@ mod valid {
 
         env: (vec![], vec!["a".to_string()], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             prompts: vec!["foobar".to_string()],
@@ -1421,7 +1421,7 @@ mod valid {
 
         env: (vec![], vec!["a".to_string()], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             prompts: vec!["foobar".to_string()],
@@ -1438,7 +1438,7 @@ mod valid {
 
         env: (vec![], vec![], vec!["a".to_string()]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             secrets: vec!["foobar".to_string()],
@@ -1455,7 +1455,7 @@ mod valid {
 
         env: (vec![], vec![], vec!["a".to_string()]);
 
-        builtins: [];
+        user builtins: [];
 
         runtime env: {
             secrets: vec!["foobar".to_string()],
@@ -1480,7 +1480,7 @@ mod invalid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [
+        user builtins: [
             BuiltinFn {
                 name: "foo".to_string(),
                 arity: 0,
@@ -1488,9 +1488,9 @@ mod invalid {
             }.into()
         ];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 10];
+        compiles to: vec![opcode::GET, lookup::USER_BUILTIN, 0];
 
-        disassembles to: "0000 GET                10 == 'foo'\n";
+        disassembles to: "0000 GET                 0 == 'foo'\n";
 
         runtime env: {
             ..Default::default()
@@ -1528,7 +1528,7 @@ mod invalid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [
+        user builtins: [
             BuiltinFn {
                 name: "foo".to_string(),
                 arity: 3,
@@ -1553,26 +1553,26 @@ mod invalid {
 
         compiles to: vec![
             opcode::GET,
-            lookup::BUILTIN,
-            10,
+            lookup::USER_BUILTIN,
+            0,
 
             opcode::GET,
-            lookup::BUILTIN,
-            11,
+            lookup::USER_BUILTIN,
+            1,
 
             opcode::GET,
-            lookup::BUILTIN,
-            12,
+            lookup::USER_BUILTIN,
+            2,
 
             opcode::GET,
-            lookup::BUILTIN,
-            13,
+            lookup::USER_BUILTIN,
+            3,
 
             opcode::CALL,
             3
         ];
 
-        disassembles to: "0000 GET                10 == 'foo'\n0003 GET                11 == 'bar'\n0006 GET                12 == 'fiz'\n0009 GET                13 == 'baz'\n0012 CALL             (3 args)\n";
+        disassembles to: "0000 GET                 0 == 'foo'\n0003 GET                 1 == 'bar'\n0006 GET                 2 == 'fiz'\n0009 GET                 3 == 'baz'\n0012 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1598,7 +1598,7 @@ mod invalid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![];
 
@@ -1632,7 +1632,7 @@ mod invalid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![];
 
@@ -1661,7 +1661,7 @@ mod invalid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![];
 
@@ -1691,7 +1691,7 @@ mod invalid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![];
 
@@ -1721,7 +1721,7 @@ mod invalid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![];
 
@@ -1749,7 +1749,7 @@ mod invalid {
 
         env: (vec![], vec![], vec![]);
 
-        builtins: [];
+        user builtins: [];
 
         compiles to: vec![
             opcode::CONSTANT, 0

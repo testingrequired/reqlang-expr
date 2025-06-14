@@ -125,6 +125,13 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
                     .expect(&format! {"undefined builtin: {constant_idx}"});
                 &value.name
             }
+            lookup::USER_BUILTIN => {
+                let value = self
+                    .env
+                    .get_user_builtin(constant_idx)
+                    .expect(&format! {"undefined user builtin: {constant_idx}"});
+                &value.name
+            }
             lookup::VAR => {
                 let value = self
                     .env

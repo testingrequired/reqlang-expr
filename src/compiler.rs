@@ -27,7 +27,8 @@ pub mod lookup {
         BUILTIN: u8 = iota;,
         VAR,
         PROMPT,
-        SECRET
+        SECRET,
+        USER_BUILTIN
     }
 }
 
@@ -175,6 +176,7 @@ impl BuiltinFns {
 #[derive(Debug)]
 pub struct Env {
     builtins: Vec<Rc<BuiltinFn>>,
+    user_builtins: Vec<Rc<BuiltinFn>>,
     vars: Vec<String>,
     prompts: Vec<String>,
     secrets: Vec<String>,
@@ -235,6 +237,7 @@ impl Default for Env {
                     func: Rc::new(BuiltinFns::contains),
                 }),
             ],
+            user_builtins: vec![],
             vars: Vec::new(),
             prompts: Vec::new(),
             secrets: Vec::new(),
@@ -260,18 +263,29 @@ impl Env {
         result
     }
 
-    pub fn add_builtins(&mut self, builtins: Vec<Rc<BuiltinFn>>) {
+    pub fn get_user_builtin_index(&self, name: &str) -> Option<(&Rc<BuiltinFn>, u8)> {
+        let index = self.user_builtins.iter().position(|x| x.name == name);
+
+        let result = index.map(|i| (self.user_builtins.get(i).unwrap(), i as u8));
+        result
+    }
+
+    pub fn add_user_builtins(&mut self, builtins: Vec<Rc<BuiltinFn>>) {
         for builtin in builtins {
-            self.add_builtin(builtin);
+            self.add_user_builtin(builtin);
         }
     }
 
-    pub fn add_builtin(&mut self, builtin: Rc<BuiltinFn>) {
-        self.builtins.push(builtin);
+    pub fn add_user_builtin(&mut self, builtin: Rc<BuiltinFn>) {
+        self.user_builtins.push(builtin);
     }
 
     pub fn get_builtin(&self, index: usize) -> Option<&Rc<BuiltinFn>> {
         self.builtins.get(index)
+    }
+
+    pub fn get_user_builtin(&self, index: usize) -> Option<&Rc<BuiltinFn>> {
+        self.user_builtins.get(index)
     }
 
     pub fn get_var(&self, index: usize) -> Option<&String> {
@@ -338,6 +352,10 @@ fn compile_expr(expr: &Expr, env: &Env, strings: &mut Vec<String>) -> ExprResult
             if let Some((_, index)) = env.get_builtin_index(identifier_name) {
                 codes.push(GET);
                 codes.push(lookup::BUILTIN);
+                codes.push(index);
+            } else if let Some((_, index)) = env.get_user_builtin_index(identifier_name) {
+                codes.push(GET);
+                codes.push(lookup::USER_BUILTIN);
                 codes.push(index);
             } else {
                 let identifier_prefix = &identifier_name[..1];

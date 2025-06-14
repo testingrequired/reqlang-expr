@@ -36,7 +36,7 @@ fn main() -> ExprResult<()> {
 
     let mut env = Env::new(var_keys, prompt_keys, secret_keys);
 
-    env.add_builtins(builtins);
+    env.add_user_builtins(builtins);
 
     let bytecode = compile(&ast, &env)?;
 
