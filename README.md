@@ -238,38 +238,18 @@ ExprByteCode {
 Compile expression and disassemble it.
 
 ```sh
-cargo run -q --example disassembler -- spec/call_with_args.expr \
-    --vars a=a_value
+cargo run -q --example disassembler -- spec/call_id_with_id_arg.expr
 ```
 
 #### stderr
 
 ```
-0000 GET                 0 == 'id'
-0003 GET                 0 == 'id'
-0006 CALL             (1 args)
-0008 CALL             (1 args)
-```
-
-### Disassembler From Bytecode
-
-Read in bytecode from binary file and disassemble it.
-
-```sh
-cargo run -q --example disassembler_from_bytecode -- output.exprbin \
-    --builtins fn_name:3 \
-    --vars a \
-    --prompts b \
-    --secrets c
-```
-
-#### stderr
-
-```
-0000 CALL                0 == fn_name (3 args)
-0004 VAR                 0 == 'a'
-0006 PROMPT              0 == 'b'
-0008 SECRET              0 == 'c'
+0000 GET BUILTIN         0 == 'id'
+0003 GET BUILTIN         0 == 'id'
+0006 GET BUILTIN         1 == 'noop'
+0009 CALL             (0 args)
+0011 CALL             (1 args)
+0013 CALL             (1 args)
 ```
 
 ### Interpreter

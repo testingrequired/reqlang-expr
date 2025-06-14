@@ -182,7 +182,7 @@ mod valid {
             opcode::CALL, 0
         ];
 
-        disassembles to: "0000 GET                 1 == 'noop'\n0003 CALL             (0 args)\n";
+        disassembles to: "0000 GET BUILTIN         1 == 'noop'\n0003 CALL             (0 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -210,7 +210,7 @@ mod valid {
             opcode::GET, lookup::BUILTIN, 1
         ];
 
-        disassembles to: "0000 GET                 1 == 'noop'\n";
+        disassembles to: "0000 GET BUILTIN         1 == 'noop'\n";
 
         runtime env: {
             ..Default::default()
@@ -248,7 +248,7 @@ mod valid {
             opcode::CALL, 1
         ];
 
-        disassembles to: "0000 GET                 0 == 'id'\n0003 GET                 1 == 'noop'\n0006 CALL             (0 args)\n0008 CALL             (1 args)\n";
+        disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET BUILTIN         1 == 'noop'\n0006 CALL             (0 args)\n0008 CALL             (1 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -284,7 +284,7 @@ mod valid {
             opcode::CALL, 1
         ];
 
-        disassembles to: "0000 GET                 0 == 'id'\n0003 CONSTANT            0 == 'test value'\n0005 CALL             (1 args)\n";
+        disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 CONSTANT            0 == 'test value'\n0005 CALL             (1 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -316,7 +316,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 0, opcode::GET, lookup::VAR, 1, opcode::CALL, 1];
 
-        disassembles to: "0000 GET                 0 == 'id'\n0003 GET                 1 == 'b'\n0006 CALL             (1 args)\n";
+        disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET VAR             1 == 'b'\n0006 CALL             (1 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string(), "b_value".to_string()],
@@ -362,7 +362,7 @@ mod valid {
             opcode::CALL, 1
         ];
 
-        disassembles to: "0000 GET                 0 == 'id'\n0003 GET                 0 == 'id'\n0006 GET                 1 == 'b'\n0009 CALL             (1 args)\n0011 CALL             (1 args)\n";
+        disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET BUILTIN         0 == 'id'\n0006 GET VAR             1 == 'b'\n0009 CALL             (1 args)\n0011 CALL             (1 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string(), "b_value".to_string()],
@@ -389,7 +389,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::VAR, 1];
 
-        disassembles to: "0000 GET                 1 == 'b'\n";
+        disassembles to: "0000 GET VAR             1 == 'b'\n";
 
         runtime env: {
             vars: vec!["a_value".to_string(), "b_value".to_string()],
@@ -417,7 +417,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::PROMPT, 1];
 
-        disassembles to: "0000 GET                 1 == 'b'\n";
+        disassembles to: "0000 GET PROMPT          1 == 'b'\n";
 
         runtime env: {
             prompts: vec!["a_value".to_string(), "b_value".to_string()],
@@ -450,7 +450,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 0, opcode::GET, lookup::PROMPT, 1, opcode::CALL, 1];
 
-        disassembles to: "0000 GET                 0 == 'id'\n0003 GET                 1 == 'b'\n0006 CALL             (1 args)\n";
+        disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET PROMPT          1 == 'b'\n0006 CALL             (1 args)\n";
 
         runtime env: {
             prompts: vec!["a_value".to_string(), "b_value".to_string()],
@@ -478,7 +478,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::SECRET, 1];
 
-        disassembles to: "0000 GET                 1 == 'b'\n";
+        disassembles to: "0000 GET SECRET          1 == 'b'\n";
 
         runtime env: {
             secrets: vec!["a_value".to_string(), "b_value".to_string()],
@@ -515,7 +515,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::USER_BUILTIN, 0, opcode::CALL, 0];
 
-        disassembles to: "0000 GET                 0 == 'foo'\n0003 CALL             (0 args)\n";
+        disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 CALL             (0 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -551,7 +551,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::USER_BUILTIN, 0, opcode::GET, lookup::VAR, 0, opcode::CALL, 1];
 
-        disassembles to: "0000 GET                 0 == 'foo'\n0003 GET                 0 == 'a'\n0006 CALL             (1 args)\n";
+        disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET VAR             0 == 'a'\n0006 CALL             (1 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -673,7 +673,7 @@ mod valid {
             3
         ];
 
-        disassembles to: "0000 GET                 0 == 'foo'\n0003 GET                 1 == 'bar'\n0006 GET                 0 == 'a'\n0009 CALL             (1 args)\n0011 GET                 2 == 'fiz'\n0014 GET                 0 == 'b'\n0017 CALL             (1 args)\n0019 GET                 3 == 'baz'\n0022 GET                 0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
+        disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET USER_BUILTIN    1 == 'bar'\n0006 GET VAR             0 == 'a'\n0009 CALL             (1 args)\n0011 GET USER_BUILTIN    2 == 'fiz'\n0014 GET PROMPT          0 == 'b'\n0017 CALL             (1 args)\n0019 GET USER_BUILTIN    3 == 'baz'\n0022 GET SECRET          0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -765,7 +765,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 3, opcode::FALSE, opcode::CALL, 1];
 
-        disassembles to: "0000 GET                 3 == 'not'\n0003 FALSE\n0004 CALL             (1 args)\n";
+        disassembles to: "0000 GET BUILTIN         3 == 'not'\n0003 FALSE\n0004 CALL             (1 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -803,7 +803,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 4, opcode::TRUE, opcode::FALSE, opcode::CALL, 2];
 
-        disassembles to: "0000 GET                 4 == 'and'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         4 == 'and'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -841,7 +841,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 4, opcode::TRUE, opcode::TRUE, opcode::CALL, 2];
 
-        disassembles to: "0000 GET                 4 == 'and'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         4 == 'and'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -879,7 +879,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 4, opcode::FALSE, opcode::TRUE, opcode::CALL, 2];
 
-        disassembles to: "0000 GET                 4 == 'and'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         4 == 'and'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -917,7 +917,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 5, opcode::TRUE, opcode::FALSE, opcode::CALL, 2];
 
-        disassembles to: "0000 GET                 5 == 'or'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         5 == 'or'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -955,7 +955,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 5, opcode::TRUE, opcode::TRUE, opcode::CALL, 2];
 
-        disassembles to: "0000 GET                 5 == 'or'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         5 == 'or'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -993,7 +993,7 @@ mod valid {
 
         compiles to: vec![opcode::GET, lookup::BUILTIN, 5, opcode::FALSE, opcode::TRUE, opcode::CALL, 2];
 
-        disassembles to: "0000 GET                 5 == 'or'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         5 == 'or'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1039,7 +1039,7 @@ mod valid {
             opcode::CALL, 3
         ];
 
-        disassembles to: "0000 GET                 6 == 'cond'\n0003 TRUE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
+        disassembles to: "0000 GET BUILTIN         6 == 'cond'\n0003 TRUE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1085,7 +1085,7 @@ mod valid {
             opcode::CALL, 3
         ];
 
-        disassembles to: "0000 GET                 6 == 'cond'\n0003 FALSE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
+        disassembles to: "0000 GET BUILTIN         6 == 'cond'\n0003 FALSE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1370,7 +1370,7 @@ mod valid {
             opcode::CALL, 2
         ];
 
-        disassembles to: "0000 GET                 9 == 'contains'\n0003 GET                 0 == 'a'\n0006 GET                 1 == 'b'\n0009 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         9 == 'contains'\n0003 GET VAR             0 == 'a'\n0006 GET VAR             1 == 'b'\n0009 CALL             (2 args)\n";
 
         runtime env: {
             vars: vec!["foo".to_string(), "foobar".to_string()],
@@ -1490,7 +1490,7 @@ mod invalid {
 
         compiles to: vec![opcode::GET, lookup::USER_BUILTIN, 0];
 
-        disassembles to: "0000 GET                 0 == 'foo'\n";
+        disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n";
 
         runtime env: {
             ..Default::default()
@@ -1572,7 +1572,7 @@ mod invalid {
             3
         ];
 
-        disassembles to: "0000 GET                 0 == 'foo'\n0003 GET                 1 == 'bar'\n0006 GET                 2 == 'fiz'\n0009 GET                 3 == 'baz'\n0012 CALL             (3 args)\n";
+        disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET USER_BUILTIN    1 == 'bar'\n0006 GET USER_BUILTIN    2 == 'fiz'\n0009 GET USER_BUILTIN    3 == 'baz'\n0012 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()

@@ -64,7 +64,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
         };
 
         let (op_idx_inc, op_str): (usize, String) = match self.bytecode.codes()[op_idx] {
-            opcode::GET => self.disassemble_op_get("GET", op_idx),
+            opcode::GET => self.disassemble_op_get(op_idx),
             opcode::CALL => self.disassemble_op_call("CALL", op_idx),
             opcode::CONSTANT => self.disassemble_op_constant("CONSTANT", op_idx),
             opcode::TRUE => self.disassemble_op_true("TRUE", op_idx),
@@ -110,7 +110,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
         (2, string)
     }
 
-    fn disassemble_op_get(&self, name: &str, op_idx: usize) -> (usize, String) {
+    fn disassemble_op_get(&self, op_idx: usize) -> (usize, String) {
         let call_op = self.bytecode.codes()[op_idx];
         assert_eq!(call_op, opcode::GET);
 
@@ -159,7 +159,18 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             _ => panic!("invalid get lookup code: {}", lookup_type),
         };
 
-        let string = format!("{name:16} {constant_idx:>4} == '{value}'\n");
+        let lookup_type_string = match lookup_type {
+            lookup::BUILTIN => "BUILTIN",
+            lookup::USER_BUILTIN => "USER_BUILTIN",
+            lookup::VAR => "VAR",
+            lookup::PROMPT => "PROMPT",
+            lookup::SECRET => "SECRET",
+            _ => panic!("invalid get lookup code: {}", lookup_type),
+        };
+
+        let name = "GET";
+
+        let string = format!("{name} {lookup_type_string:12} {constant_idx:>4} == '{value}'\n");
 
         (3, string)
     }
