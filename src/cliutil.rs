@@ -47,7 +47,32 @@ pub fn unzip_key_values(keys_values: Vec<(String, String)>) -> (Vec<String>, Vec
     (keys, values)
 }
 
-/// Parse a single key-value pair
+/// Parse a single key-value pair string. This is used to parse command line arguments.
+///
+/// ```
+/// use reqlang_expr::cliutil::parse_key_val;
+///
+/// let a = parse_key_val::<String, String>("a=1");
+///
+/// assert_eq!(("a".to_string(), "1".to_string()), a.unwrap());
+/// ```
+///
+/// Example of using parse_key_val with Clap
+///
+/// ```
+/// use clap::Parser;
+/// use reqlang_expr::cliutil::parse_key_val;
+///
+/// #[derive(Parser, Debug)]
+/// struct Args {
+///     #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser = parse_key_val::<String, String>)]
+///     vars: Vec<(String, String)>
+/// }
+///
+/// let args = Args::parse_from(["test", "--vars", "key=value", "another_key=another_value"]);
+/// assert_eq!(args.vars, vec![("key".to_string(), "value".to_string()), ("another_key".to_string(), "another_value".to_string())]);
+/// ```
+///
 pub fn parse_key_val<T, U>(value: &str) -> Result<(T, U), Box<dyn Error + Send + Sync + 'static>>
 where
     T: std::str::FromStr,
