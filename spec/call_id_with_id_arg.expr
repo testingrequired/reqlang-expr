@@ -1,1 +1,2 @@
-(id (id (noop)))
+(id
+    (id (noop)))

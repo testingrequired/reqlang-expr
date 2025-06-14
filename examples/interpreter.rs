@@ -48,7 +48,9 @@ fn main() -> ExprResult<()> {
         secrets: secret_values,
     };
 
-    let _ = vm.interpret(bytecode.into(), &env, &runtime_env);
+    let value = vm.interpret(bytecode.into(), &env, &runtime_env)?;
+
+    println!("{value}");
 
     Ok(())
 }

@@ -145,8 +145,12 @@ fn read_in_bytecode(args: &Args, env: &Env) -> ExprResult<ExprByteCode> {
 
 fn interpret_bytecode(bytecode: Box<ExprByteCode>, env: &Env) {
     let mut vm = Vm::new();
-    vm.interpret(bytecode, env, &RuntimeEnv::default())
+
+    let value = vm
+        .interpret(bytecode, env, &RuntimeEnv::default())
         .expect("should interpret bytecode");
+
+    println!("{value}");
 
     exit(0);
 }
