@@ -6,7 +6,7 @@ use std::{
 };
 
 use clap::Parser;
-use reqlang_expr::{cli::parse_key_val, prelude::*};
+use reqlang_expr::{cliutil::parse_key_val, prelude::*};
 
 fn main() -> ExprResult<()> {
     let args = Args::parse();

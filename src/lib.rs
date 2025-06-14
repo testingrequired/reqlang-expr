@@ -23,4 +23,4 @@ pub mod vm;
 
 pub mod disassembler;
 
-pub mod cli;
+pub mod cliutil;

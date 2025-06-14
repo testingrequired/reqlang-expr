@@ -1,3 +1,5 @@
+//! A set of utility functions to implement reglang-expr CLIs
+
 use std::{
     error::Error,
     fs::read_to_string,
@@ -29,7 +31,7 @@ use std::{
 /// let (prompt_keys, prompt_values) = unzip_key_values(args.prompts);
 /// let (secret_keys, secret_values) = unzip_key_values(args.secrets);
 ///
-/// let mut env = Env::new(var_keys, prompt_keys, secret_keys);
+/// let env = Env::new(var_keys, prompt_keys, secret_keys);
 ///
 /// let runtime_env: RuntimeEnv = RuntimeEnv {
 ///     vars: var_values,

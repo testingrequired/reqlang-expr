@@ -1,5 +1,5 @@
 use clap::Parser;
-use reqlang_expr::{cli::read_in_source, prelude::*};
+use reqlang_expr::{cliutil::read_in_source, prelude::*};
 
 fn main() {
     let args = Args::parse();

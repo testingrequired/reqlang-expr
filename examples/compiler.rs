@@ -5,7 +5,7 @@ use std::{
 
 use clap::Parser;
 use reqlang_expr::{
-    cli::{parse_key_val, read_in_source},
+    cliutil::{parse_key_val, read_in_source},
     prelude::*,
 };
 

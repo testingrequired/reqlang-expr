@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 use reedline::{DefaultPrompt, DefaultPromptSegment, Reedline, Signal};
 use regex::Regex;
 use reqlang_expr::{
-    cli::{parse_key_val, unzip_key_values},
+    cliutil::{parse_key_val, unzip_key_values},
     disassembler::Disassembler,
     prelude::*,
 };

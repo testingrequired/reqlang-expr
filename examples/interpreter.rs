@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use clap::Parser;
 use reqlang_expr::{
-    cli::{parse_key_val, read_in_source, unzip_key_values},
+    cliutil::{parse_key_val, read_in_source, unzip_key_values},
     prelude::*,
 };
 
