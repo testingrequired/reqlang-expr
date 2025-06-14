@@ -18,3 +18,4 @@ clap = { version = "4.4.16", features = ["derive"] }
 reedline = "0.40.0"
 regex = "1.11.1"
 thiserror = "2"
+once_cell = "1.21.3"

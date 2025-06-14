@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use clap::Parser;
+use once_cell::sync::Lazy;
 use reedline::{DefaultPrompt, DefaultPromptSegment, Reedline, Signal};
 use regex::Regex;
 use reqlang_expr::{
@@ -10,12 +11,6 @@ use reqlang_expr::{
 };
 
 fn main() -> ExprResult<()> {
-    let set_pattern = Regex::new(SET_COMMAND_PATTERN).unwrap();
-    let env_pattern = Regex::new(ENV_COMMAND_PATTERN).unwrap();
-    let exit_pattern = Regex::new(EXIT_COMMAND_PATTERN).unwrap();
-    let mode_set_pattern = Regex::new(MODE_SET_COMMAND_PATTERN).unwrap();
-    let mode_get_pattern = Regex::new(MODE_GET_COMMAND_PATTERN).unwrap();
-
     let args = Args::parse();
 
     let mut line_editor = Reedline::create();
@@ -62,18 +57,18 @@ fn main() -> ExprResult<()> {
                     continue;
                 }
 
-                if exit_pattern.is_match(&source) {
+                if EXIT_PATTERN.is_match(&source) {
                     break;
                 }
 
-                if mode_get_pattern.is_match(&source) {
+                if MODE_GET_PATTERN.is_match(&source) {
                     println!("MODE: {repl_mode:#?}");
                     continue;
                 }
 
-                if mode_set_pattern.is_match(&source) {
+                if MODE_SET_PATTERN.is_match(&source) {
                     for (_, [new_mode]) in
-                        mode_set_pattern.captures_iter(&source).map(|c| c.extract())
+                        MODE_SET_PATTERN.captures_iter(&source).map(|c| c.extract())
                     {
                         match new_mode {
                             "interpret" => {
@@ -112,7 +107,7 @@ fn main() -> ExprResult<()> {
                     continue;
                 }
 
-                if env_pattern.is_match(&source) {
+                if ENV_PATTERN.is_match(&source) {
                     println!("{env:#?}");
                     continue;
                 }
@@ -124,9 +119,9 @@ fn main() -> ExprResult<()> {
                     continue;
                 }
 
-                if set_pattern.is_match(&source) {
+                if SET_PATTERN.is_match(&source) {
                     for (_, [set_type, key, value]) in
-                        set_pattern.captures_iter(&source).map(|c| c.extract())
+                        SET_PATTERN.captures_iter(&source).map(|c| c.extract())
                     {
                         match set_type {
                             "var" => {
@@ -213,11 +208,73 @@ fn main() -> ExprResult<()> {
 
 static REPL_LAST_VALUE_PLACEHOLDER: &'static str = "%";
 
-static SET_COMMAND_PATTERN: &str = r"/set (var|prompt|secret) ([a-zA-Z]+) = (.*)";
-static ENV_COMMAND_PATTERN: &str = r"/env";
-static EXIT_COMMAND_PATTERN: &str = r"^/exit$";
-static MODE_SET_COMMAND_PATTERN: &str = r"^/mode (.+)$";
-static MODE_GET_COMMAND_PATTERN: &str = r"^/mode$";
+static INVALID_REGEX_ERROR: &str = "should be a valid regex pattern";
+
+/// # Set Command
+///
+/// ```repl
+/// /set {var|prompt|secret} key = value
+/// ```
+///
+/// Set a variable, prompt, or secret with a given value
+static SET_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"/set (var|prompt|secret) ([a-zA-Z]+) = (.*)").expect(INVALID_REGEX_ERROR)
+});
+
+/// # Env Command
+///
+/// ```repl
+/// /env
+/// ```
+///
+/// Print out the current environment
+///
+/// - builtin functions
+/// - variables
+/// - prompts
+/// - secrets
+static ENV_PATTERN: Lazy<Regex> = Lazy::new(|| Regex::new(r"/env").expect(INVALID_REGEX_ERROR));
+
+/// # Exit Command
+///
+/// ```repl
+/// /exit
+/// ```
+///
+/// Exit the REPL
+static EXIT_PATTERN: Lazy<Regex> = Lazy::new(|| Regex::new(r"^/exit$").expect(INVALID_REGEX_ERROR));
+
+/// # Set Mode Command
+///
+/// ```repl
+/// /mode compile
+/// ```
+///
+/// Set the REPL's current [`ReplMode`]:
+///
+/// - `interpret` (default)
+/// - `dissassemble`
+/// - `compile`
+/// - `parse`
+/// - `lex`
+static MODE_SET_PATTERN: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^/mode (.+)$").expect(INVALID_REGEX_ERROR));
+
+/// # Get Mode Command
+///
+/// ```repl
+/// /mode
+/// ```
+///
+/// Get the REPL's current [`ReplMode`]:
+///
+/// - `interpret` (default)
+/// - `dissassemble`
+/// - `compile`
+/// - `parse`
+/// - `lex`
+static MODE_GET_PATTERN: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^/mode$").expect(INVALID_REGEX_ERROR));
 
 /// Controls what the repl does with input
 #[derive(PartialEq, Debug, Default)]

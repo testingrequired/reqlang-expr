@@ -763,6 +763,7 @@ dependencies = [
  "lalrpop",
  "lalrpop-util 0.21.0",
  "logos",
+ "once_cell",
  "pastey",
  "pretty_assertions",
  "reedline",
