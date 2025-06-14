@@ -1,6 +1,9 @@
 [package]
 name = "reqlang-expr"
+description = "A tiny (bytecode compiled, stack VM interpreted) expression language for reqlang's templating engine."
 version = "0.1.0"
+license = "MIT"
+authors = ["Kylee Tilley <kyleetilley@gmail.com>"]
 edition = "2024"
 
 [build-dependencies]
