@@ -513,9 +513,9 @@ mod valid {
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 9, opcode::CALL, 0];
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 10, opcode::CALL, 0];
 
-        disassembles to: "0000 GET                 9 == 'foo'\n0003 CALL             (0 args)\n";
+        disassembles to: "0000 GET                10 == 'foo'\n0003 CALL             (0 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -549,9 +549,9 @@ mod valid {
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 9, opcode::GET, lookup::VAR, 0, opcode::CALL, 1];
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 10, opcode::GET, lookup::VAR, 0, opcode::CALL, 1];
 
-        disassembles to: "0000 GET                 9 == 'foo'\n0003 GET                 0 == 'a'\n0006 CALL             (1 args)\n";
+        disassembles to: "0000 GET                10 == 'foo'\n0003 GET                 0 == 'a'\n0006 CALL             (1 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -640,11 +640,11 @@ mod valid {
         compiles to: vec![
             opcode::GET,
             lookup::BUILTIN, // foo
-            9,
+            10,
 
             opcode::GET,
             lookup::BUILTIN, // bar
-            10,
+            11,
             opcode::GET,
             lookup::VAR, // :a
             0,
@@ -653,7 +653,7 @@ mod valid {
 
             opcode::GET,
             lookup::BUILTIN, // fiz
-            11,
+            12,
             opcode::GET,
             lookup::PROMPT, // ?b
             0,
@@ -662,7 +662,7 @@ mod valid {
 
             opcode::GET,
             lookup::BUILTIN, // baz
-            12,
+            13,
             opcode::GET,
             lookup::SECRET, // !c
             0,
@@ -673,7 +673,7 @@ mod valid {
             3
         ];
 
-        disassembles to: "0000 GET                 9 == 'foo'\n0003 GET                10 == 'bar'\n0006 GET                 0 == 'a'\n0009 CALL             (1 args)\n0011 GET                11 == 'fiz'\n0014 GET                 0 == 'b'\n0017 CALL             (1 args)\n0019 GET                12 == 'baz'\n0022 GET                 0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
+        disassembles to: "0000 GET                10 == 'foo'\n0003 GET                11 == 'bar'\n0006 GET                 0 == 'a'\n0009 CALL             (1 args)\n0011 GET                12 == 'fiz'\n0014 GET                 0 == 'b'\n0017 CALL             (1 args)\n0019 GET                13 == 'baz'\n0022 GET                 0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -1269,6 +1269,201 @@ mod valid {
 
         interpets to: Ok(Value::String("atruecfalseefghbuiltin id(1)j".to_string()));
     }
+
+    test! {
+        "(contains `foo` `foobar`)";
+
+        scenario: contains string in string true;
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(contains `baz` `foobar`)";
+
+        scenario: contains string in string false;
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(false));
+    }
+
+    test! {
+        "(contains `foo` :a)";
+
+        scenario: contains variable in string true;
+
+        env: (vec!["a".to_string()], vec![], vec![]);
+
+        builtins: [];
+
+        runtime env: {
+            vars: vec!["foobar".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(contains :a `foobar`)";
+
+        scenario: contains string in variable true;
+
+        env: (vec!["a".to_string()], vec![], vec![]);
+
+        builtins: [];
+
+        runtime env: {
+            vars: vec!["foo".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(contains :a :b)";
+
+        scenario: contains variable in variable true v2;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("contains"), 9)),
+            Ok((10, Token::identifier(":a"), 12)),
+            Ok((13, Token::identifier(":b"), 15)),
+            Ok((15, Token::RParan, 16))
+        ];
+
+        ast should be: Ok(
+            Expr::Call(ExprCall {
+                callee: (Expr::identifier("contains"), 1..9),
+                args: vec![
+                    (Expr::identifier(":a"), 10..12),
+                    (Expr::identifier(":b"), 13..15)
+                ]
+            }.into())
+        );
+
+        env: (vec!["a".to_string(), "b".to_string()], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![
+            opcode::GET, lookup::BUILTIN, 9,
+            opcode::GET, lookup::VAR, 0,
+            opcode::GET, lookup::VAR, 1,
+            opcode::CALL, 2
+        ];
+
+        disassembles to: "0000 GET                 9 == 'contains'\n0003 GET                 0 == 'a'\n0006 GET                 1 == 'b'\n0009 CALL             (2 args)\n";
+
+        runtime env: {
+            vars: vec!["foo".to_string(), "foobar".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(contains `baz` :a)";
+
+        scenario: contains variable in string false;
+
+        env: (vec!["a".to_string()], vec![], vec![]);
+
+        builtins: [];
+
+        runtime env: {
+            vars: vec!["foobar".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(false));
+    }
+
+    test! {
+        "(contains `foo` ?a)";
+
+        scenario: contains prompt in string true;
+
+        env: (vec![], vec!["a".to_string()], vec![]);
+
+        builtins: [];
+
+        runtime env: {
+            prompts: vec!["foobar".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(contains `baz` ?a)";
+
+        scenario: contains prompt in string false;
+
+        env: (vec![], vec!["a".to_string()], vec![]);
+
+        builtins: [];
+
+        runtime env: {
+            prompts: vec!["foobar".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(false));
+    }
+
+    test! {
+        "(contains `foo` !a)";
+
+        scenario: contains secret in string true;
+
+        env: (vec![], vec![], vec!["a".to_string()]);
+
+        builtins: [];
+
+        runtime env: {
+            secrets: vec!["foobar".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(contains `baz` !a)";
+
+        scenario: contains secret in string false;
+
+        env: (vec![], vec![], vec!["a".to_string()]);
+
+        builtins: [];
+
+        runtime env: {
+            secrets: vec!["foobar".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(false));
+    }
 }
 
 mod invalid {
@@ -1293,9 +1488,9 @@ mod invalid {
             }.into()
         ];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 9];
+        compiles to: vec![opcode::GET, lookup::BUILTIN, 10];
 
-        disassembles to: "0000 GET                 9 == 'foo'\n";
+        disassembles to: "0000 GET                10 == 'foo'\n";
 
         runtime env: {
             ..Default::default()
@@ -1359,10 +1554,6 @@ mod invalid {
         compiles to: vec![
             opcode::GET,
             lookup::BUILTIN,
-            9,
-
-            opcode::GET,
-            lookup::BUILTIN,
             10,
 
             opcode::GET,
@@ -1373,11 +1564,15 @@ mod invalid {
             lookup::BUILTIN,
             12,
 
+            opcode::GET,
+            lookup::BUILTIN,
+            13,
+
             opcode::CALL,
             3
         ];
 
-        disassembles to: "0000 GET                 9 == 'foo'\n0003 GET                10 == 'bar'\n0006 GET                11 == 'fiz'\n0009 GET                12 == 'baz'\n0012 CALL             (3 args)\n";
+        disassembles to: "0000 GET                10 == 'foo'\n0003 GET                11 == 'bar'\n0006 GET                12 == 'fiz'\n0009 GET                13 == 'baz'\n0012 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()

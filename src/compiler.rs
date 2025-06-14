@@ -157,6 +157,19 @@ impl BuiltinFns {
 
         Value::String(result)
     }
+
+    pub fn contains(args: Vec<Value>) -> Value {
+        let needle_arg = args
+            .first()
+            .expect("should have first expression passed")
+            .get_string();
+        let haystack_arg = args
+            .get(1)
+            .expect("should have second expression passed")
+            .get_string();
+
+        Value::Bool(haystack_arg.contains(needle_arg))
+    }
 }
 
 #[derive(Debug)]
@@ -215,6 +228,11 @@ impl Default for Env {
                     name: String::from("concat"),
                     arity: 10,
                     func: Rc::new(BuiltinFns::concat),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("contains"),
+                    arity: 2,
+                    func: Rc::new(BuiltinFns::contains),
                 }),
             ],
             vars: Vec::new(),
