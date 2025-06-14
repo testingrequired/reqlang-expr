@@ -2,6 +2,19 @@
 
 A small (tiny) WIP expression language for [reqlang](https://github.com/testingrequired/reqlang)'s templating engine.
 
+## Install
+
+![Crates.io Version](https://img.shields.io/crates/v/reqlang-expr)
+
+```toml
+[dependencies]
+reqlang-expr = "0.1.0"
+```
+
+```sh
+cargo add reqlang-expr
+```
+
 ## Syntax
 
 The syntax is s-expression like. There are only [builtin functions](#builtin-functions), identifiers and string literals.
