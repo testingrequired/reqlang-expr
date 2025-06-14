@@ -94,6 +94,31 @@ where
     Ok((key, value))
 }
 
+/// Read source code from a file at the provided path or from standard input if no path is provided.
+///
+/// # Usage
+///
+/// ## From a file:
+///
+/// ```
+/// use reqlang_expr::cliutil::read_in_source;
+///
+/// let source_code = read_in_source(Some("./spec/call_id.expr".to_string()));
+///
+/// assert_eq!("(id (noop))", source_code);
+/// ```
+///
+/// ## From stdin:
+///
+/// ```ignore
+/// use reqlang_expr::cliutil::read_in_source;
+///
+/// // Assuming "(id (noop))" was passed to stdin...
+///
+/// let source_code = read_in_source(None);
+///
+/// assert_eq!("(id (noop))".to_string(), source_code);
+/// ```
 pub fn read_in_source(path: Option<String>) -> String {
     match path {
         Some(path) => {
