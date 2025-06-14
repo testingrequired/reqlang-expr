@@ -58,6 +58,12 @@ pub enum Token {
 
     #[regex("[!?:]?[a-zA-Z][a-zA-Z0-9_]*", lex_identifier)]
     Identifier(String),
+
+    #[token("true")]
+    True,
+
+    #[token("false")]
+    False,
 }
 
 fn lex_identifier(lexer: &mut logos::Lexer<Token>) -> String {

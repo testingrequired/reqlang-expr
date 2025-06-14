@@ -10,6 +10,8 @@ The lexer takes an input string and returns a stream of tokens.
 | `RParan`     | `)`                           | Closing parantheses for a call expression                             |
 | `Identifier` | `[!?:]?[a-zA-Z][a-zA-Z0-9_]*` | Identifer referencing a builtin function, variable, prompt, or secret |
 | `String`     | `` `[^`]*` ``                 | A literal string of text delimited by backticks                       |
+| `True`       | `true`                        | A literal boolean value of `true`                                     |
+| `False`      | `false`                       | A literal boolean value of `true`                                     |
 
 ### Usage
 
@@ -30,6 +32,7 @@ The parser takes a stream of tokens from the lexer and constructs an AST (Abstra
 | `Call`       | A call to a builtin (referenced by identifier) with N expressions passed as arguments |
 | `Identifier` | An identifier referencing a builtin, variable, prompt, or secret                      |
 | `String`     | A string literal of text                                                              |
+| `Bool`       | A string literal of text                                                              |
 
 ### Usage
 
@@ -41,7 +44,7 @@ let tokens = lexer.collect::<Vec<_>>();
 let ast: Expr = ExprParser::new().parse(tokens).unwrap();
 ```
 
-See: [exprlang.lalrpop](./src/exprlang.lalrpop), [ast.rs](./src/ast.rs)
+See: [parser.lalrpop](./src/parser.lalrpop), [ast.rs](./src/ast.rs)
 
 ## Compiler
 
@@ -54,6 +57,8 @@ The compiler produces bytecode from an AST and a [compile time environment](#com
 | `CALL`     |       0 | $INDEX, $ARG_COUNT                  | Call builtin `$INDEX` with `$ARG_COUNT` arguments             |
 | `GET`      |       1 | [$LOOK_TYPE](#lookup-types), $INDEX | Get a builtin/variable/prompt/secret from the env by `$INDEX` |
 | `CONSTANT` |       2 | $CONST_INDEX                        | Get constant value by `$CONST_INDEX`                          |
+| `TRUE`     |       3 |                                     | Push a `true` value on to the stack                           |
+| `FALSE`    |       4 |                                     | Push a `false` value on to the stack                          |
 
 ### Lookup Types
 

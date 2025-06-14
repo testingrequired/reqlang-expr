@@ -646,6 +646,58 @@ mod valid {
 
         interpets to: Ok(Value::String("".to_string()));
     }
+
+    test! {
+        "true";
+
+        scenario: boolean true;
+
+        tokens should be: vec![
+            Ok((0, Token::True, 4)),
+        ];
+
+        ast should be: Ok(Expr::bool(true));
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![opcode::TRUE];
+
+        disassembles to: "0000 TRUE\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "false";
+
+        scenario: boolean false;
+
+        tokens should be: vec![
+            Ok((0, Token::False, 5)),
+        ];
+
+        ast should be: Ok(Expr::bool(false));
+
+        env: (vec![], vec![], vec![]);
+
+        builtins: [];
+
+        compiles to: vec![opcode::FALSE];
+
+        disassembles to: "0000 FALSE\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(false));
+    }
 }
 
 mod invalid {

@@ -10,9 +10,16 @@ pub Expr: ast::Expr = {
     ExprIdentifier,
     ExprCall,
     ExprString,
+    ExprBool,
 };
 
 ExprS = Spanned<Expr>;
+
+// Boolean Expressions
+ExprBool: ast::Expr = {
+    "true" => ast::Expr::Bool(ast::ExprBool(true).into()),
+    "false" => ast::Expr::Bool(ast::ExprBool(false).into()),
+};
 
 // String Expressions
 ExprString: ast::Expr = {
@@ -56,6 +63,8 @@ extern {
     enum Token {
         "(" => Token::LParan,
         ")" => Token::RParan,
+        "true" => Token::True,
+        "false" => Token::False,
         string => Token::String(<String>),
         identifier => Token::Identifier(<String>),
     }

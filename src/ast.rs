@@ -4,6 +4,7 @@ use std::ops::Range;
 
 #[derive(Debug, PartialEq)]
 pub enum Expr {
+    Bool(Box<ExprBool>),
     Identifier(Box<ExprIdentifier>),
     Call(Box<ExprCall>),
     String(Box<ExprString>),
@@ -20,6 +21,10 @@ impl Expr {
 
     pub fn call(callee: (Expr, Range<usize>), args: Vec<(Expr, Range<usize>)>) -> Self {
         Self::Call(Box::new(ExprCall { callee, args }))
+    }
+
+    pub fn bool(value: bool) -> Self {
+        Self::Bool(Box::new(ExprBool::new(value)))
     }
 }
 
@@ -45,4 +50,13 @@ impl ExprString {
 pub struct ExprCall {
     pub callee: (Expr, Range<usize>),
     pub args: Vec<(Expr, Range<usize>)>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ExprBool(pub bool);
+
+impl ExprBool {
+    pub fn new(value: bool) -> Self {
+        Self(value)
+    }
 }

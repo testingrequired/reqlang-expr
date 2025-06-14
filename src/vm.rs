@@ -15,6 +15,7 @@ use crate::{
 pub enum Value {
     String(String),
     Fn(Rc<BuiltinFn>),
+    Bool(bool),
 }
 
 impl Value {
@@ -44,6 +45,7 @@ impl Display for Value {
         match self {
             Value::String(string) => write!(f, "`{}`", string),
             Value::Fn(builtin) => write!(f, "{builtin:?}"),
+            Value::Bool(value) => write!(f, "{}", value),
         }
     }
 }
@@ -100,6 +102,8 @@ impl Vm {
             opcode::CALL => self.op_call(),
             opcode::CONSTANT => self.op_constant(),
             opcode::GET => self.op_get(env, &runtime_env),
+            opcode::TRUE => self.op_true(),
+            opcode::FALSE => self.op_false(),
             _ => panic!("Invalid OP code: {op_code}"),
         }
     }
@@ -181,6 +185,18 @@ impl Vm {
             .expect(&format!("undefined string: {}", get_idx));
 
         self.stack_push(Value::String(s.clone()));
+    }
+
+    fn op_true(&mut self) {
+        assert_eq!(opcode::TRUE, self.read_u8(), "Expected TRUE opcode");
+
+        self.stack_push(Value::Bool(true));
+    }
+
+    fn op_false(&mut self) {
+        assert_eq!(opcode::FALSE, self.read_u8(), "Expected FALSE opcode");
+
+        self.stack_push(Value::Bool(false));
     }
 
     fn stack_push(&mut self, value: Value) {

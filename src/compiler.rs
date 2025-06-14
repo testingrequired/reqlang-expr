@@ -10,7 +10,9 @@ pub mod opcode {
         pub const
         CALL: u8 = iota;,
         GET,
-        CONSTANT
+        CONSTANT,
+        TRUE,
+        FALSE
     }
 }
 
@@ -243,6 +245,14 @@ fn compile_expr(expr: &Expr, env: &Env, strings: &mut Vec<String>) -> ExprResult
             codes.push(opcode::CALL);
             codes.push(expr_call.args.len() as u8);
         }
+        Expr::Bool(value) => match value.0 {
+            true => {
+                codes.push(opcode::TRUE);
+            }
+            false => {
+                codes.push(opcode::FALSE);
+            }
+        },
     }
 
     Ok(codes)

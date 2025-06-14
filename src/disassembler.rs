@@ -67,10 +67,30 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             opcode::GET => self.disassemble_op_get("GET", op_idx),
             opcode::CALL => self.disassemble_op_call("CALL", op_idx),
             opcode::CONSTANT => self.disassemble_op_constant("CONSTANT", op_idx),
+            opcode::TRUE => self.disassemble_op_true("TRUE", op_idx),
+            opcode::FALSE => self.disassemble_op_false("FALSE", op_idx),
             _ => (1, "".to_string()),
         };
 
         (op_idx_inc, op_idx_str, op_str)
+    }
+
+    fn disassemble_op_true(&self, name: &str, op_idx: usize) -> (usize, String) {
+        let constant_op = self.bytecode.codes()[op_idx];
+        assert_eq!(constant_op, opcode::TRUE);
+
+        let string = format!("{name}\n");
+
+        (1, string)
+    }
+
+    fn disassemble_op_false(&self, name: &str, op_idx: usize) -> (usize, String) {
+        let constant_op = self.bytecode.codes()[op_idx];
+        assert_eq!(constant_op, opcode::FALSE);
+
+        let string = format!("{name}\n");
+
+        (1, string)
     }
 
     fn disassemble_op_constant(&self, name: &str, op_idx: usize) -> (usize, String) {

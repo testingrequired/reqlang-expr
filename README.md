@@ -27,6 +27,8 @@ The syntax is s-expression like. There are only [builtin functions](#builtin-fun
 | `id`        | Reference to the builtin `id`             |
 | `(id :a)`   | Call to builtin `id` with arguments: `:a` |
 | `` `foo` `` | String literal                            |
+| `true`      | Literal boolean value `true`              |
+| `false`     | Literal boolean value `false`             |
 
 ### Why Backticks For Strings?
 
