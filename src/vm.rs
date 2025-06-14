@@ -1,3 +1,5 @@
+//! The virtual machine and associated types
+
 use std::{fmt::Display, rc::Rc};
 
 use crate::{

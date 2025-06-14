@@ -1,3 +1,5 @@
+//! The lexer and associated types
+
 use logos::Logos;
 use std::ops::Range;
 

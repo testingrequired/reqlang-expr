@@ -1,3 +1,5 @@
+//! Abstract syntax tree types
+
 use std::ops::Range;
 
 #[derive(Debug, PartialEq)]

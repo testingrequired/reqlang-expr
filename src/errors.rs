@@ -1,3 +1,5 @@
+//! Errors
+
 use thiserror::Error;
 
 pub type ExprResult<T> = std::result::Result<T, Vec<ExprError>>;

@@ -1,3 +1,5 @@
+//! The dissassembler and associated types
+
 use crate::{
     compiler::{Env, ExprByteCode, opcode},
     prelude::lookup,

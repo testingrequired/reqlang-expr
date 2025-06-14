@@ -1,3 +1,5 @@
+//! The compiler and associated types
+
 use core::fmt;
 use std::rc::Rc;
 
