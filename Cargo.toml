@@ -4,14 +4,14 @@ version = "0.1.0"
 edition = "2024"
 
 [build-dependencies]
-lalrpop = "0.22.1"
+lalrpop = "0.22.2"
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
 
 [dependencies]
 logos = "0.15.0"
-lalrpop-util = { version = "0.21.0", features = ["lexer", "unicode"] }
+lalrpop-util = { version = "0.22.2", features = ["lexer", "unicode"] }
 pastey = "0.1.0"
 iota = "0.2.3"
 clap = { version = "4.4.16", features = ["derive"] }
