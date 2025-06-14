@@ -16,7 +16,7 @@ use std::{
 ///     ("key2".to_string(), "val2".to_string())
 /// ];
 ///
-/// let (keys, values): (Vec<String>, Vec<String>) = unzip_key_values(keys_values);
+/// let (keys, values) = unzip_key_values(keys_values);
 ///
 /// assert_eq!(vec!["key1", "key2"], keys);
 /// assert_eq!(vec!["val1", "val2"], values);
