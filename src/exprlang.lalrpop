@@ -1,3 +1,5 @@
+//! Parser and associated types
+
 use crate::errors::ExprError;
 use crate::ast;
 use crate::lexer::Token;
