@@ -156,6 +156,14 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
 
                 value
             }
+            lookup::CLIENT_CTX => {
+                let value = self
+                    .env
+                    .get_client_context(constant_idx)
+                    .unwrap_or_else(|| panic!("undefined client context: {constant_idx}"));
+
+                value
+            }
             _ => panic!("invalid get lookup code: {}", lookup_type),
         };
 
@@ -165,6 +173,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             lookup::VAR => "VAR",
             lookup::PROMPT => "PROMPT",
             lookup::SECRET => "SECRET",
+            lookup::CLIENT_CTX => "CLIENT_CTX",
             _ => panic!("invalid get lookup code: {}", lookup_type),
         };
 

@@ -313,20 +313,24 @@ Current Mode: Interpret
 
 #### Reference Last String Value
 
-The last returned string value can be referenced using `%`.
+The last returned string value can be referenced using `@_`.
 
 ```
-interpret   > %
-
-No expression has been interpeted yet.
-
 interpret   > `value`
 
-interpret   > %
+interpret   > @_
 
 `value`
 
-interpret   > (id %)
+interpret   > (id @_)
+
+`value`
+
+interpret   > id
+
+builtin id(1)
+
+interpret   > (@_ `value`)
 
 `value`
 ```
@@ -357,6 +361,16 @@ interpret   > ?key
 interpret   > /set secret key = value
 
 interpret   > !key
+
+`value`
+```
+
+#### Set Client Context
+
+```
+interpret   > /set client key = value
+
+interpret   > @key
 
 `value`
 ```

@@ -9,7 +9,7 @@ use crate::{
         opcode,
     },
     errors::ExprResult,
-    prelude::lookup::USER_BUILTIN,
+    prelude::lookup::{CLIENT_CTX, USER_BUILTIN},
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -63,6 +63,17 @@ pub struct RuntimeEnv {
     pub vars: Vec<String>,
     pub prompts: Vec<String>,
     pub secrets: Vec<String>,
+    pub client_context: Vec<Value>,
+}
+
+impl RuntimeEnv {
+    pub fn add_to_client_context(&mut self, index: usize, value: Value) {
+        if index < self.client_context.len() {
+            self.client_context[index] = value;
+        } else {
+            self.client_context.push(value);
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -187,6 +198,14 @@ impl Vm {
 
                 self.stack_push(Value::String(value.clone()));
             }
+            CLIENT_CTX => {
+                let value = env
+                    .get_client_context(get_idx)
+                    .and_then(|_| runtime_env.client_context.get(get_idx))
+                    .unwrap_or_else(|| panic!("undefined client context: {get_idx}"));
+
+                self.stack_push(value.clone());
+            }
             _ => panic!("invalid get lookup code: {}", get_lookup),
         };
     }
@@ -224,10 +243,7 @@ impl Vm {
     }
 
     fn stack_pop(&mut self) -> Value {
-        
-
-        self
-            .stack
+        self.stack
             .pop()
             .expect("should have a value to pop from the stack")
     }
@@ -237,7 +253,8 @@ impl Vm {
 
         self.ip += 1;
 
-        *self.bytecode
+        *self
+            .bytecode
             .as_ref()
             .expect("should have bytecode")
             .codes()

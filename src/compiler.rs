@@ -28,7 +28,8 @@ pub mod lookup {
         VAR,
         PROMPT,
         SECRET,
-        USER_BUILTIN
+        USER_BUILTIN,
+        CLIENT_CTX
     }
 }
 
@@ -230,6 +231,7 @@ pub struct CompileTimeEnv {
     vars: Vec<String>,
     prompts: Vec<String>,
     secrets: Vec<String>,
+    client_context: Vec<String>,
 }
 
 impl Default for CompileTimeEnv {
@@ -321,16 +323,23 @@ impl Default for CompileTimeEnv {
             vars: Vec::new(),
             prompts: Vec::new(),
             secrets: Vec::new(),
+            client_context: Vec::new(),
         }
     }
 }
 
 impl CompileTimeEnv {
-    pub fn new(vars: Vec<String>, prompts: Vec<String>, secrets: Vec<String>) -> Self {
+    pub fn new(
+        vars: Vec<String>,
+        prompts: Vec<String>,
+        secrets: Vec<String>,
+        client_context: Vec<String>,
+    ) -> Self {
         Self {
             vars,
             prompts,
             secrets,
+            client_context,
             ..Default::default()
         }
     }
@@ -377,6 +386,35 @@ impl CompileTimeEnv {
 
     pub fn get_secret(&self, index: usize) -> Option<&String> {
         self.secrets.get(index)
+    }
+
+    pub fn get_client_context(&self, index: usize) -> Option<&String> {
+        self.client_context.get(index)
+    }
+
+    pub fn add_to_client_context(&mut self, key: &str) -> usize {
+        match self.client_context.iter().position(|x| x == key) {
+            Some(i) => i,
+            None => {
+                self.client_context.push(key.to_string());
+
+                self.client_context.len() - 1
+            }
+        }
+    }
+
+    pub fn add_keys_to_client_context(&mut self, keys: Vec<String>) {
+        self.client_context.extend(keys);
+    }
+
+    pub fn get_client_context_index(&self, name: &str) -> Option<(&String, u8)> {
+        let index = self
+            .client_context
+            .iter()
+            .position(|context_name| context_name == name);
+
+        let result = index.map(|i| (self.client_context.get(i).unwrap(), i as u8));
+        result
     }
 }
 
@@ -463,6 +501,13 @@ fn compile_expr(
                         if let Some(index) = get(&env.vars, identifier_suffix) {
                             codes.push(GET);
                             codes.push(lookup::VAR);
+                            codes.push(index);
+                        }
+                    }
+                    "@" => {
+                        if let Some(index) = get(&env.client_context, identifier_suffix) {
+                            codes.push(GET);
+                            codes.push(lookup::CLIENT_CTX);
                             codes.push(index);
                         }
                     }

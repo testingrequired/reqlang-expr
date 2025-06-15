@@ -62,13 +62,14 @@ The compiler produces bytecode from an AST and a [compile time environment](#com
 
 ### Lookup Types
 
-| Type           | Lookup Index |
-| -------------- | -----------: |
-| `BUILTIN`      |            0 |
-| `VAR`          |            1 |
-| `PROMPT`       |            2 |
-| `SECRET`       |            3 |
-| `USER_BUILTIN` |            4 |
+| Type           | Lookup Index | Description                                          |
+| -------------- | -----------: | ---------------------------------------------------- |
+| `BUILTIN`      |            0 | Builtin function                                     |
+| `VAR`          |            1 | Variable (identifier prefixed with `:`)              |
+| `PROMPT`       |            2 | Prompt (identifier prefixed with `?`)                |
+| `SECRET`       |            3 | Secret (identifier prefixed with `!`)                |
+| `USER_BUILTIN` |            4 | User provided builtin function                       |
+| `CLIENT_CTX`   |            5 | Client provided value (identifier prefixed with `@`) |
 
 ### Compile Time Environment
 
@@ -81,6 +82,7 @@ pub struct CompileTimeEnv {
     vars: Vec<String>,
     prompts: Vec<String>,
     secrets: Vec<String>,
+    client_context: Vec<String>,
 }
 ```
 
@@ -108,8 +110,9 @@ let ast: Expr = ExprParser::new().parse(tokens).unwrap();
 let var_names = vec![];
 let prompt_names = vec![];
 let secret_names = vec![];
+let client_context_names = vec![];
 
-let mut env = CompileTimeEnv::new(var_names, prompt_names, secret_names);
+let mut env = CompileTimeEnv::new(var_names, prompt_names, secret_names, client_context_namess);
 
 let bytecode = compile(&ast, &env);
 ```
@@ -129,6 +132,7 @@ pub struct RuntimeEnv {
     pub vars: Vec<String>,
     pub prompts: Vec<String>,
     pub secrets: Vec<String>,
+    pub client_context: Vec<String>,
 }
 ```
 
@@ -144,8 +148,9 @@ let ast: Expr = ExprParser::new().parse(tokens).unwrap();
 let var_names = vec![];
 let prompt_names = vec![];
 let secret_names = vec![];
+let client_context_names = vec![];
 
-let mut env = CompileTimeEnv::new(var_names, prompt_names, secret_names);
+let mut env = CompileTimeEnv::new(var_names, prompt_names, secret_names, client_context_names);
 
 let bytecode = compile(&ast, &env);
 
@@ -154,11 +159,13 @@ let mut vm = Vm::new();
 let var_values = vec![];
 let prompt_values = vec![];
 let secret_values = vec![];
+let client_context_values = vec![];
 
 let runtime_env: RuntimeEnv = RuntimeEnv {
     vars: var_values,
     prompts: prompt_values,
     secrets: secret_values,
+    client_context_values
 };
 
 let _ = vm.interpret(bytecode.into(), &env, &runtime_env);

@@ -35,24 +35,43 @@ fn main() -> ExprResult<()> {
     let (mut var_keys, mut var_values) = unzip_key_values(args.vars);
     let (mut prompt_keys, mut prompt_values) = unzip_key_values(args.prompts);
     let (mut secret_keys, mut secret_values) = unzip_key_values(args.secrets);
+    let (mut client_context_keys, mut client_context_values) =
+        unzip_key_values(args.client_context);
 
     let mut repl_mode = ReplMode::default();
 
     let mut last_value: Option<Value> = None;
 
     loop {
-        let mut env = CompileTimeEnv::new(var_keys.clone(), prompt_keys.clone(), secret_keys.clone());
+        let mut env = CompileTimeEnv::new(
+            var_keys.clone(),
+            prompt_keys.clone(),
+            secret_keys.clone(),
+            client_context_keys.clone(),
+        );
 
         env.add_user_builtins(builtins.clone());
 
-        let runtime_env: RuntimeEnv = RuntimeEnv {
+        let mut runtime_env: RuntimeEnv = RuntimeEnv {
             vars: var_values.clone(),
             prompts: prompt_values.clone(),
             secrets: secret_values.clone(),
+            client_context: client_context_values
+                .iter()
+                .map(|string_value| Value::String(string_value.clone()))
+                .collect(),
         };
 
+        match &last_value {
+            Some(last_value) => {
+                let i = env.add_to_client_context(REPL_LAST_VALUE_PLACEHOLDER);
+                runtime_env.add_to_client_context(i, last_value.clone());
+            }
+            None => {}
+        }
+
         match line_editor.read_line(&prompt) {
-            Ok(Signal::Success(mut source)) => {
+            Ok(Signal::Success(source)) => {
                 if source.trim().is_empty() {
                     continue;
                 }
@@ -112,13 +131,6 @@ fn main() -> ExprResult<()> {
                     continue;
                 }
 
-                if let Some(last_value) = &last_value {
-                    source = source.replace(REPL_LAST_VALUE_PLACEHOLDER, &last_value.to_string());
-                } else if source.contains(REPL_LAST_VALUE_PLACEHOLDER) {
-                    println!("No expression has been interpeted yet.");
-                    continue;
-                }
-
                 if SET_PATTERN.is_match(&source) {
                     for (_, [set_type, key, value]) in
                         SET_PATTERN.captures_iter(&source).map(|c| c.extract())
@@ -135,6 +147,10 @@ fn main() -> ExprResult<()> {
                             "secret" => {
                                 secret_keys.push(key.to_string());
                                 secret_values.push(value.to_string());
+                            }
+                            "client" => {
+                                client_context_keys.push(key.to_string());
+                                client_context_values.push(value.to_string());
                             }
                             _ => {}
                         }
@@ -179,9 +195,7 @@ fn main() -> ExprResult<()> {
                             Ok(value) => {
                                 println!("{value}");
 
-                                if matches!(value, Value::String(_)) {
-                                    last_value = Some(value);
-                                }
+                                last_value = Some(value);
                             }
                             Err(err) => {
                                 println!("{err:#?}");
@@ -206,7 +220,7 @@ fn main() -> ExprResult<()> {
     Ok(())
 }
 
-static REPL_LAST_VALUE_PLACEHOLDER: &str = "%";
+static REPL_LAST_VALUE_PLACEHOLDER: &str = "_";
 
 /// # Set Command
 ///
@@ -216,7 +230,7 @@ static REPL_LAST_VALUE_PLACEHOLDER: &str = "%";
 ///
 /// Set a variable, prompt, or secret with a given value
 static SET_PATTERN: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"/set (var|prompt|secret) ([a-zA-Z]+) = (.*)").expect(INVALID_REGEX_ERROR)
+    Regex::new(r"/set (var|prompt|secret|client) ([a-zA-Z]+) = (.*)").expect(INVALID_REGEX_ERROR)
 });
 
 /// # Env Command
@@ -302,7 +316,11 @@ struct Args {
     #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, String>)]
     secrets: Vec<(String, String)>,
 
-    /// List of indexed secret names
+    /// List of indexed builtin names
     #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, u8>)]
     builtins: Vec<(String, u8)>,
+
+    /// List of indexed client context names
+    #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, String>)]
+    client_context: Vec<(String, String)>,
 }

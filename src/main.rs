@@ -27,6 +27,7 @@ fn main() -> ExprResult<()> {
         args.vars.clone(),
         args.prompts.clone(),
         args.secrets.clone(),
+        vec![],
     );
 
     env.add_user_builtins(builtins);

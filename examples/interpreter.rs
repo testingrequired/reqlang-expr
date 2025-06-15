@@ -33,8 +33,9 @@ fn main() -> ExprResult<()> {
     let (var_keys, var_values) = unzip_key_values(args.vars);
     let (prompt_keys, prompt_values) = unzip_key_values(args.prompts);
     let (secret_keys, secret_values) = unzip_key_values(args.secrets);
+    let (client_context_keys, client_context_values) = unzip_key_values(args.client_context);
 
-    let mut env = CompileTimeEnv::new(var_keys, prompt_keys, secret_keys);
+    let mut env = CompileTimeEnv::new(var_keys, prompt_keys, secret_keys, client_context_keys);
 
     env.add_user_builtins(builtins);
 
@@ -46,6 +47,10 @@ fn main() -> ExprResult<()> {
         vars: var_values,
         prompts: prompt_values,
         secrets: secret_values,
+        client_context: client_context_values
+            .iter()
+            .map(|string_value| Value::String(string_value.clone()))
+            .collect(),
     };
 
     let value = vm.interpret(bytecode.into(), &env, &runtime_env)?;
@@ -73,7 +78,11 @@ struct Args {
     #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, String>)]
     secrets: Vec<(String, String)>,
 
-    /// List of indexed secret names
+    /// List of indexed builtin names
     #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, u8>)]
     builtins: Vec<(String, u8)>,
+
+    /// List of indexed client context names
+    #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, String>)]
+    client_context: Vec<(String, String)>,
 }

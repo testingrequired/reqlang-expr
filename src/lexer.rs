@@ -56,7 +56,7 @@ pub enum Token {
     #[regex(r#"`[^`]*`"#, lex_string)]
     String(String),
 
-    #[regex("[!?:]?[a-zA-Z][a-zA-Z0-9_]*", lex_identifier)]
+    #[regex("[!?:@]?[a-zA-Z_][a-zA-Z0-9_]*", lex_identifier)]
     Identifier(String),
 
     #[token("true")]

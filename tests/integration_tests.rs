@@ -143,7 +143,7 @@ mod valid {
 
         ast should be: Ok(Expr::string("test string"));
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -173,7 +173,7 @@ mod valid {
 
         ast should be: Ok(Expr::call((Expr::identifier("noop"), 1..5), vec![]));
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -202,7 +202,7 @@ mod valid {
 
         ast should be: Ok(Expr::identifier("noop"));
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -237,7 +237,7 @@ mod valid {
             (Expr::call((Expr::identifier("noop"), 5..9), vec![]), 4..10)
         ]));
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -274,7 +274,7 @@ mod valid {
             (Expr::string("test value"), 4..16)
         ]));
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -310,7 +310,7 @@ mod valid {
             (Expr::identifier(":b"), 4..6)
         ]));
 
-        env: (vec!["a".to_string(), "b".to_string()], vec![], vec![]);
+        env: (vec!["a".to_string(), "b".to_string()], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -348,7 +348,7 @@ mod valid {
             ]), 4..11)
         ]));
 
-        env: (vec!["a".to_string(), "b".to_string()], vec![], vec![]);
+        env: (vec!["a".to_string(), "b".to_string()], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -383,7 +383,7 @@ mod valid {
 
         ast should be: Ok(Expr::identifier(":b"));
 
-        env: (vec!["a".to_string(), "b".to_string()], vec![], vec![]);
+        env: (vec!["a".to_string(), "b".to_string()], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -411,7 +411,7 @@ mod valid {
 
         ast should be: Ok(Expr::identifier("?b"));
 
-        env: (vec![], vec!["a".to_string(), "b".to_string()], vec![]);
+        env: (vec![], vec!["a".to_string(), "b".to_string()], vec![], vec![]);
 
         user builtins: [];
 
@@ -444,7 +444,7 @@ mod valid {
             (Expr::identifier("?b"), 4..6)
         ]));
 
-        env: (vec![], vec!["a".to_string(), "b".to_string()], vec![]);
+        env: (vec![], vec!["a".to_string(), "b".to_string()], vec![], vec![]);
 
         user builtins: [];
 
@@ -472,7 +472,7 @@ mod valid {
 
         ast should be: Ok(Expr::identifier("!b"));
 
-        env: (vec![], vec![], vec!["a".to_string(), "b".to_string()]);
+        env: (vec![], vec![], vec!["a".to_string(), "b".to_string()], vec![]);
 
         user builtins: [];
 
@@ -482,6 +482,34 @@ mod valid {
 
         runtime env: {
             secrets: vec!["a_value".to_string(), "b_value".to_string()],
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String(
+            "b_value".to_string()));
+    }
+
+    test! {
+        "@b";
+
+        scenario: client context identifier;
+
+        tokens should be: vec![
+            Ok((0, Token::identifier("@b"), 2))
+        ];
+
+        ast should be: Ok(Expr::identifier("@b"));
+
+        env: (vec![], vec![], vec![], vec!["a".to_string(), "b".to_string()]);
+
+        user builtins: [];
+
+        compiles to: vec![opcode::GET, lookup::CLIENT_CTX, 1];
+
+        disassembles to: "0000 GET CLIENT_CTX      1 == 'b'\n";
+
+        runtime env: {
+            client_context: vec![Value::String("a_value".to_string()), Value::String("b_value".to_string())],
             ..Default::default()
         };
 
@@ -505,7 +533,7 @@ mod valid {
             vec![]
         ));
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [BuiltinFn {
             name: "foo".to_string(),
@@ -541,7 +569,7 @@ mod valid {
             vec![(Expr::identifier(":a"), 5..7)]
         ));
 
-        env: (vec!["a".to_string()], vec![], vec![]);
+        env: (vec!["a".to_string()], vec![], vec![], vec![]);
 
         user builtins: [BuiltinFn {
             name: "foo".to_string(),
@@ -611,7 +639,8 @@ mod valid {
         env: (
             vec!["a".to_string()],
             vec!["b".to_string()],
-            vec!["c".to_string()]
+            vec!["c".to_string()],
+            vec![]
         );
 
         user builtins: [
@@ -696,7 +725,7 @@ mod valid {
 
         ast should be: Ok(Expr::bool(true));
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -722,7 +751,7 @@ mod valid {
 
         ast should be: Ok(Expr::bool(false));
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -759,7 +788,7 @@ mod valid {
             }.into())
         );
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -797,7 +826,7 @@ mod valid {
             }.into())
         );
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -835,7 +864,7 @@ mod valid {
             }.into())
         );
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -873,7 +902,7 @@ mod valid {
             }.into())
         );
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -911,7 +940,7 @@ mod valid {
             }.into())
         );
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -949,7 +978,7 @@ mod valid {
             }.into())
         );
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -987,7 +1016,7 @@ mod valid {
             }.into())
         );
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1027,7 +1056,7 @@ mod valid {
             }.into())
         );
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1073,7 +1102,7 @@ mod valid {
             }.into())
         );
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1099,7 +1128,7 @@ mod valid {
 
         scenario: call is_empty with empty string;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1115,7 +1144,7 @@ mod valid {
 
         scenario: call is_empty with non empty string;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1131,7 +1160,7 @@ mod valid {
 
         scenario: to_str string;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1147,7 +1176,7 @@ mod valid {
 
         scenario: to_str bool true;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1163,7 +1192,7 @@ mod valid {
 
         scenario: to_str bool false;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1179,7 +1208,7 @@ mod valid {
 
         scenario: to_str builtin id;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1195,7 +1224,7 @@ mod valid {
 
         scenario: to_str call to builtin id;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1211,7 +1240,7 @@ mod valid {
 
         scenario: concat two strings;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1227,7 +1256,7 @@ mod valid {
 
         scenario: concat string and bool;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1243,7 +1272,7 @@ mod valid {
 
         scenario: concat max number of ten args;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1259,7 +1288,7 @@ mod valid {
 
         scenario: concat max number of ten args mixed types;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1275,7 +1304,7 @@ mod valid {
 
         scenario: contains string in string true;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1291,7 +1320,7 @@ mod valid {
 
         scenario: contains string in string false;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1307,7 +1336,7 @@ mod valid {
 
         scenario: contains variable in string true;
 
-        env: (vec!["a".to_string()], vec![], vec![]);
+        env: (vec!["a".to_string()], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1324,7 +1353,7 @@ mod valid {
 
         scenario: contains string in variable true;
 
-        env: (vec!["a".to_string()], vec![], vec![]);
+        env: (vec!["a".to_string()], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1359,7 +1388,7 @@ mod valid {
             }.into())
         );
 
-        env: (vec!["a".to_string(), "b".to_string()], vec![], vec![]);
+        env: (vec!["a".to_string(), "b".to_string()], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1385,7 +1414,7 @@ mod valid {
 
         scenario: contains variable in string false;
 
-        env: (vec!["a".to_string()], vec![], vec![]);
+        env: (vec!["a".to_string()], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1402,7 +1431,7 @@ mod valid {
 
         scenario: contains prompt in string true;
 
-        env: (vec![], vec!["a".to_string()], vec![]);
+        env: (vec![], vec!["a".to_string()], vec![], vec![]);
 
         user builtins: [];
 
@@ -1419,7 +1448,7 @@ mod valid {
 
         scenario: contains prompt in string false;
 
-        env: (vec![], vec!["a".to_string()], vec![]);
+        env: (vec![], vec!["a".to_string()], vec![], vec![]);
 
         user builtins: [];
 
@@ -1436,7 +1465,7 @@ mod valid {
 
         scenario: contains secret in string true;
 
-        env: (vec![], vec![], vec!["a".to_string()]);
+        env: (vec![], vec![], vec!["a".to_string()], vec![]);
 
         user builtins: [];
 
@@ -1453,7 +1482,7 @@ mod valid {
 
         scenario: contains secret in string false;
 
-        env: (vec![], vec![], vec!["a".to_string()]);
+        env: (vec![], vec![], vec!["a".to_string()], vec![]);
 
         user builtins: [];
 
@@ -1470,7 +1499,7 @@ mod valid {
 
         scenario: trim;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1486,7 +1515,7 @@ mod valid {
 
         scenario: trim start;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1502,7 +1531,7 @@ mod valid {
 
         scenario: trim end;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1518,7 +1547,7 @@ mod valid {
 
         scenario: lowercase;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1534,7 +1563,7 @@ mod valid {
 
         scenario: uppercase;
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1558,7 +1587,7 @@ mod invalid {
 
         ast should be: Ok(Expr::identifier("foo"));
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [
             BuiltinFn {
@@ -1606,7 +1635,7 @@ mod invalid {
             ]
         ));
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [
             BuiltinFn {
@@ -1676,7 +1705,7 @@ mod invalid {
             expected: vec!["identifier".to_string()]
         });
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1710,7 +1739,7 @@ mod invalid {
             expected: vec!["identifier".to_string()]
         });
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1739,7 +1768,7 @@ mod invalid {
             error: (LexicalError::InvalidToken.into(), 0..0)
         });
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1769,7 +1798,7 @@ mod invalid {
             expected: vec![]
         });
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1799,7 +1828,7 @@ mod invalid {
             expected: vec![]
         });
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
@@ -1827,7 +1856,7 @@ mod invalid {
             error: (LexicalError::InvalidToken.into(), 0..0)
         });
 
-        env: (vec![], vec![], vec![]);
+        env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
