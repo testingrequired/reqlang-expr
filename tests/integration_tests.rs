@@ -32,7 +32,7 @@ macro_rules! test {
 
                 #[test]
                 fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes >]() {
-                    let mut env: Env = Env::new$env;
+                    let mut env: CompileTimeEnv = CompileTimeEnv::new$env;
 
                     env.add_user_builtins(vec!$builtins);
 
@@ -49,7 +49,7 @@ macro_rules! test {
 
                 #[test]
                 fn [< $test_name:lower $(_ $test_name2:lower)* _op_codes_disassemble_to >]() {
-                    let mut env: Env = ::reqlang_expr::compiler::Env::new$env;
+                    let mut env: CompileTimeEnv = ::reqlang_expr::compiler::CompileTimeEnv::new$env;
 
                     env.add_user_builtins(vec!$builtins);
 
@@ -68,7 +68,7 @@ macro_rules! test {
 
                 #[test]
                 fn [< $test_name:lower $(_ $test_name2:lower)* _interprets_without_error >]() {
-                    let mut env: Env = Env::new$env;
+                    let mut env: CompileTimeEnv = CompileTimeEnv::new$env;
 
                     env.add_user_builtins(vec!$builtins);
 
@@ -106,7 +106,7 @@ macro_rules! test {
 
                 #[test]
                 fn [< $test_name:lower $(_ $test_name2:lower)* _interprets_without_error >]() {
-                    let mut env: Env = Env::new$env;
+                    let mut env: CompileTimeEnv = CompileTimeEnv::new$env;
 
                     env.add_user_builtins(vec!$builtins);
 

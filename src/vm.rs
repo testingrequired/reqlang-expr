@@ -4,7 +4,7 @@ use std::{fmt::Display, rc::Rc};
 
 use crate::{
     compiler::{
-        BuiltinFn, Env, ExprByteCode,
+        BuiltinFn, CompileTimeEnv, ExprByteCode,
         lookup::{BUILTIN, PROMPT, SECRET, VAR},
         opcode,
     },
@@ -84,7 +84,7 @@ impl Vm {
     pub fn interpret(
         &mut self,
         bytecode: Box<ExprByteCode>,
-        env: &Env,
+        env: &CompileTimeEnv,
         runtime_env: &RuntimeEnv,
     ) -> ExprResult<Value> {
         self.bytecode = Some(bytecode.into());
@@ -105,7 +105,7 @@ impl Vm {
         Ok(value)
     }
 
-    fn interpret_op(&mut self, env: &Env, runtime_env: &RuntimeEnv, op_code: u8) {
+    fn interpret_op(&mut self, env: &CompileTimeEnv, runtime_env: &RuntimeEnv, op_code: u8) {
         match op_code {
             opcode::CALL => self.op_call(),
             opcode::CONSTANT => self.op_constant(),
@@ -139,7 +139,7 @@ impl Vm {
         self.stack_push(result);
     }
 
-    fn op_get(&mut self, env: &Env, runtime_env: &RuntimeEnv) {
+    fn op_get(&mut self, env: &CompileTimeEnv, runtime_env: &RuntimeEnv) {
         assert_eq!(opcode::GET, self.read_u8(), "Expected GET opcode");
         let get_lookup = self.read_u8();
         let get_idx = self.read_u8() as usize;

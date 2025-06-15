@@ -1,17 +1,17 @@
 //! The dissassembler and associated types
 
 use crate::{
-    compiler::{Env, ExprByteCode, opcode},
+    compiler::{CompileTimeEnv, ExprByteCode, opcode},
     prelude::lookup,
 };
 
 pub struct Disassembler<'bytecode, 'env> {
     bytecode: &'bytecode ExprByteCode,
-    env: &'env Env,
+    env: &'env CompileTimeEnv,
 }
 
 impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
-    pub fn new(bytecode: &'bytecode ExprByteCode, env: &'env Env) -> Self {
+    pub fn new(bytecode: &'bytecode ExprByteCode, env: &'env CompileTimeEnv) -> Self {
         Self { bytecode, env }
     }
 

@@ -201,7 +201,7 @@ impl BuiltinFns {
 }
 
 #[derive(Debug)]
-pub struct Env {
+pub struct CompileTimeEnv {
     builtins: Vec<Rc<BuiltinFn>>,
     user_builtins: Vec<Rc<BuiltinFn>>,
     vars: Vec<String>,
@@ -209,7 +209,7 @@ pub struct Env {
     secrets: Vec<String>,
 }
 
-impl Default for Env {
+impl Default for CompileTimeEnv {
     fn default() -> Self {
         Self {
             builtins: vec![
@@ -287,7 +287,7 @@ impl Default for Env {
     }
 }
 
-impl Env {
+impl CompileTimeEnv {
     pub fn new(vars: Vec<String>, prompts: Vec<String>, secrets: Vec<String>) -> Self {
         let mut env = Self::default();
 
@@ -365,13 +365,17 @@ impl ExprByteCode {
 }
 
 /// Compile an [`ast::Expr`] into [`ExprByteCode`]
-pub fn compile(expr: &Expr, env: &Env) -> ExprResult<ExprByteCode> {
+pub fn compile(expr: &Expr, env: &CompileTimeEnv) -> ExprResult<ExprByteCode> {
     let mut strings: Vec<String> = vec![];
     let codes = compile_expr(expr, env, &mut strings)?;
     Ok(ExprByteCode::new(codes, strings))
 }
 
-fn compile_expr(expr: &Expr, env: &Env, strings: &mut Vec<String>) -> ExprResult<Vec<u8>> {
+fn compile_expr(
+    expr: &Expr,
+    env: &CompileTimeEnv,
+    strings: &mut Vec<String>,
+) -> ExprResult<Vec<u8>> {
     use opcode::*;
 
     let mut codes = vec![];

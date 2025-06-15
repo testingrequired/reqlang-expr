@@ -75,7 +75,7 @@ The compiler produces bytecode from an AST and a [compile time environment](#com
 The compiler's environment contains a lists of names for [builtin functions](#builtin-functions), variables, prompts, and secrets.
 
 ```rust
-pub struct Env {
+pub struct CompileTimeEnv {
     builtins: Vec<Rc<BuiltinFn>>,
     user_builtins: Vec<Rc<BuiltinFn>>,
     vars: Vec<String>,
@@ -109,7 +109,7 @@ let var_names = vec![];
 let prompt_names = vec![];
 let secret_names = vec![];
 
-let mut env = Env::new(var_names, prompt_names, secret_names);
+let mut env = CompileTimeEnv::new(var_names, prompt_names, secret_names);
 
 let bytecode = compile(&ast, &env);
 ```
@@ -145,7 +145,7 @@ let var_names = vec![];
 let prompt_names = vec![];
 let secret_names = vec![];
 
-let mut env = Env::new(var_names, prompt_names, secret_names);
+let mut env = CompileTimeEnv::new(var_names, prompt_names, secret_names);
 
 let bytecode = compile(&ast, &env);
 

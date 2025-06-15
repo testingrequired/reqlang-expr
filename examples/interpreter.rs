@@ -34,7 +34,7 @@ fn main() -> ExprResult<()> {
     let (prompt_keys, prompt_values) = unzip_key_values(args.prompts);
     let (secret_keys, secret_values) = unzip_key_values(args.secrets);
 
-    let mut env = Env::new(var_keys, prompt_keys, secret_keys);
+    let mut env = CompileTimeEnv::new(var_keys, prompt_keys, secret_keys);
 
     env.add_user_builtins(builtins);
 

@@ -41,7 +41,7 @@ fn main() -> ExprResult<()> {
     let mut last_value: Option<Value> = None;
 
     loop {
-        let mut env = Env::new(var_keys.clone(), prompt_keys.clone(), secret_keys.clone());
+        let mut env = CompileTimeEnv::new(var_keys.clone(), prompt_keys.clone(), secret_keys.clone());
 
         env.add_user_builtins(builtins.clone());
 

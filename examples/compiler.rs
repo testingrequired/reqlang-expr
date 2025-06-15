@@ -33,7 +33,7 @@ fn main() -> ExprResult<()> {
         })
         .collect::<Vec<_>>();
 
-    let mut env = Env::new(args.vars.clone(), vec![], vec![]);
+    let mut env = CompileTimeEnv::new(args.vars.clone(), vec![], vec![]);
 
     env.add_user_builtins(builtins);
 

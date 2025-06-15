@@ -17,7 +17,7 @@ fn main() -> ExprResult<()> {
         .parse(tokens)
         .expect("should parse tokens to ast");
 
-    let env = Env::new(args.vars, args.prompts, args.secrets);
+    let env = CompileTimeEnv::new(args.vars, args.prompts, args.secrets);
 
     let bytecode = compile(&ast, &env)?;
 

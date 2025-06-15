@@ -23,7 +23,7 @@ fn main() -> ExprResult<()> {
         })
         .collect();
 
-    let mut env = Env::new(
+    let mut env = CompileTimeEnv::new(
         args.vars.clone(),
         args.prompts.clone(),
         args.secrets.clone(),
@@ -90,7 +90,7 @@ struct Args {
     builtins: Vec<(String, u8)>,
 }
 
-fn read_in_bytecode(args: &Args, env: &Env) -> ExprResult<ExprByteCode> {
+fn read_in_bytecode(args: &Args, env: &CompileTimeEnv) -> ExprResult<ExprByteCode> {
     let bytecode = if args.bytecode {
         let bytecode = if args.stdin {
             let mut bytecode = vec![];
@@ -143,7 +143,7 @@ fn read_in_bytecode(args: &Args, env: &Env) -> ExprResult<ExprByteCode> {
     bytecode
 }
 
-fn interpret_bytecode(bytecode: Box<ExprByteCode>, env: &Env) {
+fn interpret_bytecode(bytecode: Box<ExprByteCode>, env: &CompileTimeEnv) {
     let mut vm = Vm::new();
 
     let value = vm
