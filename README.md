@@ -36,21 +36,21 @@ These expressions will be embedded in places where double quotes are common (e.g
 
 ### Builtin Functions
 
-| Name         |    Arity | Description                                          | Usage                           |
-| ------------ | -------: | ---------------------------------------------------- | ------------------------------- |
-| `id`         |        1 | Returns the string arugment passed to it             | `(id (noop))`                   |
-| `noop`       |        0 | Returns the string "noop"                            | `(noop)`                        |
-| `is_empty`   |        1 | Checks if the given string is empty                  | ` (is_empty ``) `               |
-| `not`        |        1 | Logical NOT operation on a boolean value             | `(not true)`                    |
-| `and`        |        2 | Logical AND operation between two booleans           | `(and true false)`              |
-| `or`         |        2 | Logical OR operation between two booleans            | `(or true false)`               |
-| `cond`       |        3 | If condition, returns second arg if true, else third | `` (cond true `foo` `bar`) ``   |
-| `to_str`     |        1 | Converts a value to its string representation        | `(to_str true)`                 |
-| `concat`     | up to 10 | Concatenates a list of values in to a string         | `` (concat `foo` `bar`) ``      |
-| `contains`   |        2 | Checks for a substring match                         | `` (contains `foo` `foobar`) `` |
-| `trim`       |        1 | Trim whitespace from a string                        | `` (trim ` foo `) ``            |
-| `trim_start` |        1 | Trim whitespace from the start of a string           | `` (trim_start ` foo `) ``      |
-| `trim_end`   |        1 | Trim whitespace from the end of a string             | `` (trim_end ` foo `) ``        |
+| Name         |    Arity | Description                                          | Usage                           | Result         |
+| ------------ | -------: | ---------------------------------------------------- | ------------------------------- | -------------- |
+| `id`         |        1 | Returns the string arugment passed to it             | `(id (noop))`                   | `` `noop` ``   |
+| `noop`       |        0 | Returns the string "noop"                            | `(noop)`                        | `` `noop` ``   |
+| `is_empty`   |        1 | Checks if the given string is empty                  | ` (is_empty ``) `               | `true`         |
+| `not`        |        1 | Logical NOT operation on a boolean value             | `(not true)`                    | `false`        |
+| `and`        |        2 | Logical AND operation between two booleans           | `(and true false)`              | `false`        |
+| `or`         |        2 | Logical OR operation between two booleans            | `(or true false)`               | `true`         |
+| `cond`       |        3 | If condition, returns second arg if true, else third | `` (cond true `foo` `bar`) ``   | `foo`          |
+| `to_str`     |        1 | Converts a value to its string representation        | `(to_str true)`                 | `` `true` ``   |
+| `concat`     | up to 10 | Concatenates a list of values in to a string         | `` (concat `foo` `bar`) ``      | `` `foobar` `` |
+| `contains`   |        2 | Checks for a substring match                         | `` (contains `foo` `foobar`) `` | `true`         |
+| `trim`       |        1 | Trim whitespace from a string                        | `` (trim ` foo `) ``            | `` `foo` ``    |
+| `trim_start` |        1 | Trim whitespace from the start of a string           | `` (trim_start ` foo `) ``      | `` `foo ` ``   |
+| `trim_end`   |        1 | Trim whitespace from the end of a string             | `` (trim_end ` foo `) ``        | `` ` foo` ``   |
 
 ## Project
 
