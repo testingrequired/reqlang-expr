@@ -1,5 +1,13 @@
 # Usage
 
+## Prelude
+
+```rust
+use reqlang_expr::prelude::*;
+```
+
+The prelude provides everything needed to lex, parse, compile, disassemble, and interpret expressions.
+
 ## Lexer
 
 The lexer takes an input string and returns a stream of tokens.
