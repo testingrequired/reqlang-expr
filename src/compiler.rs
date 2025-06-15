@@ -6,7 +6,7 @@ use std::{fmt::Display, ops::Range, rc::Rc};
 use crate::{
     ast::Expr,
     errors::{ExprError, ExprResult, TypeError::WrongNumberOfArgs},
-    vm::Value,
+    value::Value,
 };
 
 pub mod opcode {
