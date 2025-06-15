@@ -15,6 +15,10 @@ reqlang-expr = "0.3.0"
 cargo add reqlang-expr
 ```
 
+## Usage
+
+See [USAGE.md](./USAGE.md) and [examples](./examples/) for usage examples.
+
 ## Project
 
 [![Verify](https://github.com/testingrequired/reqlang-expr/actions/workflows/ci.yml/badge.svg)](https://github.com/testingrequired/reqlang-expr/actions/workflows/ci.yml)
@@ -29,8 +33,6 @@ cargo add reqlang-expr
 - [Example Usage](./examples/)
 - [Specification Examples](./spec/)
 - [Tests](./tests/integration_tests.rs)
-
-A more detailed technical breakdown can be found [here](./TECH.md).
 
 ## Syntax
 
@@ -47,6 +49,8 @@ The syntax is s-expression like. There are only [builtin functions](#builtin-fun
 | `` `foo` `` | String literal                              |
 | `true`      | Literal boolean value `true`                |
 | `false`     | Literal boolean value `false`               |
+
+See [/spec](./spec/) for more syntax examples.
 
 ### Builtin Functions
 
