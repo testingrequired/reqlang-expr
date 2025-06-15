@@ -106,6 +106,8 @@ pub struct BuiltinFn {
 }
 ```
 
+See: [builtins.rs](./src/builtins.rs), [value.rs](./src/value.rs)
+
 ### Usage
 
 ```rust
@@ -140,9 +142,11 @@ pub struct RuntimeEnv {
     pub vars: Vec<String>,
     pub prompts: Vec<String>,
     pub secrets: Vec<String>,
-    pub client_context: Vec<String>,
+    pub client_context: Vec<Value>,
 }
 ```
+
+See: [value.rs](./src/value.rs)
 
 ### Usage
 
@@ -179,4 +183,4 @@ let runtime_env: RuntimeEnv = RuntimeEnv {
 let _ = vm.interpret(bytecode.into(), &env, &runtime_env);
 ```
 
-See: [vm.rs](./src/vm.rs)
+See: [vm.rs](./src/vm.rs), [value.rs](./src/value.rs)

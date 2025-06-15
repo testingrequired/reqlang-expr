@@ -4,6 +4,7 @@ lalrpop_mod!(pub parser);
 
 pub mod prelude {
     pub use crate::ast::*;
+    pub use crate::builtins::*;
     pub use crate::compiler::*;
     pub use crate::errors::*;
     pub use crate::lexer::*;
@@ -27,3 +28,5 @@ pub mod disassembler;
 pub mod cliutil;
 
 pub mod value;
+
+pub mod builtins;

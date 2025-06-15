@@ -2,7 +2,7 @@
 
 use std::{fmt::Display, rc::Rc};
 
-use crate::compiler::BuiltinFn;
+use crate::builtins::BuiltinFn;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
