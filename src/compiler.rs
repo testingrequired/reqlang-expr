@@ -198,6 +198,15 @@ impl BuiltinFns {
 
         Value::String(string_arg.trim_end().to_string())
     }
+
+    pub fn lowercase(args: Vec<Value>) -> Value {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string();
+
+        Value::String(string_arg.to_lowercase().to_string())
+    }
 }
 
 #[derive(Debug)]
@@ -277,6 +286,11 @@ impl Default for CompileTimeEnv {
                     name: String::from("trim_end"),
                     arity: 1,
                     func: Rc::new(BuiltinFns::trim_end),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("lowercase"),
+                    arity: 1,
+                    func: Rc::new(BuiltinFns::lowercase),
                 }),
             ],
             user_builtins: vec![],

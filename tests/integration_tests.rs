@@ -1512,6 +1512,22 @@ mod valid {
 
         interpets to: Ok(Value::String(" foo".to_string()));
     }
+
+    test! {
+        "(lowercase `FOO`)";
+
+        scenario: lowercase;
+
+        env: (vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("foo".to_string()));
+    }
 }
 
 mod invalid {

@@ -51,6 +51,7 @@ These expressions will be embedded in places where double quotes are common (e.g
 | `trim`       |        1 | Trim whitespace from a string                        | `` (trim ` foo `) ``            | `` `foo` ``    |
 | `trim_start` |        1 | Trim whitespace from the start of a string           | `` (trim_start ` foo `) ``      | `` `foo ` ``   |
 | `trim_end`   |        1 | Trim whitespace from the end of a string             | `` (trim_end ` foo `) ``        | `` ` foo` ``   |
+| `lowercase`  |        1 | Return a lowercase version of a string               | `` (lowercase `FOO`) ``         | `` `foo` ``    |
 
 ## Project
 
