@@ -13,15 +13,15 @@ pub Expr: ast::Expr = {
     ExprBool,
 };
 
-ExprS = Spanned<Expr>;
-
 // Boolean Expressions
+
 ExprBool: ast::Expr = {
     "true" => ast::Expr::Bool(ast::ExprBool(true).into()),
     "false" => ast::Expr::Bool(ast::ExprBool(false).into()),
 };
 
 // String Expressions
+
 ExprString: ast::Expr = {
     string => ast::Expr::String(ast::ExprString(<>).into())
 };
@@ -43,6 +43,8 @@ ExprIdentifier: ast::Expr = <name:identifier> =>
     ast::Expr::Identifier(ast::ExprIdentifier(name).into());
 
 // Utility Types
+
+ExprS = Spanned<Expr>;
 
 Spanned<T>: (T, std::ops::Range<usize>) = <l:@L> <t:T> <r:@R> =>
     (t, l..r);
