@@ -1528,6 +1528,22 @@ mod valid {
 
         interpets to: Ok(Value::String("foo".to_string()));
     }
+
+    test! {
+        "(uppercase `foo`)";
+
+        scenario: uppercase;
+
+        env: (vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("FOO".to_string()));
+    }
 }
 
 mod invalid {

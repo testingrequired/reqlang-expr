@@ -207,6 +207,15 @@ impl BuiltinFns {
 
         Value::String(string_arg.to_lowercase().to_string())
     }
+
+    pub fn uppercase(args: Vec<Value>) -> Value {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string();
+
+        Value::String(string_arg.to_uppercase().to_string())
+    }
 }
 
 #[derive(Debug)]
@@ -291,6 +300,11 @@ impl Default for CompileTimeEnv {
                     name: String::from("lowercase"),
                     arity: 1,
                     func: Rc::new(BuiltinFns::lowercase),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("uppercase"),
+                    arity: 1,
+                    func: Rc::new(BuiltinFns::uppercase),
                 }),
             ],
             user_builtins: vec![],
