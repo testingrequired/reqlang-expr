@@ -36,16 +36,17 @@ A more detailed technical breakdown can be found [here](./TECH.md).
 
 The syntax is s-expression like. There are only [builtin functions](#builtin-functions), identifiers and string literals.
 
-| Syntax      | Description                               |
-| ----------- | ----------------------------------------- |
-| `:a`        | Reference to the variable `a`             |
-| `?b`        | Reference to the prompt `b`               |
-| `!c`        | Reference to the secret `c`               |
-| `id`        | Reference to the builtin `id`             |
-| `(id :a)`   | Call to builtin `id` with arguments: `:a` |
-| `` `foo` `` | String literal                            |
-| `true`      | Literal boolean value `true`              |
-| `false`     | Literal boolean value `false`             |
+| Syntax      | Description                                 |
+| ----------- | ------------------------------------------- |
+| `:a`        | Reference to the variable `a`               |
+| `?b`        | Reference to the prompt `b`                 |
+| `!c`        | Reference to the secret `c`                 |
+| `id`        | Reference to the builtin `id`               |
+| `@key`      | Reference to the client context value `key` |
+| `(id :a)`   | Call to builtin `id` with arguments: `:a`   |
+| `` `foo` `` | String literal                              |
+| `true`      | Literal boolean value `true`                |
+| `false`     | Literal boolean value `false`               |
 
 ### Builtin Functions
 
