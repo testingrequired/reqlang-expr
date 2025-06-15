@@ -29,16 +29,16 @@ impl Iterator for Lexer<'_> {
             return Some(Ok(token));
         }
 
-        match self.inner.next()? {
-            token => {
-                let Range { start, end } = self.inner.span();
+        let token = self.inner.next()?;
 
-                Some(
-                    token
-                        .map(|token| (start, token, end))
-                        .map_err(|(err, err_span)| (err.into(), err_span)),
-                )
-            }
+        {
+            let Range { start, end } = self.inner.span();
+
+            Some(
+                token
+                    .map(|token| (start, token, end))
+                    .map_err(|(err, err_span)| (err.into(), err_span)),
+            )
         }
     }
 }

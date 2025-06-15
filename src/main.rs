@@ -44,7 +44,7 @@ fn main() -> ExprResult<()> {
         interpret_bytecode(bytecode.clone(), &env);
     }
 
-    write_out_bytecode(args, bytecode);
+    write_out_bytecode(args, *bytecode);
 
     Ok(())
 }
@@ -155,7 +155,7 @@ fn interpret_bytecode(bytecode: Box<ExprByteCode>, env: &CompileTimeEnv) {
     exit(0);
 }
 
-fn write_out_bytecode(args: Args, bytecode: Box<ExprByteCode>) {
+fn write_out_bytecode(args: Args, bytecode: ExprByteCode) {
     if let Some(out_path) = args.out_path {
         let mut file = File::create(out_path).expect("should create output file");
 

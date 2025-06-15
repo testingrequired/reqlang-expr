@@ -33,10 +33,8 @@ pub mod lookup {
 }
 
 /// Try to get a string from a list
-fn get(list: &Vec<String>, identifier: &str) -> Option<u8> {
-    list.iter()
-        .position(|x| x == identifier)
-        .map(|i| i as u8)
+fn get(list: &[String], identifier: &str) -> Option<u8> {
+    list.iter().position(|x| x == identifier).map(|i| i as u8)
 }
 
 /// Builtin function used in expressions
@@ -317,13 +315,12 @@ impl Default for CompileTimeEnv {
 
 impl CompileTimeEnv {
     pub fn new(vars: Vec<String>, prompts: Vec<String>, secrets: Vec<String>) -> Self {
-        let mut env = Self::default();
-
-        env.vars = vars;
-        env.prompts = prompts;
-        env.secrets = secrets;
-
-        env
+        Self {
+            vars,
+            prompts,
+            secrets,
+            ..Default::default()
+        }
     }
 
     pub fn get_builtin_index(&self, name: &str) -> Option<(&Rc<BuiltinFn>, u8)> {
