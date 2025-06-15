@@ -123,7 +123,7 @@ pub fn read_in_source(path: Option<String>) -> String {
     match path {
         Some(path) => {
             //
-            return read_to_string(path).expect("should be able to open file at path");
+            read_to_string(path).expect("should be able to open file at path")
         }
         None => {
             let mut source = String::new();

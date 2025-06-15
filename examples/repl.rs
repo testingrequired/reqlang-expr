@@ -206,7 +206,7 @@ fn main() -> ExprResult<()> {
     Ok(())
 }
 
-static REPL_LAST_VALUE_PLACEHOLDER: &'static str = "%";
+static REPL_LAST_VALUE_PLACEHOLDER: &str = "%";
 
 /// # Set Command
 ///

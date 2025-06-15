@@ -122,21 +122,21 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
                 let value = self
                     .env
                     .get_builtin(constant_idx)
-                    .expect(&format! {"undefined builtin: {constant_idx}"});
+                    .unwrap_or_else(|| panic!("undefined builtin: {constant_idx}"));
                 &value.name
             }
             lookup::USER_BUILTIN => {
                 let value = self
                     .env
                     .get_user_builtin(constant_idx)
-                    .expect(&format! {"undefined user builtin: {constant_idx}"});
+                    .unwrap_or_else(|| panic!("undefined user builtin: {constant_idx}"));
                 &value.name
             }
             lookup::VAR => {
                 let value = self
                     .env
                     .get_var(constant_idx)
-                    .expect(&format! {"undefined variable: {constant_idx}"});
+                    .unwrap_or_else(|| panic!("undefined variable: {constant_idx}"));
 
                 value
             }
@@ -144,7 +144,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
                 let value = self
                     .env
                     .get_prompt(constant_idx)
-                    .expect(&format! {"undefined prompt: {constant_idx}"});
+                    .unwrap_or_else(|| panic!("undefined prompt: {constant_idx}"));
 
                 value
             }
@@ -152,7 +152,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
                 let value = self
                     .env
                     .get_secret(constant_idx)
-                    .expect(&format! {"undefined secret: {constant_idx}"});
+                    .unwrap_or_else(|| panic!("undefined secret: {constant_idx}"));
 
                 value
             }

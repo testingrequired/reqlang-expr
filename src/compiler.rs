@@ -34,7 +34,7 @@ pub mod lookup {
 
 /// Try to get a string from a list
 fn get(list: &Vec<String>, identifier: &str) -> Option<u8> {
-    list.into_iter()
+    list.iter()
         .position(|x| x == identifier)
         .map(|i| i as u8)
 }

@@ -135,7 +135,7 @@ fn read_in_bytecode(args: &Args, env: &CompileTimeEnv) -> ExprResult<ExprByteCod
 
         eprintln!("AST:\n\n{ast:#?}\n");
 
-        compile(&ast, &env)
+        compile(&ast, env)
     };
 
     eprintln!("Bytecode:\n\n{bytecode:#?}\n");
@@ -159,10 +159,10 @@ fn write_out_bytecode(args: Args, bytecode: Box<ExprByteCode>) {
     if let Some(out_path) = args.out_path {
         let mut file = File::create(out_path).expect("should create output file");
 
-        file.write_all(&bytecode.codes())
+        file.write_all(bytecode.codes())
             .expect("should write bytecode to output file");
     } else {
-        let _ = stdout().write_all(&bytecode.codes());
+        let _ = stdout().write_all(bytecode.codes());
 
         exit(0);
     }

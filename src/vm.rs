@@ -36,7 +36,7 @@ impl Value {
 
     pub fn get_bool(&self) -> bool {
         match self {
-            Value::Bool(s) => s.clone(),
+            Value::Bool(s) => *s,
             _ => panic!("Value is not a string"),
         }
     }
@@ -72,6 +72,12 @@ pub struct Vm {
     stack: Vec<Value>,
 }
 
+impl Default for Vm {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Vm {
     pub fn new() -> Self {
         Self {
@@ -87,7 +93,7 @@ impl Vm {
         env: &CompileTimeEnv,
         runtime_env: &RuntimeEnv,
     ) -> ExprResult<Value> {
-        self.bytecode = Some(bytecode.into());
+        self.bytecode = Some(bytecode);
         self.ip = 0;
 
         while let Some(op_code) = self
@@ -109,7 +115,7 @@ impl Vm {
         match op_code {
             opcode::CALL => self.op_call(),
             opcode::CONSTANT => self.op_constant(),
-            opcode::GET => self.op_get(env, &runtime_env),
+            opcode::GET => self.op_get(env, runtime_env),
             opcode::TRUE => self.op_true(),
             opcode::FALSE => self.op_false(),
             _ => panic!("Invalid OP code: {op_code}"),
@@ -148,20 +154,20 @@ impl Vm {
             BUILTIN => {
                 let value = env
                     .get_builtin(get_idx)
-                    .expect(&format! {"undefined builtin: {get_idx}"});
+                    .unwrap_or_else(|| panic!("undefined builtin: {get_idx}"));
                 self.stack_push(Value::Fn(value.clone()));
             }
             USER_BUILTIN => {
                 let value = env
                     .get_user_builtin(get_idx)
-                    .expect(&format! {"undefined user builtin: {get_idx}"});
+                    .unwrap_or_else(|| panic!("undefined user builtin: {get_idx}"));
                 self.stack_push(Value::Fn(value.clone()));
             }
             VAR => {
                 let value = env
                     .get_var(get_idx)
                     .and_then(|_| runtime_env.vars.get(get_idx))
-                    .expect(&format! {"undefined variable: {get_idx}"});
+                    .unwrap_or_else(|| panic!("undefined variable: {get_idx}"));
 
                 self.stack_push(Value::String(value.clone()));
             }
@@ -169,7 +175,7 @@ impl Vm {
                 let value = env
                     .get_prompt(get_idx)
                     .and_then(|_| runtime_env.prompts.get(get_idx))
-                    .expect(&format! {"undefined prompt: {get_idx}"});
+                    .unwrap_or_else(|| panic!("undefined prompt: {get_idx}"));
 
                 self.stack_push(Value::String(value.clone()));
             }
@@ -177,7 +183,7 @@ impl Vm {
                 let value = env
                     .get_secret(get_idx)
                     .and_then(|_| runtime_env.secrets.get(get_idx))
-                    .expect(&format! {"undefined secret: {get_idx}"});
+                    .unwrap_or_else(|| panic!("undefined secret: {get_idx}"));
 
                 self.stack_push(Value::String(value.clone()));
             }
@@ -196,7 +202,7 @@ impl Vm {
             .expect("should have bytecode")
             .strings()
             .get(get_idx)
-            .expect(&format!("undefined string: {}", get_idx));
+            .unwrap_or_else(|| panic!("undefined string: {}", get_idx));
 
         self.stack_push(Value::String(s.clone()));
     }
@@ -218,25 +224,24 @@ impl Vm {
     }
 
     fn stack_pop(&mut self) -> Value {
-        let value = self
+        
+
+        self
             .stack
             .pop()
-            .expect("should have a value to pop from the stack");
-
-        value
+            .expect("should have a value to pop from the stack")
     }
 
     fn read_u8(&mut self) -> u8 {
-        let current_ip = (self.ip as u8).clone();
+        let current_ip = self.ip as u8;
 
         self.ip += 1;
 
-        self.bytecode
+        *self.bytecode
             .as_ref()
             .expect("should have bytecode")
             .codes()
             .get(current_ip as usize)
             .expect("should have op in bytecode at {}")
-            .clone()
     }
 }
