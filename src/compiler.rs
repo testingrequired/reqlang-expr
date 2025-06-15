@@ -1,9 +1,13 @@
 //! The compiler and associated types
 
 use core::fmt;
-use std::rc::Rc;
+use std::{fmt::Display, ops::Range, rc::Rc};
 
-use crate::{ast::Expr, errors::ExprResult, vm::Value};
+use crate::{
+    ast::Expr,
+    errors::{ExprError, ExprResult, TypeError::WrongNumberOfArgs},
+    vm::Value,
+};
 
 pub mod opcode {
     iota::iota! {
@@ -43,9 +47,25 @@ pub struct BuiltinFn {
     // Needs to follow identifier naming rules
     pub name: String,
     // Number of arguments the function expects
-    pub arity: u8,
+    pub arity: FnArity,
     // Function used at runtime
     pub func: Rc<dyn Fn(Vec<Value>) -> Value>,
+}
+
+impl BuiltinFn {
+    pub fn arity(&self) -> u8 {
+        match self.arity {
+            FnArity::N(n) => n,
+            FnArity::Variadic { n } => n,
+        }
+    }
+
+    pub fn arity_matches(&self, arity: u8) -> bool {
+        match self.arity {
+            FnArity::N(n) => n == arity,
+            FnArity::Variadic { n } => n <= arity,
+        }
+    }
 }
 
 impl PartialEq for BuiltinFn {
@@ -57,6 +77,29 @@ impl PartialEq for BuiltinFn {
 impl fmt::Debug for BuiltinFn {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "builtin {}({})", self.name, self.arity)
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum FnArity {
+    N(u8),
+    Variadic { n: u8 },
+}
+
+impl Display for FnArity {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let string = match self {
+            FnArity::N(n) => n.to_string(),
+            FnArity::Variadic { n } => {
+                if *n == 0 {
+                    "...".to_string()
+                } else {
+                    format!("{n}, ...")
+                }
+            }
+        };
+
+        write!(f, "{}", string)
     }
 }
 
@@ -240,82 +283,82 @@ impl Default for CompileTimeEnv {
             builtins: vec![
                 Rc::new(BuiltinFn {
                     name: String::from("id"),
-                    arity: 1,
+                    arity: FnArity::N(1),
                     func: Rc::new(BuiltinFns::id),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("noop"),
-                    arity: 0,
+                    arity: FnArity::N(0),
                     func: Rc::new(BuiltinFns::noop),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("is_empty"),
-                    arity: 1,
+                    arity: FnArity::N(1),
                     func: Rc::new(BuiltinFns::is_empty),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("not"),
-                    arity: 1,
+                    arity: FnArity::N(1),
                     func: Rc::new(BuiltinFns::not),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("and"),
-                    arity: 2,
+                    arity: FnArity::N(2),
                     func: Rc::new(BuiltinFns::and),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("or"),
-                    arity: 2,
+                    arity: FnArity::N(2),
                     func: Rc::new(BuiltinFns::or),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("cond"),
-                    arity: 3,
+                    arity: FnArity::N(3),
                     func: Rc::new(BuiltinFns::cond),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("to_str"),
-                    arity: 1,
+                    arity: FnArity::N(1),
                     func: Rc::new(BuiltinFns::to_str),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("concat"),
-                    arity: 10,
+                    arity: FnArity::Variadic { n: 0 },
                     func: Rc::new(BuiltinFns::concat),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("contains"),
-                    arity: 2,
+                    arity: FnArity::N(2),
                     func: Rc::new(BuiltinFns::contains),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("trim"),
-                    arity: 1,
+                    arity: FnArity::N(1),
                     func: Rc::new(BuiltinFns::trim),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("trim_start"),
-                    arity: 1,
+                    arity: FnArity::N(1),
                     func: Rc::new(BuiltinFns::trim_start),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("trim_end"),
-                    arity: 1,
+                    arity: FnArity::N(1),
                     func: Rc::new(BuiltinFns::trim_end),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("lowercase"),
-                    arity: 1,
+                    arity: FnArity::N(1),
                     func: Rc::new(BuiltinFns::lowercase),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("uppercase"),
-                    arity: 1,
+                    arity: FnArity::N(1),
                     func: Rc::new(BuiltinFns::uppercase),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("eq"),
-                    arity: 2,
+                    arity: FnArity::N(2),
                     func: Rc::new(BuiltinFns::eq),
                 }),
             ],
@@ -440,20 +483,21 @@ impl ExprByteCode {
 }
 
 /// Compile an [`ast::Expr`] into [`ExprByteCode`]
-pub fn compile(expr: &Expr, env: &CompileTimeEnv) -> ExprResult<ExprByteCode> {
+pub fn compile(expr: &(Expr, Range<usize>), env: &CompileTimeEnv) -> ExprResult<ExprByteCode> {
     let mut strings: Vec<String> = vec![];
     let codes = compile_expr(expr, env, &mut strings)?;
     Ok(ExprByteCode::new(codes, strings))
 }
 
 fn compile_expr(
-    expr: &Expr,
+    (expr, span): &(Expr, Range<usize>),
     env: &CompileTimeEnv,
     strings: &mut Vec<String>,
 ) -> ExprResult<Vec<u8>> {
     use opcode::*;
 
     let mut codes = vec![];
+    let mut errs: Vec<(ExprError, Range<usize>)> = vec![];
 
     match expr {
         Expr::String(string) => {
@@ -516,12 +560,52 @@ fn compile_expr(
             }
         }
         Expr::Call(expr_call) => {
-            let callee_bytecode = compile_expr(&expr_call.callee.0, env, strings)?;
+            let callee_bytecode = compile_expr(&expr_call.callee, env, strings)?;
+
+            if let Some(_op) = callee_bytecode.get(0) {
+                if let Some(lookup) = callee_bytecode.get(1) {
+                    if let Some(index) = callee_bytecode.get(2) {
+                        match *lookup {
+                            lookup::BUILTIN => {
+                                let builtin = env.get_builtin((*index).into()).unwrap();
+
+                                let call_arity: usize = expr_call.args.len();
+
+                                if !builtin.arity_matches(call_arity.try_into().unwrap()) {
+                                    errs.push((
+                                        ExprError::TypeError(WrongNumberOfArgs {
+                                            expected: builtin.arity().try_into().unwrap(),
+                                            actual: call_arity,
+                                        }),
+                                        span.clone(),
+                                    ));
+                                }
+                            }
+                            lookup::USER_BUILTIN => {
+                                let builtin = env.get_user_builtin((*index).into()).unwrap();
+
+                                let call_arity: usize = expr_call.args.len();
+
+                                if !builtin.arity_matches(call_arity.try_into().unwrap()) {
+                                    errs.push((
+                                        ExprError::TypeError(WrongNumberOfArgs {
+                                            expected: builtin.arity().try_into().unwrap(),
+                                            actual: call_arity,
+                                        }),
+                                        span.clone(),
+                                    ));
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
 
             codes.extend(callee_bytecode);
 
             for arg in expr_call.args.iter() {
-                let arg_bytecode = compile_expr(&arg.0, env, strings)?;
+                let arg_bytecode = compile_expr(arg, env, strings)?;
 
                 codes.extend(arg_bytecode);
             }
@@ -539,6 +623,10 @@ fn compile_expr(
         },
     }
 
+    if !errs.is_empty() {
+        return Err(errs);
+    }
+
     Ok(codes)
 }
 
@@ -554,7 +642,7 @@ mod value_tests {
                 "{:#?}",
                 BuiltinFn {
                     name: "test_builtin".to_string(),
-                    arity: 0,
+                    arity: FnArity::N(0),
                     func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
                 }
             )
@@ -569,7 +657,7 @@ mod value_tests {
                 "{:#?}",
                 BuiltinFn {
                     name: "test_builtin".to_string(),
-                    arity: 1,
+                    arity: FnArity::N(1),
                     func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
                 }
             )
@@ -584,7 +672,7 @@ mod value_tests {
                 "{:#?}",
                 BuiltinFn {
                     name: "test_builtin".to_string(),
-                    arity: 2,
+                    arity: FnArity::N(2),
                     func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
                 }
             )

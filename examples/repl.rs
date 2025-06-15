@@ -26,7 +26,7 @@ fn main() -> ExprResult<()> {
         .map(|builtin| {
             Rc::new(BuiltinFn {
                 name: builtin.0.clone(),
-                arity: builtin.1,
+                arity: FnArity::N(builtin.1),
                 func: Rc::new(|_| "".into()),
             })
         })
@@ -176,7 +176,7 @@ fn main() -> ExprResult<()> {
                             continue;
                         }
 
-                        let bytecode = compile(&ast, &env)?;
+                        let bytecode = compile(&(ast, 0..source.len()), &env)?;
 
                         if repl_mode == ReplMode::Compile {
                             println!("{bytecode:#?}");

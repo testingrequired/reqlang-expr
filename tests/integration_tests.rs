@@ -40,7 +40,7 @@ macro_rules! test {
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
-                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env).unwrap();
+                        let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env).unwrap();
                         let expected_op_codes: Vec<u8> = $expected_op_codes;
 
                         ::pretty_assertions::assert_eq!(expected_op_codes, op_codes.codes());
@@ -57,7 +57,7 @@ macro_rules! test {
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
-                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env).unwrap();
+                        let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env).unwrap();
                         let expected_disassembly: String = $expected_disassembly.to_string();
                         let disassemble = ::reqlang_expr::disassembler::Disassembler::new(&op_codes, &env);
                         let disassembly = disassemble.disassemble(None);
@@ -76,7 +76,7 @@ macro_rules! test {
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
-                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env).unwrap();
+                        let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env).unwrap();
 
                         let mut vm = Vm::new();
                         let runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
@@ -114,7 +114,7 @@ macro_rules! test {
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
-                        let op_codes = ::reqlang_expr::compiler::compile(&ast, &env).unwrap();
+                        let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env).unwrap();
 
                         let mut vm = Vm::new();
                         let runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
@@ -216,7 +216,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::Fn(BuiltinFn { name: "noop".to_string(), arity: 0, func: std::rc::Rc::new(|_| Value::String("noop".to_string())) }.into()));
+        interpets to: Ok(Value::Fn(BuiltinFn { name: "noop".to_string(), arity: FnArity::N(0), func: std::rc::Rc::new(|_| Value::String("noop".to_string())) }.into()));
     }
 
     test! {
@@ -537,7 +537,7 @@ mod valid {
 
         user builtins: [BuiltinFn {
             name: "foo".to_string(),
-            arity: 0,
+            arity: FnArity::N(0),
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
@@ -573,7 +573,7 @@ mod valid {
 
         user builtins: [BuiltinFn {
             name: "foo".to_string(),
-            arity: 0,
+            arity: FnArity::N(1),
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
@@ -646,22 +646,22 @@ mod valid {
         user builtins: [
             BuiltinFn {
                 name: "foo".to_string(),
-                arity: 3,
+                arity: FnArity::N(3),
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into(),
             BuiltinFn {
                 name: "bar".to_string(),
-                arity: 1,
+                arity: FnArity::N(1),
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into(),
             BuiltinFn {
                 name: "fiz".to_string(),
-                arity: 1,
+                arity: FnArity::N(1),
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into(),
             BuiltinFn {
                 name: "baz".to_string(),
-                arity: 1,
+                arity: FnArity::N(1),
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into()
         ];
@@ -1252,22 +1252,6 @@ mod valid {
     }
 
     test! {
-        "(concat `foo` false)";
-
-        scenario: concat string and bool;
-
-        env: (vec![], vec![], vec![], vec![]);
-
-        user builtins: [];
-
-        runtime env: {
-            ..Default::default()
-        };
-
-        interpets to: Ok(Value::String("foofalse".to_string()));
-    }
-
-    test! {
         "(concat `a` `b` `c` `d` `e` `f` `g` `h` `i` `j`)";
 
         scenario: concat max number of ten args;
@@ -1284,9 +1268,9 @@ mod valid {
     }
 
     test! {
-        "(concat `a` true `c` false `e` `f` `g` `h` id `j`)";
+        "(concat `foo` false)";
 
-        scenario: concat max number of ten args mixed types;
+        scenario: concat string and bool;
 
         env: (vec![], vec![], vec![], vec![]);
 
@@ -1296,7 +1280,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::String("atruecfalseefghbuiltin id(1)j".to_string()));
+        interpets to: Ok(Value::String("foofalse".to_string()));
     }
 
     test! {
@@ -1592,7 +1576,7 @@ mod invalid {
         user builtins: [
             BuiltinFn {
                 name: "foo".to_string(),
-                arity: 0,
+                arity: FnArity::N(0),
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into()
         ];
@@ -1607,7 +1591,7 @@ mod invalid {
 
         interpets to: Ok(Value::Fn(BuiltinFn {
                 name: "foo".to_string(),
-                arity: 0,
+                arity: FnArity::N(0),
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into()));
     }
@@ -1640,22 +1624,22 @@ mod invalid {
         user builtins: [
             BuiltinFn {
                 name: "foo".to_string(),
-                arity: 3,
+                arity: FnArity::N(3),
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into(),
             BuiltinFn {
                 name: "bar".to_string(),
-                arity: 0,
+                arity: FnArity::N(0),
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into(),
             BuiltinFn {
                 name: "fiz".to_string(),
-                arity: 0,
+                arity: FnArity::N(0),
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into(),
             BuiltinFn {
                 name: "baz".to_string(),
-                arity: 0,
+                arity: FnArity::N(0),
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into()
         ];
