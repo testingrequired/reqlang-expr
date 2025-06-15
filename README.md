@@ -15,6 +15,23 @@ reqlang-expr = "0.2.0"
 cargo add reqlang-expr
 ```
 
+## Project
+
+[![Verify](https://github.com/testingrequired/reqlang-expr/actions/workflows/ci.yml/badge.svg)](https://github.com/testingrequired/reqlang-expr/actions/workflows/ci.yml)
+
+- [Lexer](./src/lexer.rs)
+- [Parser](./src/exprlang.lalrpop), [AST](./src/ast.rs)
+- [Bytecode Compiler](./src/compiler.rs)
+- [VM interpreter](./src/vm.rs)
+- [Disassembler](./src/disassembler.rs)
+- [CLI](./src/main.rs)
+- [REPL](#repl)
+- [Example Usage](./examples/)
+- [Specification Examples](./spec/)
+- [Tests](./tests/integration_tests.rs)
+
+A more detailed technical breakdown can be found [here](./TECH.md).
+
 ## Syntax
 
 The syntax is s-expression like. There are only [builtin functions](#builtin-functions), identifiers and string literals.
@@ -29,10 +46,6 @@ The syntax is s-expression like. There are only [builtin functions](#builtin-fun
 | `` `foo` `` | String literal                            |
 | `true`      | Literal boolean value `true`              |
 | `false`     | Literal boolean value `false`             |
-
-### Why Backticks For Strings?
-
-These expressions will be embedded in places where double quotes are common (e.g. JSON). Single quotes weren't chosen due to their use in prose e.g. weren't
 
 ### Builtin Functions
 
@@ -55,22 +68,9 @@ These expressions will be embedded in places where double quotes are common (e.g
 |    14 | `uppercase`  |        1 | Return a uppercase version of a string               | `` (uppercase `foo`) ``         | `` `FOO` ``    |
 |    15 | `eq`         |        2 | Compare two values for equality                      | `` (eq `foo` `foo`) ``          | `true`         |
 
-## Project
+### Why Backticks For Strings?
 
-[![Verify](https://github.com/testingrequired/reqlang-expr/actions/workflows/ci.yml/badge.svg)](https://github.com/testingrequired/reqlang-expr/actions/workflows/ci.yml)
-
-- [Lexer](./src/lexer.rs)
-- [Parser](./src/exprlang.lalrpop), [AST](./src/ast.rs)
-- [Bytecode Compiler](./src/compiler.rs)
-- [VM interpreter](./src/vm.rs)
-- [Disassembler](./src/disassembler.rs)
-- [CLI](./src/main.rs)
-- [REPL](#repl)
-- [Example Usage](./examples/)
-- [Specification Examples](./spec/)
-- [Tests](./tests/integration_tests.rs)
-
-A more detailed technical breakdown can be found [here](./TECH.md).
+These expressions will be embedded in places where double quotes are common (e.g. JSON). Single quotes weren't chosen due to their use in prose e.g. weren't
 
 ## Built With
 
