@@ -53,6 +53,7 @@ These expressions will be embedded in places where double quotes are common (e.g
 | `trim_end`   |        1 | Trim whitespace from the end of a string             | `` (trim_end ` foo `) ``        | `` ` foo` ``   |
 | `lowercase`  |        1 | Return a lowercase version of a string               | `` (lowercase `FOO`) ``         | `` `foo` ``    |
 | `uppercase`  |        1 | Return a uppercase version of a string               | `` (uppercase `foo`) ``         | `` `FOO` ``    |
+| `eq`         |        2 | Compare two values for equality                      | `` (eq `foo` `foo`) ``          | `true`         |
 
 ## Project
 
