@@ -2,7 +2,7 @@
 
 use std::{fmt::Display, rc::Rc};
 
-use crate::builtins::BuiltinFn;
+use crate::{builtins::BuiltinFn, types::Type};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
@@ -12,6 +12,10 @@ pub enum Value {
 }
 
 impl Value {
+    pub fn get_type(&self) -> Type {
+        self.clone().into()
+    }
+
     pub fn get_string(&self) -> &str {
         match self {
             Value::String(s) => s.as_str(),
@@ -31,12 +35,6 @@ impl Value {
             Value::Bool(s) => *s,
             _ => panic!("Value is not a string"),
         }
-    }
-}
-
-impl From<&str> for Value {
-    fn from(s: &str) -> Self {
-        Value::String(s.to_string())
     }
 }
 

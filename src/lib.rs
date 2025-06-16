@@ -9,6 +9,7 @@ pub mod prelude {
     pub use crate::errors::*;
     pub use crate::lexer::*;
     pub use crate::parser::*;
+    pub use crate::types::*;
     pub use crate::value::*;
     pub use crate::vm::*;
 }
@@ -30,3 +31,5 @@ pub mod cliutil;
 pub mod value;
 
 pub mod builtins;
+
+pub mod types;

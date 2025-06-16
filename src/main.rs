@@ -2,35 +2,20 @@ use std::{
     fs::File,
     io::{Read, Write, stdin, stdout},
     process::exit,
-    rc::Rc,
 };
 
 use clap::Parser;
-use reqlang_expr::{cliutil::parse_key_val, prelude::*};
+use reqlang_expr::prelude::*;
 
 fn main() -> ExprResult<()> {
     let args = Args::parse();
 
-    let builtins = args
-        .builtins
-        .iter()
-        .map(|builtin| {
-            Rc::new(BuiltinFn {
-                name: builtin.0.clone(),
-                arity: FnArity::N(builtin.1),
-                func: Rc::new(|_| "".into()),
-            })
-        })
-        .collect();
-
-    let mut env = CompileTimeEnv::new(
+    let env = CompileTimeEnv::new(
         args.vars.clone(),
         args.prompts.clone(),
         args.secrets.clone(),
         vec![],
     );
-
-    env.add_user_builtins(builtins);
 
     eprintln!("Env:\n\n{env:#?}\n");
 
@@ -85,10 +70,6 @@ struct Args {
     /// List of indexed secret names
     #[arg(long, value_delimiter = ' ', num_args = 1..)]
     secrets: Vec<String>,
-
-    /// List of indexed secret names
-    #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, u8>)]
-    builtins: Vec<(String, u8)>,
 }
 
 fn read_in_bytecode(args: &Args, env: &CompileTimeEnv) -> ExprResult<ExprByteCode> {

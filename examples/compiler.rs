@@ -1,13 +1,7 @@
-use std::{
-    io::{Write, stdout},
-    rc::Rc,
-};
+use std::io::{Write, stdout};
 
 use clap::Parser;
-use reqlang_expr::{
-    cliutil::{parse_key_val, read_in_source},
-    prelude::*,
-};
+use reqlang_expr::{cliutil::read_in_source, prelude::*};
 
 fn main() -> ExprResult<()> {
     let args = Args::parse();
@@ -21,21 +15,7 @@ fn main() -> ExprResult<()> {
         .parse(tokens)
         .expect("should parse tokens to ast");
 
-    let builtins = args
-        .builtins
-        .iter()
-        .map(|builtin| {
-            Rc::new(BuiltinFn {
-                name: builtin.0.clone(),
-                arity: FnArity::N(builtin.1),
-                func: Rc::new(|_| "".into()),
-            })
-        })
-        .collect::<Vec<_>>();
-
-    let mut env = CompileTimeEnv::new(args.vars.clone(), vec![], vec![], vec![]);
-
-    env.add_user_builtins(builtins);
+    let env = CompileTimeEnv::new(args.vars.clone(), vec![], vec![], vec![]);
 
     let bytecode = compile(&(ast, 0..source.len()), &env)?;
 
@@ -63,8 +43,4 @@ struct Args {
     /// List of indexed secret names
     #[arg(long, value_delimiter = ' ', num_args = 1..)]
     secrets: Vec<String>,
-
-    /// List of indexed secret names
-    #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, u8>)]
-    builtins: Vec<(String, u8)>,
 }

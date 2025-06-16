@@ -1,43 +1,109 @@
 use core::fmt;
 use std::fmt::Display;
 
-use crate::value::Value;
+use crate::{types::Type, value::Value};
+
+#[derive(Clone)]
+pub struct FnArg {
+    pub name: String,
+    pub ty: Type,
+    pub variadic: bool,
+}
+
+impl FnArg {
+    pub fn new(name: &str, ty: Type) -> Self {
+        Self {
+            name: String::from(name),
+            ty,
+            variadic: false,
+        }
+    }
+
+    pub fn new_varadic(name: &str, ty: Type) -> Self {
+        Self {
+            name: String::from(name),
+            ty,
+            variadic: true,
+        }
+    }
+}
 
 /// Builtin function used in expressions
 pub struct BuiltinFn {
     // Needs to follow identifier naming rules
     pub name: String,
-    // Number of arguments the function expects
-    pub arity: FnArity,
+    // Arguments the function expects
+    pub args: Vec<FnArg>,
+    pub return_type: Type,
     // Function used at runtime
     pub func: std::rc::Rc<dyn Fn(Vec<Value>) -> Value>,
 }
 
 impl BuiltinFn {
     pub fn arity(&self) -> u8 {
-        match self.arity {
-            FnArity::N(n) => n,
-            FnArity::Variadic { n } => n,
-        }
+        let len = self.args.len() as u8;
+
+        if self.is_variadic() { len - 1 } else { len }
+    }
+
+    pub fn is_variadic(&self) -> bool {
+        self.args.last().map(|arg| arg.variadic).unwrap_or(false)
     }
 
     pub fn arity_matches(&self, arity: u8) -> bool {
-        match self.arity {
-            FnArity::N(n) => n == arity,
-            FnArity::Variadic { n } => n <= arity,
+        if self.is_variadic() {
+            self.arity() <= arity
+        } else {
+            self.arity() == arity
         }
     }
 }
 
 impl PartialEq for BuiltinFn {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name && self.arity == other.arity
+        self.name == other.name
+    }
+}
+
+impl Display for BuiltinFn {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let name = &self.name;
+        let args: Vec<String> = self
+            .args
+            .iter()
+            .map(|arg| {
+                let prefix: &str = if arg.variadic { "..." } else { "" };
+
+                format!("{prefix}{}: {}", arg.name.clone(), arg.ty.name())
+            })
+            .collect();
+
+        let args: String = args.join(", ");
+
+        let return_type: String = self.return_type.name().to_string();
+
+        write!(f, "{name}({args}) -> {return_type}")
     }
 }
 
 impl fmt::Debug for BuiltinFn {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "builtin {}({})", self.name, self.arity)
+        let name = &self.name;
+        let args: Vec<String> = self
+            .args
+            .iter()
+            .map(|arg| {
+                let prefix: &str = if arg.variadic { "..." } else { "" };
+
+                format!("{prefix}{}: {}", arg.name.clone(), arg.ty.name())
+            })
+            .collect();
+
+        let args: String = args.join(", ");
+
+        let return_type: String = self.return_type.name().to_string();
+
+        write!(f, "{name}({args}) -> {return_type}")
     }
 }
 
@@ -70,7 +136,7 @@ impl BuiltinFns {
     pub fn id(args: Vec<Value>) -> Value {
         let arg = args.first().unwrap();
 
-        arg.get_string().into()
+        arg.clone()
     }
 
     pub fn noop(_: Vec<Value>) -> Value {
@@ -226,6 +292,12 @@ impl BuiltinFns {
 
         Value::Bool(a_arg == b_arg)
     }
+
+    pub fn get_type(args: Vec<Value>) -> Value {
+        let value_arg = args.first().expect("should have first expression passed");
+
+        Value::String(value_arg.get_type().name())
+    }
 }
 
 #[cfg(test)]
@@ -235,14 +307,47 @@ mod value_tests {
     use super::*;
 
     #[test]
+    fn test_builtins_display_0_arity() {
+        assert_eq!(
+            "test_builtin() -> String",
+            format!(
+                "{}",
+                BuiltinFn {
+                    name: "test_builtin".to_string(),
+                    args: vec![],
+                    return_type: Type::String,
+                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                }
+            )
+        )
+    }
+
+    #[test]
     fn test_builtins_debug_0_arity() {
         assert_eq!(
-            "builtin test_builtin(0)",
+            "test_builtin() -> String",
             format!(
                 "{:#?}",
                 BuiltinFn {
                     name: "test_builtin".to_string(),
-                    arity: FnArity::N(0),
+                    args: vec![],
+                    return_type: Type::String,
+                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                }
+            )
+        )
+    }
+
+    #[test]
+    fn test_builtins_display_1_arity() {
+        assert_eq!(
+            "test_builtin(value: String) -> String",
+            format!(
+                "{}",
+                BuiltinFn {
+                    name: "test_builtin".to_string(),
+                    args: vec![FnArg::new("value", Type::String)],
+                    return_type: Type::String,
                     func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
                 }
             )
@@ -252,12 +357,29 @@ mod value_tests {
     #[test]
     fn test_builtins_debug_1_arity() {
         assert_eq!(
-            "builtin test_builtin(1)",
+            "test_builtin(value: String) -> String",
             format!(
                 "{:#?}",
                 BuiltinFn {
                     name: "test_builtin".to_string(),
-                    arity: FnArity::N(1),
+                    args: vec![FnArg::new("value", Type::String)],
+                    return_type: Type::String,
+                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                }
+            )
+        )
+    }
+
+    #[test]
+    fn test_builtins_display_2_arity() {
+        assert_eq!(
+            "test_builtin(a: String, b: String) -> String",
+            format!(
+                "{}",
+                BuiltinFn {
+                    name: "test_builtin".to_string(),
+                    args: vec![FnArg::new("a", Type::String), FnArg::new("b", Type::String)],
+                    return_type: Type::String,
                     func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
                 }
             )
@@ -267,12 +389,13 @@ mod value_tests {
     #[test]
     fn test_builtins_debug_2_arity() {
         assert_eq!(
-            "builtin test_builtin(2)",
+            "test_builtin(a: String, b: String) -> String",
             format!(
                 "{:#?}",
                 BuiltinFn {
                     name: "test_builtin".to_string(),
-                    arity: FnArity::N(2),
+                    args: vec![FnArg::new("a", Type::String), FnArg::new("b", Type::String)],
+                    return_type: Type::String,
                     func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
                 }
             )

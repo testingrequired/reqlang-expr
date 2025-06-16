@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use clap::Parser;
 use reqlang_expr::{
     cliutil::{parse_key_val, read_in_source, unzip_key_values},
@@ -18,26 +16,12 @@ fn main() -> ExprResult<()> {
         .parse(tokens)
         .expect("should parse tokens to ast");
 
-    let builtins = args
-        .builtins
-        .iter()
-        .map(|builtin| {
-            Rc::new(BuiltinFn {
-                name: builtin.0.clone(),
-                arity: FnArity::N(builtin.1),
-                func: Rc::new(|_| "".into()),
-            })
-        })
-        .collect::<Vec<_>>();
-
     let (var_keys, var_values) = unzip_key_values(args.vars);
     let (prompt_keys, prompt_values) = unzip_key_values(args.prompts);
     let (secret_keys, secret_values) = unzip_key_values(args.secrets);
     let (client_context_keys, client_context_values) = unzip_key_values(args.client_context);
 
-    let mut env = CompileTimeEnv::new(var_keys, prompt_keys, secret_keys, client_context_keys);
-
-    env.add_user_builtins(builtins);
+    let env = CompileTimeEnv::new(var_keys, prompt_keys, secret_keys, client_context_keys);
 
     let bytecode = compile(&(ast, 0..source.len()), &env)?;
 
@@ -77,10 +61,6 @@ struct Args {
     /// List of indexed secret names
     #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, String>)]
     secrets: Vec<(String, String)>,
-
-    /// List of indexed builtin names
-    #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, u8>)]
-    builtins: Vec<(String, u8)>,
 
     /// List of indexed client context names
     #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, String>)]

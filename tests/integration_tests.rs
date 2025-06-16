@@ -216,7 +216,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::Fn(BuiltinFn { name: "noop".to_string(), arity: FnArity::N(0), func: std::rc::Rc::new(|_| Value::String("noop".to_string())) }.into()));
+        interpets to: Ok(Value::Fn(BuiltinFn { name: "noop".to_string(), args: vec![], return_type: Type::String, func: std::rc::Rc::new(|_| Value::String("noop".to_string())) }.into()));
     }
 
     test! {
@@ -537,7 +537,8 @@ mod valid {
 
         user builtins: [BuiltinFn {
             name: "foo".to_string(),
-            arity: FnArity::N(0),
+            args: vec![],
+            return_type: Type::String,
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
@@ -573,7 +574,8 @@ mod valid {
 
         user builtins: [BuiltinFn {
             name: "foo".to_string(),
-            arity: FnArity::N(1),
+            args: vec![FnArg::new("value", Type::String)],
+            return_type: Type::String,
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
@@ -646,22 +648,30 @@ mod valid {
         user builtins: [
             BuiltinFn {
                 name: "foo".to_string(),
-                arity: FnArity::N(3),
+                args: vec![
+                    FnArg::new("a", Type::String),
+                    FnArg::new("b", Type::String),
+                    FnArg::new("c", Type::String)
+                ],
+                return_type: Type::String,
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into(),
             BuiltinFn {
                 name: "bar".to_string(),
-                arity: FnArity::N(1),
+                args: vec![FnArg::new("value", Type::String)],
+                return_type: Type::String,
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into(),
             BuiltinFn {
                 name: "fiz".to_string(),
-                arity: FnArity::N(1),
+                args: vec![FnArg::new("value", Type::String)],
+                return_type: Type::String,
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into(),
             BuiltinFn {
                 name: "baz".to_string(),
-                arity: FnArity::N(1),
+                args: vec![FnArg::new("value", Type::String)],
+                return_type: Type::String,
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into()
         ];
@@ -1216,7 +1226,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::String("builtin id(1)".to_string()));
+        interpets to: Ok(Value::String("id(value: Value) -> Value".to_string()));
     }
 
     test! {
@@ -1557,6 +1567,86 @@ mod valid {
 
         interpets to: Ok(Value::String("FOO".to_string()));
     }
+
+    test! {
+        "(type `foo`)";
+
+        scenario: type string;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("String".to_string()));
+    }
+
+    test! {
+        "(type true)";
+
+        scenario: type bool true;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("Bool".to_string()));
+    }
+
+    test! {
+        "(type false)";
+
+        scenario: type bool false;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("Bool".to_string()));
+    }
+
+    test! {
+        "(type id)";
+
+        scenario: type builtin id;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("Fn(Value) -> Value".to_string()));
+    }
+
+    test! {
+        "(type concat)";
+
+        scenario: type builtin concat;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("Fn(String, String, ...String) -> String".to_string()));
+    }
 }
 
 mod invalid {
@@ -1576,7 +1666,8 @@ mod invalid {
         user builtins: [
             BuiltinFn {
                 name: "foo".to_string(),
-                arity: FnArity::N(0),
+                args: vec![],
+                return_type: Type::String,
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into()
         ];
@@ -1591,7 +1682,8 @@ mod invalid {
 
         interpets to: Ok(Value::Fn(BuiltinFn {
                 name: "foo".to_string(),
-                arity: FnArity::N(0),
+                args: vec![],
+                return_type: Type::String,
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into()));
     }
@@ -1624,22 +1716,30 @@ mod invalid {
         user builtins: [
             BuiltinFn {
                 name: "foo".to_string(),
-                arity: FnArity::N(3),
+                args: vec![
+                    FnArg::new("a", Type::Fn { args: vec![], returns: Type::Value.into(), variadic_arg: None }),
+                    FnArg::new("b", Type::Fn { args: vec![], returns: Type::Value.into(), variadic_arg: None }),
+                    FnArg::new("c", Type::Fn { args: vec![], returns: Type::Value.into(), variadic_arg: None }),
+                ],
+                return_type: Type::String,
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into(),
             BuiltinFn {
                 name: "bar".to_string(),
-                arity: FnArity::N(0),
+                args: vec![],
+                return_type: Type::String,
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into(),
             BuiltinFn {
                 name: "fiz".to_string(),
-                arity: FnArity::N(0),
+                args: vec![],
+                return_type: Type::String,
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into(),
             BuiltinFn {
                 name: "baz".to_string(),
-                arity: FnArity::N(0),
+                args: vec![],
+                return_type: Type::String,
                 func: std::rc::Rc::new(|_| Value::String(String::new()))
             }.into()
         ];

@@ -4,8 +4,10 @@ use std::{ops::Range, rc::Rc};
 
 use crate::{
     ast::Expr,
-    builtins::{BuiltinFn, BuiltinFns, FnArity},
+    builtins::{BuiltinFn, BuiltinFns},
     errors::{ExprError, ExprResult, TypeError::WrongNumberOfArgs},
+    prelude::FnArg,
+    types::Type,
 };
 
 pub mod opcode {
@@ -57,83 +59,116 @@ impl Default for CompileTimeEnv {
             builtins: vec![
                 Rc::new(BuiltinFn {
                     name: String::from("id"),
-                    arity: FnArity::N(1),
+                    args: vec![FnArg::new("value", Type::Value)],
+                    return_type: Type::Value,
                     func: Rc::new(BuiltinFns::id),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("noop"),
-                    arity: FnArity::N(0),
+                    args: vec![],
+                    return_type: Type::String,
                     func: Rc::new(BuiltinFns::noop),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("is_empty"),
-                    arity: FnArity::N(1),
+                    args: vec![FnArg::new("value", Type::String)],
+                    return_type: Type::String,
                     func: Rc::new(BuiltinFns::is_empty),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("not"),
-                    arity: FnArity::N(1),
+                    args: vec![FnArg::new("value", Type::Bool)],
+                    return_type: Type::Bool,
                     func: Rc::new(BuiltinFns::not),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("and"),
-                    arity: FnArity::N(2),
+                    args: vec![FnArg::new("a", Type::Bool), FnArg::new("b", Type::Bool)],
+                    return_type: Type::Bool,
                     func: Rc::new(BuiltinFns::and),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("or"),
-                    arity: FnArity::N(2),
+                    args: vec![FnArg::new("a", Type::Bool), FnArg::new("b", Type::Bool)],
+                    return_type: Type::Bool,
                     func: Rc::new(BuiltinFns::or),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("cond"),
-                    arity: FnArity::N(3),
+                    args: vec![
+                        FnArg::new("cond", Type::Bool),
+                        FnArg::new("then", Type::Value),
+                        FnArg::new("else", Type::Value),
+                    ],
+                    return_type: Type::Bool,
                     func: Rc::new(BuiltinFns::cond),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("to_str"),
-                    arity: FnArity::N(1),
+                    args: vec![FnArg::new("value", Type::Value)],
+                    return_type: Type::String,
                     func: Rc::new(BuiltinFns::to_str),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("concat"),
-                    arity: FnArity::Variadic { n: 2 },
+                    args: vec![
+                        FnArg::new("a", Type::String),
+                        FnArg::new("b", Type::String),
+                        FnArg::new_varadic("rest", Type::String),
+                    ],
+                    return_type: Type::String,
                     func: Rc::new(BuiltinFns::concat),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("contains"),
-                    arity: FnArity::N(2),
+                    args: vec![
+                        FnArg::new("needle", Type::String),
+                        FnArg::new("haystack", Type::String),
+                    ],
+                    return_type: Type::Bool,
                     func: Rc::new(BuiltinFns::contains),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("trim"),
-                    arity: FnArity::N(1),
+                    args: vec![FnArg::new("value", Type::String)],
+                    return_type: Type::String,
                     func: Rc::new(BuiltinFns::trim),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("trim_start"),
-                    arity: FnArity::N(1),
+                    args: vec![FnArg::new("value", Type::String)],
+                    return_type: Type::String,
                     func: Rc::new(BuiltinFns::trim_start),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("trim_end"),
-                    arity: FnArity::N(1),
+                    args: vec![FnArg::new("value", Type::String)],
+                    return_type: Type::String,
                     func: Rc::new(BuiltinFns::trim_end),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("lowercase"),
-                    arity: FnArity::N(1),
+                    args: vec![FnArg::new("value", Type::String)],
+                    return_type: Type::String,
                     func: Rc::new(BuiltinFns::lowercase),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("uppercase"),
-                    arity: FnArity::N(1),
+                    args: vec![FnArg::new("value", Type::String)],
+                    return_type: Type::String,
                     func: Rc::new(BuiltinFns::uppercase),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("eq"),
-                    arity: FnArity::N(2),
+                    args: vec![FnArg::new("a", Type::Value), FnArg::new("b", Type::Value)],
+                    return_type: Type::Bool,
                     func: Rc::new(BuiltinFns::eq),
+                }),
+                Rc::new(BuiltinFn {
+                    name: String::from("type"),
+                    args: vec![FnArg::new("value", Type::Value)],
+                    return_type: Type::String,
+                    func: Rc::new(BuiltinFns::get_type),
                 }),
             ],
             user_builtins: vec![],
@@ -336,7 +371,7 @@ fn compile_expr(
         Expr::Call(expr_call) => {
             let callee_bytecode = compile_expr(&expr_call.callee, env, strings)?;
 
-            if let Some(_op) = callee_bytecode.get(0) {
+            if let Some(_op) = callee_bytecode.first() {
                 if let Some(lookup) = callee_bytecode.get(1) {
                     if let Some(index) = callee_bytecode.get(2) {
                         match *lookup {
@@ -348,7 +383,7 @@ fn compile_expr(
                                 if !builtin.arity_matches(call_arity.try_into().unwrap()) {
                                     errs.push((
                                         ExprError::TypeError(WrongNumberOfArgs {
-                                            expected: builtin.arity().try_into().unwrap(),
+                                            expected: builtin.arity() as usize,
                                             actual: call_arity,
                                         }),
                                         span.clone(),
@@ -363,7 +398,7 @@ fn compile_expr(
                                 if !builtin.arity_matches(call_arity.try_into().unwrap()) {
                                     errs.push((
                                         ExprError::TypeError(WrongNumberOfArgs {
-                                            expected: builtin.arity().try_into().unwrap(),
+                                            expected: builtin.arity() as usize,
                                             actual: call_arity,
                                         }),
                                         span.clone(),

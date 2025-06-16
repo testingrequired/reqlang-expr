@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use clap::Parser;
 use once_cell::sync::Lazy;
 use reedline::{DefaultPrompt, DefaultPromptSegment, Reedline, Signal};
@@ -20,18 +18,6 @@ fn main() -> ExprResult<()> {
 
     let mut vm = Vm::new();
 
-    let builtins: &Vec<(String, u8)> = &args.builtins;
-    let builtins = builtins
-        .iter()
-        .map(|builtin| {
-            Rc::new(BuiltinFn {
-                name: builtin.0.clone(),
-                arity: FnArity::N(builtin.1),
-                func: Rc::new(|_| "".into()),
-            })
-        })
-        .collect::<Vec<_>>();
-
     let (mut var_keys, mut var_values) = unzip_key_values(args.vars);
     let (mut prompt_keys, mut prompt_values) = unzip_key_values(args.prompts);
     let (mut secret_keys, mut secret_values) = unzip_key_values(args.secrets);
@@ -49,8 +35,6 @@ fn main() -> ExprResult<()> {
             secret_keys.clone(),
             client_context_keys.clone(),
         );
-
-        env.add_user_builtins(builtins.clone());
 
         let mut runtime_env: RuntimeEnv = RuntimeEnv {
             vars: var_values.clone(),
@@ -315,10 +299,6 @@ struct Args {
     /// List of indexed secret names
     #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, String>)]
     secrets: Vec<(String, String)>,
-
-    /// List of indexed builtin names
-    #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, u8>)]
-    builtins: Vec<(String, u8)>,
 
     /// List of indexed client context names
     #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser=parse_key_val::<String, String>)]

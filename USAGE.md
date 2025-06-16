@@ -54,6 +54,39 @@ let ast: Expr = ExprParser::new().parse(tokens).unwrap();
 
 See: [parser.lalrpop](./src/parser.lalrpop), [ast.rs](./src/ast.rs)
 
+## Types
+
+```rust
+pub enum Type {
+    Value,
+    String,
+    Fn {
+        args: Vec<Type>,
+        variadic_arg: Option<Box<Type>>,
+        returns: Box<Type>,
+    },
+    Bool,
+}
+```
+
+### Convert Values To Types
+
+You can get any value's type using `get_type()`.
+
+```rust
+let value = Value::String("Hello World".to_string());
+let value_type: Type = value.get_type();
+```
+
+This also works
+
+```rust
+let value = Value::String("Hello World".to_string());
+let value_type: Type = value.into();
+```
+
+See: [types.rs](./src/types.rs)
+
 ## Compiler
 
 The compiler produces bytecode from an AST and a [compile time environment](#compile-time-environment).
@@ -100,13 +133,23 @@ Builtins are functions provided by the compiler/VM and the only functions availa
 
 ```rust
 pub struct BuiltinFn {
+    // Needs to follow identifier naming rules
     pub name: String,
-    pub arity: u8,
-    pub func: Rc<dyn Fn(Vec<Value>) -> Value>,
+    // Arguments the function expects
+    pub args: Vec<FnArg>,
+    pub return_type: Type,
+    // Function used at runtime
+    pub func: std::rc::Rc<dyn Fn(Vec<Value>) -> Value>,
+}
+
+pub struct FnArg {
+    name: String,
+    ty: Type,
+    varadic: bool,
 }
 ```
 
-See: [builtins.rs](./src/builtins.rs), [value.rs](./src/value.rs)
+See: [builtins.rs](./src/builtins.rs), [types.rs](./src/types.rs), [value.rs](./src/value.rs)
 
 ### Usage
 

@@ -54,24 +54,25 @@ See [/spec](./spec/) for more syntax examples.
 
 ### Builtin Functions
 
-| Index | Name         | Arity | Description                                          | Usage                           | Result         |
-| ----: | ------------ | ----: | ---------------------------------------------------- | ------------------------------- | -------------- |
-|     0 | `id`         |     1 | Returns the string arugment passed to it             | `(id (noop))`                   | `` `noop` ``   |
-|     1 | `noop`       |     0 | Returns the string "noop"                            | `(noop)`                        | `` `noop` ``   |
-|     2 | `is_empty`   |     1 | Checks if the given string is empty                  | ` (is_empty ``) `               | `true`         |
-|     3 | `not`        |     1 | Logical NOT operation on a boolean value             | `(not true)`                    | `false`        |
-|     4 | `and`        |     2 | Logical AND operation between two booleans           | `(and true false)`              | `false`        |
-|     5 | `or`         |     2 | Logical OR operation between two booleans            | `(or true false)`               | `true`         |
-|     6 | `cond`       |     3 | If condition, returns second arg if true, else third | `` (cond true `foo` `bar`) ``   | `foo`          |
-|     7 | `to_str`     |     1 | Converts a value to its string representation        | `(to_str true)`                 | `` `true` ``   |
-|     8 | `concat`     |   ... | Concatenates a list of values in to a string         | `` (concat `foo` `bar`) ``      | `` `foobar` `` |
-|     9 | `contains`   |     2 | Checks for a substring match                         | `` (contains `foo` `foobar`) `` | `true`         |
-|    10 | `trim`       |     1 | Trim whitespace from a string                        | `` (trim ` foo `) ``            | `` `foo` ``    |
-|    11 | `trim_start` |     1 | Trim whitespace from the start of a string           | `` (trim_start ` foo `) ``      | `` `foo ` ``   |
-|    12 | `trim_end`   |     1 | Trim whitespace from the end of a string             | `` (trim_end ` foo `) ``        | `` ` foo` ``   |
-|    13 | `lowercase`  |     1 | Return a lowercase version of a string               | `` (lowercase `FOO`) ``         | `` `foo` ``    |
-|    14 | `uppercase`  |     1 | Return a uppercase version of a string               | `` (uppercase `foo`) ``         | `` `FOO` ``    |
-|    15 | `eq`         |     2 | Compare two values for equality                      | `` (eq `foo` `foo`) ``          | `true`         |
+| Fn                                                        | Description                                     |
+| --------------------------------------------------------- | ----------------------------------------------- |
+| `id(value: Value) -> Value`                               | Returns the string arugment passed to it        |
+| `noop() -> String`                                        | Returns the string "noop"                       |
+| `is_empty(value: String) -> String`                       | Checks if the given string is empty             |
+| `not(value: Bool) -> Bool`                                | Logical NOT operation on a boolean value        |
+| `and(a: Bool, b: Bool) -> Bool`                           | Logical AND operation between two booleans      |
+| `or(a: Bool, b: Bool) -> Bool`                            | Logical OR operation between two booleans       |
+| `cond(cond: Bool, then: Value, else: Value) -> Bool`      | Conditional expression                          |
+| `to_str(value: Value) -> String`                          | Converts a value to its string representation   |
+| `concat(a: String, b: String, ...rest: String) -> String` | Concatenates a list of values in to a string    |
+| `contains(needle: String, haystack: String) -> Bool`      | Checks for a substring match                    |
+| `trim(value: String) -> String`                           | Trim whitespace from a string                   |
+| `trim_start(value: String) -> String`                     | Trim whitespace from the start of a string      |
+| `trim_end(value: String) -> String`                       | Trim whitespace from the end of a string        |
+| `lowercase(value: String) -> String`                      | Return a lowercase version of a string          |
+| `uppercase(value: String) -> String`                      | Return a uppercase version of a string          |
+| `eq(a: Value, b: Value) -> Bool`                          | Compare two values for equality                 |
+| `type(value: Value) -> String`                            | Get the string representation of a value's type |
 
 ### Why Backticks For Strings?
 
