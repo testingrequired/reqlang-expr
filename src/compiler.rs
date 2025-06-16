@@ -97,7 +97,7 @@ impl Default for CompileTimeEnv {
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("concat"),
-                    arity: FnArity::Variadic { n: 0 },
+                    arity: FnArity::Variadic { n: 2 },
                     func: Rc::new(BuiltinFns::concat),
                 }),
                 Rc::new(BuiltinFn {
