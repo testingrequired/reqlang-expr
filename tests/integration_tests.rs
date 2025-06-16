@@ -35,6 +35,7 @@ macro_rules! test {
                     let mut env: CompileTimeEnv = CompileTimeEnv::new$env;
 
                     env.add_user_builtins(vec!$builtins);
+                    env.add_to_client_context("intest");
 
                     let tokens = ::reqlang_expr::lexer::Lexer::new($source);
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
@@ -52,6 +53,7 @@ macro_rules! test {
                     let mut env: CompileTimeEnv = ::reqlang_expr::compiler::CompileTimeEnv::new$env;
 
                     env.add_user_builtins(vec!$builtins);
+                    env.add_to_client_context("intest");
 
                     let tokens = ::reqlang_expr::lexer::Lexer::new($source);
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
@@ -71,6 +73,7 @@ macro_rules! test {
                     let mut env: CompileTimeEnv = CompileTimeEnv::new$env;
 
                     env.add_user_builtins(vec!$builtins);
+                    let i = env.add_to_client_context("intest");
 
                     let tokens = ::reqlang_expr::lexer::Lexer::new($source);
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
@@ -79,7 +82,9 @@ macro_rules! test {
                         let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env).unwrap();
 
                         let mut vm = Vm::new();
-                        let runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
+                        let mut runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
+
+                        runtime_env.add_to_client_context(i, Value::Bool(true));
 
                         let value = vm.interpret(op_codes.into(), &env, &runtime_env);
 
@@ -109,6 +114,7 @@ macro_rules! test {
                     let mut env: CompileTimeEnv = CompileTimeEnv::new$env;
 
                     env.add_user_builtins(vec!$builtins);
+                    let i = env.add_to_client_context("intest");
 
                     let tokens = ::reqlang_expr::lexer::Lexer::new($source);
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
@@ -117,7 +123,9 @@ macro_rules! test {
                         let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env).unwrap();
 
                         let mut vm = Vm::new();
-                        let runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
+                        let mut runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
+
+                        runtime_env.add_to_client_context(i, Value::Bool(true));
 
                         let value = vm.interpret(op_codes.into(), &env, &runtime_env);
 
@@ -1646,6 +1654,50 @@ mod valid {
         };
 
         interpets to: Ok(Value::String("Fn(String, String, ...String) -> String".to_string()));
+    }
+
+    test! {
+        "@intest";
+
+        scenario: client in test value;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "@intest";
+
+        scenario: client in test value v2;
+
+        tokens should be: vec![
+            Ok((0, Token::identifier("@intest"), 7)),
+        ];
+
+        ast should be: Ok(
+            Expr::identifier("@intest")
+        );
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        compiles to: vec![opcode::GET, lookup::CLIENT_CTX, 0];
+
+        disassembles to: "0000 GET CLIENT_CTX      0 == 'intest'\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
     }
 }
 

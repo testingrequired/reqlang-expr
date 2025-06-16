@@ -36,12 +36,6 @@ pub struct Vm {
     stack: Vec<Value>,
 }
 
-impl Default for Vm {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Vm {
     pub fn new() -> Self {
         Self {
@@ -213,5 +207,23 @@ impl Vm {
             .codes()
             .get(current_ip as usize)
             .expect("should have op in bytecode at {}")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic(expected = "Invalid OP code: 99")]
+    fn test_invalid_opcode_99() {
+        let mut vm = Vm::new();
+
+        let bytecode = Box::new(ExprByteCode::new(vec![99], vec![])); // 99 as invalid opcode
+        let env = CompileTimeEnv::default();
+        let runtime_env = RuntimeEnv::default();
+
+        // Attempt to interpret the bytecode, expecting a panic due to invalid opcode 99
+        let _ = vm.interpret(bytecode, &env, &runtime_env);
     }
 }
