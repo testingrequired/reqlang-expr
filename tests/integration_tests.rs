@@ -1830,6 +1830,102 @@ mod valid {
 
         interpets to: Ok(Value::String("foo".to_string()));
     }
+
+    test! {
+        "(eq `foo` `foo`)";
+
+        scenario: builtin eq same string;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(eq `foo` `bar`)";
+
+        scenario: builtin eq different strings;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(false));
+    }
+
+    test! {
+        "(eq true true)";
+
+        scenario: builtin eq same bool;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(eq true false)";
+
+        scenario: builtin eq different bool;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(false));
+    }
+
+    test! {
+        "(eq id id)";
+
+        scenario: builtin eq same fn;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(eq id concat)";
+
+        scenario: builtin eq different fns;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(false));
+    }
 }
 
 mod invalid {

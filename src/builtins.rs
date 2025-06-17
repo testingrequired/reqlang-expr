@@ -113,23 +113,6 @@ pub enum FnArity {
     Variadic { n: u8 },
 }
 
-impl Display for FnArity {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let string = match self {
-            FnArity::N(n) => n.to_string(),
-            FnArity::Variadic { n } => {
-                if *n == 0 {
-                    "...".to_string()
-                } else {
-                    format!("{n}, ...")
-                }
-            }
-        };
-
-        write!(f, "{}", string)
-    }
-}
-
 pub struct BuiltinFns;
 
 impl BuiltinFns {
@@ -305,6 +288,22 @@ mod value_tests {
     use std::rc::Rc;
 
     use super::*;
+
+    #[test]
+    fn test_builtins_display_var_arity() {
+        assert_eq!(
+            "test_builtin(...rest: String) -> String",
+            format!(
+                "{}",
+                BuiltinFn {
+                    name: "test_builtin".to_string(),
+                    args: vec![FnArg::new_varadic("rest", Type::String)],
+                    return_type: Type::String,
+                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                }
+            )
+        )
+    }
 
     #[test]
     fn test_builtins_display_0_arity() {
