@@ -78,22 +78,6 @@ pub enum Type {
 }
 ```
 
-### Convert Values To Types
-
-You can get any value's type using `get_type()`.
-
-```rust
-let value = Value::String("Hello World".to_string());
-let value_type: Type = value.get_type();
-```
-
-This also works
-
-```rust
-let value = Value::String("Hello World".to_string());
-let value_type: Type = value.into();
-```
-
 See: [types.rs](./src/types.rs)
 
 ## Compiler
@@ -183,7 +167,33 @@ See: [compiler.rs](./src/compiler.rs)
 
 ## Virtual Machine
 
-The virtual machine (VM) takes in a runtime environment, evaluates a stream of bytecode and produces a value.
+The virtual machine (VM) takes in a runtime environment, evaluates a stream of bytecode and produces a [value](#values).
+
+### Values
+
+`Value` represent expression values. There are three types of values:
+
+- `String(String)`
+- `Bool(bool)`
+- `Fn(BuiltinFn)`
+
+See: [value.rs](./src/value.rs), [builtins.rs](./src/builtins.rs)
+
+#### Convert Values To Types
+
+A `Value`'s `Type` can be retrieved using `get_type()`:
+
+```rust
+let value = Value::String("Hello World".to_string());
+let value_type: Type = value.get_type();
+```
+
+This also works:
+
+```rust
+let value = Value::String("Hello World".to_string());
+let value_type: Type = value.into();
+```
 
 ### Runtime Environment
 
@@ -198,7 +208,7 @@ pub struct RuntimeEnv {
 }
 ```
 
-See: [value.rs](./src/value.rs)
+See: [vm.rs](./src/vm.rs), [value.rs](./src/value.rs)
 
 ### Usage
 
