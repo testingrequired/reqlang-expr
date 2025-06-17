@@ -8,6 +8,15 @@ use reqlang_expr::prelude::*;
 
 The prelude provides everything needed to lex, parse, compile, disassemble, and interpret expressions.
 
+## Error Handling: ExprError & ExprResult<T>
+
+`ExprResult<T>` (type alias for `Result<T, Vec<(ExprError, Range<usize>)>>`) is the result type used to handle errors throughout the process of expression evaluation.
+
+- Multiple errors are returned at a time
+- Errors have span information
+
+See: [errors.rs](./src/errors.rs)
+
 ## Lexer
 
 The lexer takes an input string and returns a stream of tokens.
@@ -223,13 +232,7 @@ let runtime_env: RuntimeEnv = RuntimeEnv {
     client_context_values
 };
 
-let _ = vm.interpret(bytecode.into(), &env, &runtime_env);
+let value = vm.interpret(bytecode.into(), &env, &runtime_env);
 ```
 
 See: [vm.rs](./src/vm.rs), [value.rs](./src/value.rs)
-
-## Error Handling: ExprError & ExprResult<T>
-
-`ExprResult<T>` (type alias for `Result<T, Vec<(ExprError, Range<usize>)>>`) is the result type used to handle errors throughout the process of expression evaluation.
-
-See: [errors.rs](./src/errors.rs)
