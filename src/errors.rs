@@ -12,8 +12,6 @@ pub enum ExprError {
     LexError(#[from] LexicalError),
     #[error("There was a compliation error with the expression: {0}")]
     CompileError(#[from] CompileError),
-    #[error("There was a runtime error with the expression: {0}")]
-    RuntimeError(#[from] RuntimeError),
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Error)]
@@ -29,10 +27,4 @@ pub enum CompileError {
     Undefined(String),
     #[error("expects {expected} arguments but received {actual}")]
     WrongNumberOfArgs { expected: usize, actual: usize },
-}
-
-#[derive(Debug, Clone, PartialEq, Error)]
-pub enum RuntimeError {
-    #[error("expects {expected} values on the stack but received {actual}")]
-    StackSizeMismatch { expected: usize, actual: usize },
 }

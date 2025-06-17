@@ -16,30 +16,16 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
     }
 
     /// Visualize the byte code as text
-    pub fn disassemble(&self, level: Option<usize>) -> String {
-        let level = level.unwrap_or(0);
-
+    pub fn disassemble(&self) -> String {
         let mut out = String::new();
 
         let mut op_idx = 0;
 
         while op_idx < self.bytecode.codes().len() {
             let (op_byte_size, disassembled_byte_idx, disassembled_op) =
-                self.disassemble_op(op_idx, level);
+                self.disassemble_op(op_idx);
 
-            let spacer = if level == 0 {
-                String::new()
-            } else {
-                let s = if level == 1 { "" } else { " " };
-                format!(
-                    "{space:width$}{bar} ",
-                    space = s,
-                    bar = "|",
-                    width = (level - 1) * 2
-                )
-            };
-
-            let op_string = &format!("{spacer}{disassembled_byte_idx} {disassembled_op}");
+            let op_string = &format!("{disassembled_byte_idx} {disassembled_op}");
             out.push_str(op_string);
 
             op_idx += op_byte_size;
@@ -48,20 +34,8 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
         out
     }
 
-    pub fn disassemble_op(&self, op_idx: usize, level: usize) -> (usize, String, String) {
+    pub fn disassemble_op(&self, op_idx: usize) -> (usize, String, String) {
         let op_idx_str = format!("{op_idx:04}");
-
-        let _spacer = if level == 0 {
-            String::new()
-        } else {
-            let s = if level == 1 { "" } else { " " };
-            format!(
-                "{space:width$}{bar} ",
-                space = s,
-                bar = "|",
-                width = (level - 1) * 2
-            )
-        };
 
         let (op_idx_inc, op_str): (usize, String) = match self.bytecode.codes()[op_idx] {
             opcode::GET => self.disassemble_op_get(op_idx),
@@ -119,48 +93,30 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
 
         let value = match lookup_type {
             lookup::BUILTIN => {
-                let value = self
-                    .env
-                    .get_builtin(constant_idx)
-                    .unwrap_or_else(|| panic!("undefined builtin: {constant_idx}"));
+                let value = self.env.get_builtin(constant_idx).unwrap();
                 &value.name
             }
             lookup::USER_BUILTIN => {
-                let value = self
-                    .env
-                    .get_user_builtin(constant_idx)
-                    .unwrap_or_else(|| panic!("undefined user builtin: {constant_idx}"));
+                let value = self.env.get_user_builtin(constant_idx).unwrap();
                 &value.name
             }
             lookup::VAR => {
-                let value = self
-                    .env
-                    .get_var(constant_idx)
-                    .unwrap_or_else(|| panic!("undefined variable: {constant_idx}"));
+                let value = self.env.get_var(constant_idx).unwrap();
 
                 value
             }
             lookup::PROMPT => {
-                let value = self
-                    .env
-                    .get_prompt(constant_idx)
-                    .unwrap_or_else(|| panic!("undefined prompt: {constant_idx}"));
+                let value = self.env.get_prompt(constant_idx).unwrap();
 
                 value
             }
             lookup::SECRET => {
-                let value = self
-                    .env
-                    .get_secret(constant_idx)
-                    .unwrap_or_else(|| panic!("undefined secret: {constant_idx}"));
+                let value = self.env.get_secret(constant_idx).unwrap();
 
                 value
             }
             lookup::CLIENT_CTX => {
-                let value = self
-                    .env
-                    .get_client_context(constant_idx)
-                    .unwrap_or_else(|| panic!("undefined client context: {constant_idx}"));
+                let value = self.env.get_client_context(constant_idx).unwrap();
 
                 value
             }

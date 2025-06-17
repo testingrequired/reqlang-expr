@@ -61,7 +61,7 @@ macro_rules! test {
                         if let Ok(op_codes) = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env) {
                             let expected_disassembly: String = $expected_disassembly.to_string();
                             let disassemble = ::reqlang_expr::disassembler::Disassembler::new(&op_codes, &env);
-                            let disassembly = disassemble.disassemble(None);
+                            let disassembly = disassemble.disassemble();
 
                             ::pretty_assertions::assert_eq!(expected_disassembly, disassembly);
                         }

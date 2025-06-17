@@ -8,7 +8,7 @@ use crate::{
         lookup::{BUILTIN, PROMPT, SECRET, VAR},
         opcode,
     },
-    errors::{self, ExprError, ExprResult},
+    errors::{ExprError, ExprResult},
     prelude::lookup::{CLIENT_CTX, USER_BUILTIN},
     value::Value,
 };
@@ -168,7 +168,7 @@ impl Vm {
 
                 self.stack_push(value.clone());
             }
-            _ => panic!("invalid get lookup code: {}", get_lookup),
+            _ => panic!("Invalid get lookup code: {}", get_lookup),
         };
 
         Ok(())
@@ -213,17 +213,6 @@ impl Vm {
     }
 
     fn stack_pop(&mut self) -> ExprResult<Value> {
-        if self.stack.is_empty() {
-            return Err(vec![(
-                errors::RuntimeError::StackSizeMismatch {
-                    expected: 1,
-                    actual: 0,
-                }
-                .into(),
-                0..0,
-            )]);
-        }
-
         Ok(self
             .stack
             .pop()
@@ -255,6 +244,19 @@ mod tests {
         let mut vm = Vm::new();
 
         let bytecode = Box::new(ExprByteCode::new(vec![99], vec![])); // 99 as invalid opcode
+        let env = CompileTimeEnv::default();
+        let runtime_env = RuntimeEnv::default();
+
+        // Attempt to interpret the bytecode, expecting a panic due to invalid opcode 99
+        let _ = vm.interpret(bytecode, &env, &runtime_env);
+    }
+
+    #[test]
+    #[should_panic(expected = "Invalid get lookup code: 99")]
+    fn test_invalid_look_99() {
+        let mut vm = Vm::new();
+
+        let bytecode = Box::new(ExprByteCode::new(vec![opcode::GET, 99, 0], vec![])); // 99 as invalid opcode
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 

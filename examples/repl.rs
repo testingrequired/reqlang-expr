@@ -171,7 +171,7 @@ fn main() -> ExprResult<()> {
 
                                 if repl_mode == ReplMode::Disassemble {
                                     let disassemble = Disassembler::new(&bytecode, &env);
-                                    let disassembly = disassemble.disassemble(None);
+                                    let disassembly = disassemble.disassemble();
 
                                     println!("{disassembly}");
                                     continue;

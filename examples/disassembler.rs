@@ -22,7 +22,7 @@ fn main() -> ExprResult<()> {
     let bytecode = compile(&(ast, 0..source.len()), &env)?;
 
     let disassemble = Disassembler::new(&bytecode, &env);
-    let disassembly = disassemble.disassemble(None);
+    let disassembly = disassemble.disassemble();
 
     eprintln!("{disassembly}");
 
