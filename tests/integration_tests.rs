@@ -41,10 +41,9 @@ macro_rules! test {
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
-                        let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env).unwrap();
-                        let expected_op_codes: Vec<u8> = $expected_op_codes;
-
-                        ::pretty_assertions::assert_eq!(expected_op_codes, op_codes.codes());
+                        let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env);
+                        let expected_op_codes: ::reqlang_expr::errors::ExprResult<ExprByteCode> = $expected_op_codes;
+                        ::pretty_assertions::assert_eq!(expected_op_codes, op_codes);
                     }
                 }
 
@@ -59,12 +58,13 @@ macro_rules! test {
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
-                        let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env).unwrap();
-                        let expected_disassembly: String = $expected_disassembly.to_string();
-                        let disassemble = ::reqlang_expr::disassembler::Disassembler::new(&op_codes, &env);
-                        let disassembly = disassemble.disassemble(None);
+                        if let Ok(op_codes) = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env) {
+                            let expected_disassembly: String = $expected_disassembly.to_string();
+                            let disassemble = ::reqlang_expr::disassembler::Disassembler::new(&op_codes, &env);
+                            let disassembly = disassemble.disassemble(None);
 
-                        ::pretty_assertions::assert_eq!(expected_disassembly, disassembly);
+                            ::pretty_assertions::assert_eq!(expected_disassembly, disassembly);
+                        }
                     }
                 }
 
@@ -79,18 +79,18 @@ macro_rules! test {
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
-                        let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env).unwrap();
+                        if let Ok(op_codes) = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env) {
+                            let mut vm = Vm::new();
+                            let mut runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
 
-                        let mut vm = Vm::new();
-                        let mut runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
+                            runtime_env.add_to_client_context(i, Value::Bool(true));
 
-                        runtime_env.add_to_client_context(i, Value::Bool(true));
+                            let value = vm.interpret(op_codes.into(), &env, &runtime_env);
 
-                        let value = vm.interpret(op_codes.into(), &env, &runtime_env);
+                            let expected_interpretation: ::reqlang_expr::errors::ExprResult<Value> = $expected_interpretation;
 
-                        let expected_interpretation: ::reqlang_expr::errors::ExprResult<Value> = $expected_interpretation;
-
-                        ::pretty_assertions::assert_eq!(expected_interpretation, value);
+                            ::pretty_assertions::assert_eq!(expected_interpretation, value);
+                        }
                     }
                 }
             }
@@ -120,18 +120,19 @@ macro_rules! test {
                     let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
 
                     if let Ok(ast) = ast {
-                        let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env).unwrap();
+                        if let Ok(op_codes) = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env) {
+                            let mut vm = Vm::new();
+                            let mut runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
 
-                        let mut vm = Vm::new();
-                        let mut runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
+                            runtime_env.add_to_client_context(i, Value::Bool(true));
 
-                        runtime_env.add_to_client_context(i, Value::Bool(true));
+                            let value = vm.interpret(op_codes.into(), &env, &runtime_env);
 
-                        let value = vm.interpret(op_codes.into(), &env, &runtime_env);
+                            let expected_interpretation: ::reqlang_expr::errors::ExprResult<Value> = $expected_interpretation;
 
-                        let expected_interpretation: ::reqlang_expr::errors::ExprResult<Value> = $expected_interpretation;
+                            ::pretty_assertions::assert_eq!(expected_interpretation, value);
+                        }
 
-                        ::pretty_assertions::assert_eq!(expected_interpretation, value);
                     }
                 }
             }
@@ -155,9 +156,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![
-            opcode::CONSTANT, 0
-        ];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::CONSTANT, 0
+            ],
+            strings: vec!["test string".to_string()]
+        });
 
         disassembles to: "0000 CONSTANT            0 == 'test string'\n";
 
@@ -185,10 +189,13 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![
-            opcode::GET, lookup::BUILTIN, 1,
-            opcode::CALL, 0
-        ];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 1,
+                opcode::CALL, 0
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         1 == 'noop'\n0003 CALL             (0 args)\n";
 
@@ -214,9 +221,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![
-            opcode::GET, lookup::BUILTIN, 1
-        ];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 1
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         1 == 'noop'\n";
 
@@ -249,12 +259,15 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![
-            opcode::GET, lookup::BUILTIN, 0,
-            opcode::GET, lookup::BUILTIN, 1,
-            opcode::CALL, 0,
-            opcode::CALL, 1
-        ];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 0,
+                opcode::GET, lookup::BUILTIN, 1,
+                opcode::CALL, 0,
+                opcode::CALL, 1
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET BUILTIN         1 == 'noop'\n0006 CALL             (0 args)\n0008 CALL             (1 args)\n";
 
@@ -286,11 +299,16 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![
-            opcode::GET, lookup::BUILTIN, 0,
-            opcode::CONSTANT, 0,
-            opcode::CALL, 1
-        ];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 0,
+                opcode::CONSTANT, 0,
+                opcode::CALL, 1
+            ],
+            strings: vec![
+                "test value".to_string(),
+            ]
+        });
 
         disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 CONSTANT            0 == 'test value'\n0005 CALL             (1 args)\n";
 
@@ -322,7 +340,14 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 0, opcode::GET, lookup::VAR, 1, opcode::CALL, 1];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 0,
+                opcode::GET, lookup::VAR, 1,
+                opcode::CALL, 1
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET VAR             1 == 'b'\n0006 CALL             (1 args)\n";
 
@@ -360,15 +385,18 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![
-            opcode::GET, lookup::BUILTIN, 0,
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 0,
 
-            opcode::GET, lookup::BUILTIN, 0,
-            opcode::GET, lookup::VAR, 1,
-            opcode::CALL, 1,
+                opcode::GET, lookup::BUILTIN, 0,
+                opcode::GET, lookup::VAR, 1,
+                opcode::CALL, 1,
 
-            opcode::CALL, 1
-        ];
+                opcode::CALL, 1
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET BUILTIN         0 == 'id'\n0006 GET VAR             1 == 'b'\n0009 CALL             (1 args)\n0011 CALL             (1 args)\n";
 
@@ -395,7 +423,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::VAR, 1];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::VAR, 1
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET VAR             1 == 'b'\n";
 
@@ -423,7 +456,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::PROMPT, 1];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::PROMPT, 1
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET PROMPT          1 == 'b'\n";
 
@@ -456,7 +494,14 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 0, opcode::GET, lookup::PROMPT, 1, opcode::CALL, 1];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 0,
+                opcode::GET, lookup::PROMPT, 1,
+                opcode::CALL, 1
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET PROMPT          1 == 'b'\n0006 CALL             (1 args)\n";
 
@@ -484,7 +529,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::SECRET, 1];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::SECRET, 1
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET SECRET          1 == 'b'\n";
 
@@ -512,7 +562,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::CLIENT_CTX, 1];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::CLIENT_CTX, 1
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET CLIENT_CTX      1 == 'b'\n";
 
@@ -550,7 +605,13 @@ mod valid {
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
-        compiles to: vec![opcode::GET, lookup::USER_BUILTIN, 0, opcode::CALL, 0];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::USER_BUILTIN, 0,
+                opcode::CALL, 0
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 CALL             (0 args)\n";
 
@@ -587,7 +648,14 @@ mod valid {
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
-        compiles to: vec![opcode::GET, lookup::USER_BUILTIN, 0, opcode::GET, lookup::VAR, 0, opcode::CALL, 1];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::USER_BUILTIN, 0,
+                opcode::GET, lookup::VAR, 0,
+                opcode::CALL, 1
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET VAR             0 == 'a'\n0006 CALL             (1 args)\n";
 
@@ -684,41 +752,22 @@ mod valid {
             }.into()
         ];
 
-        compiles to: vec![
-            opcode::GET,
-            lookup::USER_BUILTIN, // foo
-            0,
-
-            opcode::GET,
-            lookup::USER_BUILTIN, // bar
-            1,
-            opcode::GET,
-            lookup::VAR, // :a
-            0,
-            opcode::CALL, // bar
-            1,
-
-            opcode::GET,
-            lookup::USER_BUILTIN, // fiz
-            2,
-            opcode::GET,
-            lookup::PROMPT, // ?b
-            0,
-            opcode::CALL, // fiz
-            1,
-
-            opcode::GET,
-            lookup::USER_BUILTIN, // baz
-            3,
-            opcode::GET,
-            lookup::SECRET, // !c
-            0,
-            opcode::CALL, // baz
-            1,
-
-            opcode::CALL, // foo
-            3
-        ];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::USER_BUILTIN, 0,
+                opcode::GET, lookup::USER_BUILTIN, 1,
+                opcode::GET, lookup::VAR, 0,
+                opcode::CALL, 1,
+                opcode::GET, lookup::USER_BUILTIN, 2,
+                opcode::GET, lookup::PROMPT, 0,
+                opcode::CALL, 1,
+                opcode::GET, lookup::USER_BUILTIN, 3,
+                opcode::GET, lookup::SECRET, 0,
+                opcode::CALL, 1,
+                opcode::CALL, 3
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET USER_BUILTIN    1 == 'bar'\n0006 GET VAR             0 == 'a'\n0009 CALL             (1 args)\n0011 GET USER_BUILTIN    2 == 'fiz'\n0014 GET PROMPT          0 == 'b'\n0017 CALL             (1 args)\n0019 GET USER_BUILTIN    3 == 'baz'\n0022 GET SECRET          0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
 
@@ -747,7 +796,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::TRUE];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::TRUE
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 TRUE\n";
 
@@ -773,7 +827,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::FALSE];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::FALSE
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 FALSE\n";
 
@@ -810,7 +869,14 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 3, opcode::FALSE, opcode::CALL, 1];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 3,
+                opcode::FALSE,
+                opcode::CALL, 1
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         3 == 'not'\n0003 FALSE\n0004 CALL             (1 args)\n";
 
@@ -848,7 +914,15 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 4, opcode::TRUE, opcode::FALSE, opcode::CALL, 2];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 4,
+                opcode::TRUE,
+                opcode::FALSE,
+                opcode::CALL, 2
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         4 == 'and'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
 
@@ -886,7 +960,15 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 4, opcode::TRUE, opcode::TRUE, opcode::CALL, 2];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 4,
+                opcode::TRUE,
+                opcode::TRUE,
+                opcode::CALL, 2
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         4 == 'and'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
@@ -924,7 +1006,14 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 4, opcode::FALSE, opcode::TRUE, opcode::CALL, 2];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 4,
+                opcode::FALSE, opcode::TRUE,
+                opcode::CALL, 2
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         4 == 'and'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
@@ -962,7 +1051,14 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 5, opcode::TRUE, opcode::FALSE, opcode::CALL, 2];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 5,
+                opcode::TRUE, opcode::FALSE,
+                opcode::CALL, 2
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         5 == 'or'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
 
@@ -1000,7 +1096,14 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 5, opcode::TRUE, opcode::TRUE, opcode::CALL, 2];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 5,
+                opcode::TRUE, opcode::TRUE,
+                opcode::CALL, 2
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         5 == 'or'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
@@ -1038,7 +1141,15 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::BUILTIN, 5, opcode::FALSE, opcode::TRUE, opcode::CALL, 2];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 5,
+                opcode::FALSE,
+                opcode::TRUE,
+                opcode::CALL, 2
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         5 == 'or'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
@@ -1078,13 +1189,19 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![
-            opcode::GET, lookup::BUILTIN, 6,
-            opcode::TRUE,
-            opcode::CONSTANT, 0,
-            opcode::CONSTANT, 1,
-            opcode::CALL, 3
-        ];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 6,
+                opcode::TRUE,
+                opcode::CONSTANT, 0,
+                opcode::CONSTANT, 1,
+                opcode::CALL, 3
+            ],
+            strings: vec![
+                "foo".to_string(),
+                "bar".to_string(),
+            ]
+        });
 
         disassembles to: "0000 GET BUILTIN         6 == 'cond'\n0003 TRUE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
 
@@ -1124,13 +1241,19 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![
-            opcode::GET, lookup::BUILTIN, 6,
-            opcode::FALSE,
-            opcode::CONSTANT, 0,
-            opcode::CONSTANT, 1,
-            opcode::CALL, 3
-        ];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 6,
+                opcode::FALSE,
+                opcode::CONSTANT, 0,
+                opcode::CONSTANT, 1,
+                opcode::CALL, 3
+            ],
+            strings: vec![
+                "foo".to_string(),
+                "bar".to_string(),
+            ]
+        });
 
         disassembles to: "0000 GET BUILTIN         6 == 'cond'\n0003 FALSE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
 
@@ -1394,12 +1517,15 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![
-            opcode::GET, lookup::BUILTIN, 9,
-            opcode::GET, lookup::VAR, 0,
-            opcode::GET, lookup::VAR, 1,
-            opcode::CALL, 2
-        ];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::BUILTIN, 9,
+                opcode::GET, lookup::VAR, 0,
+                opcode::GET, lookup::VAR, 1,
+                opcode::CALL, 2
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET BUILTIN         9 == 'contains'\n0003 GET VAR             0 == 'a'\n0006 GET VAR             1 == 'b'\n0009 CALL             (2 args)\n";
 
@@ -1661,22 +1787,6 @@ mod valid {
 
         scenario: client in test value;
 
-        env: (vec![], vec![], vec![], vec![]);
-
-        user builtins: [];
-
-        runtime env: {
-            ..Default::default()
-        };
-
-        interpets to: Ok(Value::Bool(true));
-    }
-
-    test! {
-        "@intest";
-
-        scenario: client in test value v2;
-
         tokens should be: vec![
             Ok((0, Token::identifier("@intest"), 7)),
         ];
@@ -1689,7 +1799,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: vec![opcode::GET, lookup::CLIENT_CTX, 0];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::CLIENT_CTX, 0
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET CLIENT_CTX      0 == 'intest'\n";
 
@@ -1698,6 +1813,22 @@ mod valid {
         };
 
         interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "((id id) `foo`)";
+
+        scenario: call expr with call expression as calle;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("foo".to_string()));
     }
 }
 
@@ -1724,7 +1855,12 @@ mod invalid {
             }.into()
         ];
 
-        compiles to: vec![opcode::GET, lookup::USER_BUILTIN, 0];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::USER_BUILTIN, 0
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n";
 
@@ -1796,26 +1932,16 @@ mod invalid {
             }.into()
         ];
 
-        compiles to: vec![
-            opcode::GET,
-            lookup::USER_BUILTIN,
-            0,
-
-            opcode::GET,
-            lookup::USER_BUILTIN,
-            1,
-
-            opcode::GET,
-            lookup::USER_BUILTIN,
-            2,
-
-            opcode::GET,
-            lookup::USER_BUILTIN,
-            3,
-
-            opcode::CALL,
-            3
-        ];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::USER_BUILTIN, 0,
+                opcode::GET, lookup::USER_BUILTIN, 1,
+                opcode::GET, lookup::USER_BUILTIN, 2,
+                opcode::GET, lookup::USER_BUILTIN, 3,
+                opcode::CALL, 3
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET USER_BUILTIN    1 == 'bar'\n0006 GET USER_BUILTIN    2 == 'fiz'\n0009 GET USER_BUILTIN    3 == 'baz'\n0012 CALL             (3 args)\n";
 
@@ -1838,48 +1964,17 @@ mod invalid {
 
         ast should be: Err(lalrpop_util::ParseError::UnrecognizedToken {
             token: (1, Token::RParan, 2),
-            expected: vec!["identifier".to_string()]
+            expected: vec![r#""(""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string()]
         });
 
         env: (vec![], vec![], vec![], vec![]);
 
         user builtins: [];
 
-        compiles to: vec![];
-
-        disassembles to: "";
-
-        runtime env: {
-            ..Default::default()
-        };
-
-        interpets to: Ok(Value::String("".to_string()));
-    }
-
-    test! {
-        "((foo) bar)";
-
-        scenario: call using call callee;
-
-        tokens should be: vec![
-            Ok((0, Token::LParan, 1)),
-            Ok((1, Token::LParan, 2)),
-            Ok((2, Token::identifier("foo"), 5)),
-            Ok((5, Token::RParan, 6)),
-            Ok((7, Token::identifier("bar"), 10)),
-            Ok((10, Token::RParan, 11)),
-        ];
-
-        ast should be: Err(lalrpop_util::ParseError::UnrecognizedToken {
-            token: (1, Token::LParan, 2),
-            expected: vec!["identifier".to_string()]
+        compiles to: Ok(ExprByteCode {
+            codes: vec![],
+            strings: vec![]
         });
-
-        env: (vec![], vec![], vec![], vec![]);
-
-        user builtins: [];
-
-        compiles to: vec![];
 
         disassembles to: "";
 
@@ -1908,7 +2003,10 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: vec![];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![],
+            strings: vec![]
+        });
 
         disassembles to: "";
 
@@ -1938,7 +2036,10 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: vec![];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![],
+            strings: vec![]
+        });
 
         disassembles to: "";
 
@@ -1946,7 +2047,7 @@ mod invalid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::String("".to_string()));
+        interpets to: Ok(Value::String("...".to_string()));
     }
 
     test! {
@@ -1968,7 +2069,11 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: vec![];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![],
+            strings: vec![]
+        });
+
 
         disassembles to: "";
 
@@ -1996,9 +2101,12 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: vec![
-            opcode::CONSTANT, 0
-        ];
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::CONSTANT, 0
+            ],
+            strings: vec![]
+        });
 
         disassembles to: "";
 
@@ -2007,5 +2115,79 @@ mod invalid {
         };
 
         interpets to: Err(vec![]);
+    }
+
+    test! {
+        "foo";
+
+        scenario: undefined identifier;
+
+        tokens should be: vec![
+            Ok((0, Token::identifier("foo"), 3)),
+        ];
+
+        ast should be: Ok(Expr::Identifier(ExprIdentifier::new("foo").into()));
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        compiles to: Err(vec![(
+            CompileError::Undefined("foo".to_string()).into(),
+            0..3
+        )]);
+
+        disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("...".to_string()));
+    }
+
+    test! {
+        "(concat foo foo)";
+
+        scenario: undefined identifier multiple;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("concat"), 7)),
+            Ok((8, Token::identifier("foo"), 11)),
+            Ok((12, Token::identifier("foo"), 15)),
+            Ok((15, Token::RParan, 16)),
+        ];
+
+        ast should be: Ok(Expr::Call(ExprCall {
+            callee: (Expr::identifier("concat"), 1..7),
+            args: vec![
+                (
+                    Expr::identifier("foo"),
+                    8..11
+                ),
+                (
+                    Expr::identifier("foo"),
+                    12..15
+                )
+            ]
+        }.into()));
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        compiles to: Err(vec![
+            (CompileError::Undefined("foo".to_string()).into(), 8..11),
+            (CompileError::Undefined("foo".to_string()).into(), 12..15)
+        ]);
+
+        disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("...".to_string()));
     }
 }

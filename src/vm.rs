@@ -1,12 +1,14 @@
 //! The virtual machine and associated types
 
+use std::ops::Range;
+
 use crate::{
     compiler::{
         CompileTimeEnv, ExprByteCode,
         lookup::{BUILTIN, PROMPT, SECRET, VAR},
         opcode,
     },
-    errors::ExprResult,
+    errors::{self, ExprError, ExprResult},
     prelude::lookup::{CLIENT_CTX, USER_BUILTIN},
     value::Value,
 };
@@ -54,22 +56,33 @@ impl Vm {
         self.bytecode = Some(bytecode);
         self.ip = 0;
 
+        let mut errs: Vec<(ExprError, Range<usize>)> = vec![];
+
         while let Some(op_code) = self
             .bytecode
             .as_ref()
             .and_then(|bc| bc.codes().get(self.ip))
         {
-            self.interpret_op(env, runtime_env, *op_code);
+            if let Err(e) = self.interpret_op(env, runtime_env, *op_code) {
+                errs.extend(e);
+            }
         }
 
-        assert_eq!(1, self.stack.len());
+        if !errs.is_empty() {
+            return Err(errs.into());
+        }
 
-        let value = self.stack_pop();
+        let value = self.stack_pop()?;
 
         Ok(value)
     }
 
-    fn interpret_op(&mut self, env: &CompileTimeEnv, runtime_env: &RuntimeEnv, op_code: u8) {
+    fn interpret_op(
+        &mut self,
+        env: &CompileTimeEnv,
+        runtime_env: &RuntimeEnv,
+        op_code: u8,
+    ) -> ExprResult<()> {
         match op_code {
             opcode::CALL => self.op_call(),
             opcode::CONSTANT => self.op_constant(),
@@ -80,7 +93,7 @@ impl Vm {
         }
     }
 
-    fn op_call(&mut self) {
+    fn op_call(&mut self) -> ExprResult<()> {
         // Confirm the current op code is CALL
         assert_eq!(opcode::CALL, self.read_u8(), "Expected CALL opcode");
 
@@ -89,21 +102,23 @@ impl Vm {
         let mut args: Vec<Value> = vec![];
 
         for _ in 0..arg_count {
-            args.push(self.stack_pop());
+            args.push(self.stack_pop()?);
         }
 
         args.reverse();
 
-        let value = self.stack_pop();
+        let value = self.stack_pop()?;
 
         let builtin = value.get_func().func.clone();
 
         let result = builtin(args);
 
         self.stack_push(result);
+
+        Ok(())
     }
 
-    fn op_get(&mut self, env: &CompileTimeEnv, runtime_env: &RuntimeEnv) {
+    fn op_get(&mut self, env: &CompileTimeEnv, runtime_env: &RuntimeEnv) -> ExprResult<()> {
         assert_eq!(opcode::GET, self.read_u8(), "Expected GET opcode");
         let get_lookup = self.read_u8();
         let get_idx = self.read_u8() as usize;
@@ -155,9 +170,11 @@ impl Vm {
             }
             _ => panic!("invalid get lookup code: {}", get_lookup),
         };
+
+        Ok(())
     }
 
-    fn op_constant(&mut self) {
+    fn op_constant(&mut self) -> ExprResult<()> {
         assert_eq!(opcode::CONSTANT, self.read_u8(), "Expected CONSTANT opcode");
 
         let get_idx = self.read_u8() as usize;
@@ -171,28 +188,46 @@ impl Vm {
             .unwrap_or_else(|| panic!("undefined string: {}", get_idx));
 
         self.stack_push(Value::String(s.clone()));
+
+        Ok(())
     }
 
-    fn op_true(&mut self) {
+    fn op_true(&mut self) -> ExprResult<()> {
         assert_eq!(opcode::TRUE, self.read_u8(), "Expected TRUE opcode");
 
         self.stack_push(Value::Bool(true));
+
+        Ok(())
     }
 
-    fn op_false(&mut self) {
+    fn op_false(&mut self) -> ExprResult<()> {
         assert_eq!(opcode::FALSE, self.read_u8(), "Expected FALSE opcode");
 
         self.stack_push(Value::Bool(false));
+
+        Ok(())
     }
 
     fn stack_push(&mut self, value: Value) {
         self.stack.push(value);
     }
 
-    fn stack_pop(&mut self) -> Value {
-        self.stack
+    fn stack_pop(&mut self) -> ExprResult<Value> {
+        if self.stack.is_empty() {
+            return Err(vec![(
+                errors::RuntimeError::StackSizeMismatch {
+                    expected: 1,
+                    actual: 0,
+                }
+                .into(),
+                0..0,
+            )]);
+        }
+
+        Ok(self
+            .stack
             .pop()
-            .expect("should have a value to pop from the stack")
+            .expect("should have a value to pop from the stack"))
     }
 
     fn read_u8(&mut self) -> u8 {

@@ -5,7 +5,10 @@ use std::{ops::Range, rc::Rc};
 use crate::{
     ast::Expr,
     builtins::{BuiltinFn, BuiltinFns},
-    errors::{ExprError, ExprResult, TypeError::WrongNumberOfArgs},
+    errors::{
+        CompileError::{self, WrongNumberOfArgs},
+        ExprError, ExprResult,
+    },
     prelude::FnArg,
     types::Type,
 };
@@ -271,10 +274,10 @@ impl CompileTimeEnv {
 }
 
 /// The compiled bytecode for an expression
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ExprByteCode {
-    codes: Vec<u8>,
-    strings: Vec<String>,
+    pub codes: Vec<u8>,
+    pub strings: Vec<String>,
 }
 
 impl ExprByteCode {
@@ -364,7 +367,14 @@ fn compile_expr(
                             codes.push(index);
                         }
                     }
-                    _ => {}
+                    _ => {
+                        errs.push((
+                            ExprError::CompileError(CompileError::Undefined(
+                                identifier_name.to_string(),
+                            )),
+                            span.clone(),
+                        ));
+                    }
                 };
             }
         }
@@ -382,7 +392,7 @@ fn compile_expr(
 
                                 if !builtin.arity_matches(call_arity.try_into().unwrap()) {
                                     errs.push((
-                                        ExprError::TypeError(WrongNumberOfArgs {
+                                        ExprError::CompileError(WrongNumberOfArgs {
                                             expected: builtin.arity() as usize,
                                             actual: call_arity,
                                         }),
@@ -397,7 +407,7 @@ fn compile_expr(
 
                                 if !builtin.arity_matches(call_arity.try_into().unwrap()) {
                                     errs.push((
-                                        ExprError::TypeError(WrongNumberOfArgs {
+                                        ExprError::CompileError(WrongNumberOfArgs {
                                             expected: builtin.arity() as usize,
                                             actual: call_arity,
                                         }),
@@ -414,9 +424,14 @@ fn compile_expr(
             codes.extend(callee_bytecode);
 
             for arg in expr_call.args.iter() {
-                let arg_bytecode = compile_expr(arg, env, strings)?;
-
-                codes.extend(arg_bytecode);
+                match compile_expr(arg, env, strings) {
+                    Ok(arg_bytecode) => {
+                        codes.extend(arg_bytecode);
+                    }
+                    Err(err) => {
+                        errs.extend(err);
+                    }
+                }
             }
 
             codes.push(opcode::CALL);

@@ -10,8 +10,10 @@ pub type ExprResult<T> = std::result::Result<T, Vec<(ExprError, Range<usize>)>>;
 pub enum ExprError {
     #[error("There was an error lexing expression: {0}")]
     LexError(#[from] LexicalError),
-    #[error("There was a type error with the expression: {0}")]
-    TypeError(#[from] TypeError),
+    #[error("There was a compliation error with the expression: {0}")]
+    CompileError(#[from] CompileError),
+    #[error("There was a runtime error with the expression: {0}")]
+    RuntimeError(#[from] RuntimeError),
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Error)]
@@ -22,7 +24,15 @@ pub enum LexicalError {
 }
 
 #[derive(Debug, Clone, PartialEq, Error)]
-pub enum TypeError {
+pub enum CompileError {
+    #[error("undefined: {0}")]
+    Undefined(String),
     #[error("expects {expected} arguments but received {actual}")]
     WrongNumberOfArgs { expected: usize, actual: usize },
+}
+
+#[derive(Debug, Clone, PartialEq, Error)]
+pub enum RuntimeError {
+    #[error("expects {expected} values on the stack but received {actual}")]
+    StackSizeMismatch { expected: usize, actual: usize },
 }

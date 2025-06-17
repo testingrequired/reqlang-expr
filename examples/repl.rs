@@ -160,26 +160,33 @@ fn main() -> ExprResult<()> {
                             continue;
                         }
 
-                        let bytecode = compile(&(ast, 0..source.len()), &env)?;
+                        let bytecode = compile(&(ast, 0..source.len()), &env);
 
-                        if repl_mode == ReplMode::Compile {
-                            println!("{bytecode:#?}");
-                            continue;
-                        }
+                        match bytecode {
+                            Ok(bytecode) => {
+                                if repl_mode == ReplMode::Compile {
+                                    println!("{bytecode:#?}");
+                                    continue;
+                                }
 
-                        if repl_mode == ReplMode::Disassemble {
-                            let disassemble = Disassembler::new(&bytecode, &env);
-                            let disassembly = disassemble.disassemble(None);
+                                if repl_mode == ReplMode::Disassemble {
+                                    let disassemble = Disassembler::new(&bytecode, &env);
+                                    let disassembly = disassemble.disassemble(None);
 
-                            println!("{disassembly}");
-                            continue;
-                        }
+                                    println!("{disassembly}");
+                                    continue;
+                                }
 
-                        match vm.interpret(bytecode.into(), &env, &runtime_env) {
-                            Ok(value) => {
-                                println!("{value}");
+                                match vm.interpret(bytecode.into(), &env, &runtime_env) {
+                                    Ok(value) => {
+                                        println!("{value}");
 
-                                last_value = Some(value);
+                                        last_value = Some(value);
+                                    }
+                                    Err(err) => {
+                                        println!("{err:#?}");
+                                    }
+                                }
                             }
                             Err(err) => {
                                 println!("{err:#?}");

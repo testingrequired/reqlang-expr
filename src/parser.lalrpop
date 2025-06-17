@@ -28,7 +28,7 @@ ExprString: ast::Expr = {
 
 // Call Expressions
 
-CallCallee = Spanned<ExprIdentifier>;
+CallCallee = ExprS;
 CallArgs = Args<ExprS>;
 ExprCall: ast::Expr = {
     "(" <callee:CallCallee> <args:CallArgs> ")" => ast::Expr::Call(ast::ExprCall {
