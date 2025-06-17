@@ -227,3 +227,9 @@ let _ = vm.interpret(bytecode.into(), &env, &runtime_env);
 ```
 
 See: [vm.rs](./src/vm.rs), [value.rs](./src/value.rs)
+
+## Error Handling: ExprError & ExprResult<T>
+
+`ExprResult<T>` (type alias for `Result<T, Vec<(ExprError, Range<usize>)>>`) is the result type used to handle errors throughout the process of expression evaluation.
+
+See: [errors.rs](./src/errors.rs)
