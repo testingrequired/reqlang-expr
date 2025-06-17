@@ -28,6 +28,7 @@ See [USAGE.md](./USAGE.md) and [examples](./examples/) for usage examples.
 - [Bytecode Compiler](./src/compiler.rs)
 - [VM interpreter](./src/vm.rs)
 - [Disassembler](./src/disassembler.rs)
+- [Types](./src/types.rs)
 - [CLI](./src/main.rs)
 - [REPL](#repl)
 - [Example Usage](./examples/)
