@@ -3,7 +3,11 @@ use codespan_reporting::files::SimpleFile;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
 use codespan_reporting::term::{self};
 use once_cell::sync::Lazy;
-use reedline::{DefaultPrompt, DefaultPromptSegment, Reedline, Signal};
+use reedline::{
+    ColumnarMenu, DefaultCompleter, DefaultPrompt, DefaultPromptSegment, Emacs, KeyCode,
+    KeyModifiers, MenuBuilder, Reedline, ReedlineEvent, ReedlineMenu, Signal,
+    default_emacs_keybindings,
+};
 use regex::Regex;
 use reqlang_expr::{
     cliutil::{parse_key_val, unzip_key_values},
@@ -15,10 +19,41 @@ use reqlang_expr::{
 fn main() -> ExprResult<()> {
     let args = Args::parse();
 
-    let mut line_editor = Reedline::create();
-
     let mut prompt = DefaultPrompt::default();
     prompt.left_prompt = DefaultPromptSegment::Basic("interpet    ".to_string());
+
+    let commands = vec![
+        "/env".into(),
+        "/exit".into(),
+        "/mode".into(),
+        "/set var".into(),
+        "/set prompt".into(),
+        "/set secret".into(),
+    ];
+
+    let mut completions = DefaultCompleter::with_inclusions(&['/']);
+    completions.insert(commands);
+
+    // Use the interactive menu to select options from the completer
+    let completion_menu = Box::new(ColumnarMenu::default().with_name("completion_menu"));
+
+    // Set up the required keybindings
+    let mut keybindings = default_emacs_keybindings();
+    keybindings.add_binding(
+        KeyModifiers::NONE,
+        KeyCode::Tab,
+        ReedlineEvent::UntilFound(vec![
+            ReedlineEvent::Menu("completion_menu".to_string()),
+            ReedlineEvent::MenuNext,
+        ]),
+    );
+
+    let edit_mode = Box::new(Emacs::new(keybindings));
+
+    let mut line_editor = Reedline::create()
+        .with_completer(Box::new(completions))
+        .with_menu(ReedlineMenu::EngineCompleter(completion_menu))
+        .with_edit_mode(edit_mode);
 
     // Diagnostics
     let writer = StandardStream::stderr(ColorChoice::Auto);
