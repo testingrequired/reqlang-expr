@@ -1,10 +1,14 @@
 use clap::Parser;
+use codespan_reporting::files::SimpleFile;
+use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
+use codespan_reporting::term::{self};
 use once_cell::sync::Lazy;
 use reedline::{DefaultPrompt, DefaultPromptSegment, Reedline, Signal};
 use regex::Regex;
 use reqlang_expr::{
     cliutil::{parse_key_val, unzip_key_values},
     disassembler::Disassembler,
+    errors::diagnostics::get_diagnostics,
     prelude::*,
 };
 
@@ -16,6 +20,10 @@ fn main() -> ExprResult<()> {
     let mut prompt = DefaultPrompt::default();
     prompt.left_prompt = DefaultPromptSegment::Basic("interpet    ".to_string());
 
+    // Diagnostics
+    let writer = StandardStream::stderr(ColorChoice::Auto);
+    let config = term::Config::default();
+
     let mut vm = Vm::new();
 
     let (mut var_keys, mut var_values) = unzip_key_values(args.vars);
@@ -25,7 +33,6 @@ fn main() -> ExprResult<()> {
         unzip_key_values(args.client_context);
 
     let mut repl_mode = ReplMode::default();
-
     let mut last_value: Option<Value> = None;
 
     loop {
@@ -184,12 +191,31 @@ fn main() -> ExprResult<()> {
                                         last_value = Some(value);
                                     }
                                     Err(err) => {
-                                        println!("{err:#?}");
+                                        let diagnostics = get_diagnostics(&err, &source);
+
+                                        let file = SimpleFile::new("expression", source);
+
+                                        for diagnostic in diagnostics {
+                                            term::emit(
+                                                &mut writer.lock(),
+                                                &config,
+                                                &file,
+                                                &diagnostic,
+                                            )
+                                            .expect("should emit diagnostics to term");
+                                        }
                                     }
                                 }
                             }
                             Err(err) => {
-                                println!("{err:#?}");
+                                let diagnostics = get_diagnostics(&err, &source);
+
+                                let file = SimpleFile::new("expression", source);
+
+                                for diagnostic in diagnostics {
+                                    term::emit(&mut writer.lock(), &config, &file, &diagnostic)
+                                        .expect("should emit diagnostics to term");
+                                }
                             }
                         }
                     }
