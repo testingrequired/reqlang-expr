@@ -773,6 +773,7 @@ dependencies = [
  "lalrpop-util",
  "line-col",
  "logos",
+ "nu-ansi-term",
  "once_cell",
  "pastey",
  "pretty_assertions",

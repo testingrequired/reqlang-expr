@@ -2,10 +2,11 @@ use clap::Parser;
 use codespan_reporting::files::SimpleFile;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
 use codespan_reporting::term::{self};
+use nu_ansi_term::Color;
 use once_cell::sync::Lazy;
 use reedline::{
-    ColumnarMenu, DefaultCompleter, DefaultPrompt, DefaultPromptSegment, Emacs, KeyCode,
-    KeyModifiers, MenuBuilder, Reedline, ReedlineEvent, ReedlineMenu, Signal,
+    ColumnarMenu, DefaultCompleter, DefaultPrompt, DefaultPromptSegment, Emacs, ExampleHighlighter,
+    KeyCode, KeyModifiers, MenuBuilder, Reedline, ReedlineEvent, ReedlineMenu, Signal,
     default_emacs_keybindings,
 };
 use regex::Regex;
@@ -33,7 +34,7 @@ fn main() -> ExprResult<()> {
         ]),
     );
 
-    let commands = vec![
+    let mut commands = vec![
         "/env".into(),
         "/exit".into(),
         "/mode".into(),
@@ -47,9 +48,6 @@ fn main() -> ExprResult<()> {
         "/set secret ".into(),
     ];
 
-    let mut completions = DefaultCompleter::with_inclusions(&['/', ':', '?', '!', '@', '_']);
-    completions.insert(commands);
-
     // Diagnostics
     let writer = StandardStream::stderr(ColorChoice::Auto);
     let config = term::Config::default();
@@ -62,10 +60,30 @@ fn main() -> ExprResult<()> {
     let (mut client_keys, mut client_values) = unzip_key_values(args.client_context);
 
     {
-        completions.insert(var_keys.iter().map(|key| format!(":{}", key)).collect());
-        completions.insert(prompt_keys.iter().map(|key| format!("?{}", key)).collect());
-        completions.insert(secret_keys.iter().map(|key| format!("!{}", key)).collect());
-        completions.insert(client_keys.iter().map(|key| format!("@{}", key)).collect());
+        commands.extend(
+            var_keys
+                .iter()
+                .map(|key| format!(":{}", key))
+                .collect::<Vec<String>>(),
+        );
+        commands.extend(
+            prompt_keys
+                .iter()
+                .map(|key| format!("?{}", key))
+                .collect::<Vec<String>>(),
+        );
+        commands.extend(
+            secret_keys
+                .iter()
+                .map(|key| format!("!{}", key))
+                .collect::<Vec<String>>(),
+        );
+        commands.extend(
+            client_keys
+                .iter()
+                .map(|key| format!("@{}", key))
+                .collect::<Vec<String>>(),
+        );
     }
 
     let mut repl_mode = ReplMode::default();
@@ -92,7 +110,7 @@ fn main() -> ExprResult<()> {
         if let Some(last_value) = &last_value {
             let i = env.add_to_client_context(REPL_LAST_VALUE_PLACEHOLDER);
             runtime_env.add_to_client_context(i, last_value.clone());
-            completions.insert(vec![format!("@{}", REPL_LAST_VALUE_PLACEHOLDER)]);
+            commands.extend(vec![format!("@{}", REPL_LAST_VALUE_PLACEHOLDER)]);
         }
 
         // Use the interactive menu to select options from the completer
@@ -100,10 +118,17 @@ fn main() -> ExprResult<()> {
 
         let edit_mode = Box::new(Emacs::new(keybindings.clone()));
 
+        let mut completions = DefaultCompleter::with_inclusions(&['/', ':', '?', '!', '@', '_']);
+        completions.insert(commands.clone());
+
+        let mut example_highlighter = ExampleHighlighter::new(commands.clone());
+        example_highlighter.change_colors(Color::Yellow, Color::White, Color::LightGray);
+
         let mut line_editor = Reedline::create()
             .with_completer(Box::new(completions.clone()))
             .with_menu(ReedlineMenu::EngineCompleter(completion_menu))
-            .with_edit_mode(edit_mode);
+            .with_edit_mode(edit_mode)
+            .with_highlighter(Box::new(example_highlighter));
 
         match line_editor.read_line(&prompt) {
             Ok(Signal::Success(source)) => {
@@ -174,22 +199,22 @@ fn main() -> ExprResult<()> {
                             "var" => {
                                 var_keys.push(key.to_string());
                                 var_values.push(value.to_string());
-                                completions.insert(vec![format!(":{}", key.to_string())]);
+                                commands.extend(vec![format!(":{}", key.to_string())]);
                             }
                             "prompt" => {
                                 prompt_keys.push(key.to_string());
                                 prompt_values.push(value.to_string());
-                                completions.insert(vec![format!("?{}", key.to_string())]);
+                                commands.extend(vec![format!("?{}", key.to_string())]);
                             }
                             "secret" => {
                                 secret_keys.push(key.to_string());
                                 secret_values.push(value.to_string());
-                                completions.insert(vec![format!("!{}", key.to_string())]);
+                                commands.extend(vec![format!("!{}", key.to_string())]);
                             }
                             "client" => {
                                 client_keys.push(key.to_string());
                                 client_values.push(value.to_string());
-                                completions.insert(vec![format!("@{}", key.to_string())]);
+                                commands.extend(vec![format!("@{}", key.to_string())]);
                             }
                             _ => {}
                         }
