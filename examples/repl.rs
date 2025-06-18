@@ -22,21 +22,6 @@ fn main() -> ExprResult<()> {
     let mut prompt = DefaultPrompt::default();
     prompt.left_prompt = DefaultPromptSegment::Basic("interpet    ".to_string());
 
-    let commands = vec![
-        "/env".into(),
-        "/exit".into(),
-        "/mode".into(),
-        "/set var".into(),
-        "/set prompt".into(),
-        "/set secret".into(),
-    ];
-
-    let mut completions = DefaultCompleter::with_inclusions(&['/']);
-    completions.insert(commands);
-
-    // Use the interactive menu to select options from the completer
-    let completion_menu = Box::new(ColumnarMenu::default().with_name("completion_menu"));
-
     // Set up the required keybindings
     let mut keybindings = default_emacs_keybindings();
     keybindings.add_binding(
@@ -48,12 +33,22 @@ fn main() -> ExprResult<()> {
         ]),
     );
 
-    let edit_mode = Box::new(Emacs::new(keybindings));
+    let commands = vec![
+        "/env".into(),
+        "/exit".into(),
+        "/mode".into(),
+        "/mode interpret".into(),
+        "/mode compile".into(),
+        "/mode disassemble".into(),
+        "/mode lex".into(),
+        "/mode parse".into(),
+        "/set var ".into(),
+        "/set prompt ".into(),
+        "/set secret ".into(),
+    ];
 
-    let mut line_editor = Reedline::create()
-        .with_completer(Box::new(completions))
-        .with_menu(ReedlineMenu::EngineCompleter(completion_menu))
-        .with_edit_mode(edit_mode);
+    let mut completions = DefaultCompleter::with_inclusions(&['/', ':', '?', '!', '@', '_']);
+    completions.insert(commands);
 
     // Diagnostics
     let writer = StandardStream::stderr(ColorChoice::Auto);
@@ -65,6 +60,13 @@ fn main() -> ExprResult<()> {
     let (mut prompt_keys, mut prompt_values) = unzip_key_values(args.prompts);
     let (mut secret_keys, mut secret_values) = unzip_key_values(args.secrets);
     let (mut client_keys, mut client_values) = unzip_key_values(args.client_context);
+
+    {
+        completions.insert(var_keys.iter().map(|key| format!(":{}", key)).collect());
+        completions.insert(prompt_keys.iter().map(|key| format!("?{}", key)).collect());
+        completions.insert(secret_keys.iter().map(|key| format!("!{}", key)).collect());
+        completions.insert(client_keys.iter().map(|key| format!("@{}", key)).collect());
+    }
 
     let mut repl_mode = ReplMode::default();
     let mut last_value: Option<Value> = None;
@@ -87,13 +89,21 @@ fn main() -> ExprResult<()> {
                 .collect(),
         };
 
-        match &last_value {
-            Some(last_value) => {
-                let i = env.add_to_client_context(REPL_LAST_VALUE_PLACEHOLDER);
-                runtime_env.add_to_client_context(i, last_value.clone());
-            }
-            None => {}
+        if let Some(last_value) = &last_value {
+            let i = env.add_to_client_context(REPL_LAST_VALUE_PLACEHOLDER);
+            runtime_env.add_to_client_context(i, last_value.clone());
+            completions.insert(vec![format!("@{}", REPL_LAST_VALUE_PLACEHOLDER)]);
         }
+
+        // Use the interactive menu to select options from the completer
+        let completion_menu = Box::new(ColumnarMenu::default().with_name("completion_menu"));
+
+        let edit_mode = Box::new(Emacs::new(keybindings.clone()));
+
+        let mut line_editor = Reedline::create()
+            .with_completer(Box::new(completions.clone()))
+            .with_menu(ReedlineMenu::EngineCompleter(completion_menu))
+            .with_edit_mode(edit_mode);
 
         match line_editor.read_line(&prompt) {
             Ok(Signal::Success(source)) => {
@@ -164,18 +174,22 @@ fn main() -> ExprResult<()> {
                             "var" => {
                                 var_keys.push(key.to_string());
                                 var_values.push(value.to_string());
+                                completions.insert(vec![format!(":{}", key.to_string())]);
                             }
                             "prompt" => {
                                 prompt_keys.push(key.to_string());
                                 prompt_values.push(value.to_string());
+                                completions.insert(vec![format!("?{}", key.to_string())]);
                             }
                             "secret" => {
                                 secret_keys.push(key.to_string());
                                 secret_values.push(value.to_string());
+                                completions.insert(vec![format!("!{}", key.to_string())]);
                             }
                             "client" => {
                                 client_keys.push(key.to_string());
                                 client_values.push(value.to_string());
+                                completions.insert(vec![format!("@{}", key.to_string())]);
                             }
                             _ => {}
                         }
