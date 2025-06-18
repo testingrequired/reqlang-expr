@@ -29,8 +29,7 @@ fn main() -> ExprResult<()> {
     let (mut var_keys, mut var_values) = unzip_key_values(args.vars);
     let (mut prompt_keys, mut prompt_values) = unzip_key_values(args.prompts);
     let (mut secret_keys, mut secret_values) = unzip_key_values(args.secrets);
-    let (mut client_context_keys, mut client_context_values) =
-        unzip_key_values(args.client_context);
+    let (mut client_keys, mut client_values) = unzip_key_values(args.client_context);
 
     let mut repl_mode = ReplMode::default();
     let mut last_value: Option<Value> = None;
@@ -40,14 +39,14 @@ fn main() -> ExprResult<()> {
             var_keys.clone(),
             prompt_keys.clone(),
             secret_keys.clone(),
-            client_context_keys.clone(),
+            client_keys.clone(),
         );
 
         let mut runtime_env: RuntimeEnv = RuntimeEnv {
             vars: var_values.clone(),
             prompts: prompt_values.clone(),
             secrets: secret_values.clone(),
-            client_context: client_context_values
+            client_context: client_values
                 .iter()
                 .map(|string_value| Value::String(string_value.clone()))
                 .collect(),
@@ -140,8 +139,8 @@ fn main() -> ExprResult<()> {
                                 secret_values.push(value.to_string());
                             }
                             "client" => {
-                                client_context_keys.push(key.to_string());
-                                client_context_values.push(value.to_string());
+                                client_keys.push(key.to_string());
+                                client_values.push(value.to_string());
                             }
                             _ => {}
                         }
