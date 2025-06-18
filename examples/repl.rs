@@ -46,6 +46,23 @@ fn main() -> ExprResult<()> {
         "/set var ".into(),
         "/set prompt ".into(),
         "/set secret ".into(),
+        "id".into(),
+        "noop".into(),
+        "is_empty".into(),
+        "not".into(),
+        "and".into(),
+        "or".into(),
+        "cond".into(),
+        "to_str".into(),
+        "concat".into(),
+        "contains".into(),
+        "trim".into(),
+        "trim_start".into(),
+        "trim_end".into(),
+        "lowercase".into(),
+        "uppercase".into(),
+        "eq".into(),
+        "type".into(),
     ];
 
     // Diagnostics
