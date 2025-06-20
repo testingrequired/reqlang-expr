@@ -1,14 +1,12 @@
 //! The virtual machine and associated types
 
-use std::ops::Range;
-
 use crate::{
     compiler::{
         CompileTimeEnv, ExprByteCode,
         lookup::{BUILTIN, PROMPT, SECRET, VAR},
         opcode,
     },
-    errors::{ExprError, ExprResult, RuntimeError},
+    errors::{ExprErrorS, ExprResult, RuntimeError},
     prelude::lookup::{CLIENT_CTX, USER_BUILTIN},
     value::Value,
 };
@@ -56,7 +54,7 @@ impl Vm {
         self.bytecode = Some(bytecode);
         self.ip = 0;
 
-        let mut errs: Vec<(ExprError, Range<usize>)> = vec![];
+        let mut errs: Vec<ExprErrorS> = vec![];
 
         while let Some(op_code) = self
             .bytecode

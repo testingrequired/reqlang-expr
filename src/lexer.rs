@@ -3,7 +3,10 @@
 use logos::Logos;
 use std::ops::Range;
 
-use crate::errors::{self, ExprError};
+use crate::{
+    errors::{ExprErrorS, LexicalError},
+    span::Spanned,
+};
 
 /// Converts a [`String`] source in to a vector of [`Token`]
 #[derive(Debug)]
@@ -22,7 +25,7 @@ impl<'a> Lexer<'a> {
 }
 
 impl Iterator for Lexer<'_> {
-    type Item = Result<(usize, Token, usize), (ExprError, Range<usize>)>;
+    type Item = Result<(usize, Token, usize), ExprErrorS>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(token) = self.pending.take() {
@@ -44,7 +47,7 @@ impl Iterator for Lexer<'_> {
 }
 
 #[derive(Logos, Debug, Clone, PartialEq)]
-#[logos(error = (errors::LexicalError, Range<usize>))]
+#[logos(error = Spanned<LexicalError>)]
 #[logos(skip r"[ \t\n\f]+")]
 pub enum Token {
     #[token("(")]

@@ -1,6 +1,6 @@
 //! Abstract syntax tree types
 
-use std::ops::Range;
+use crate::span::Spanned;
 
 #[derive(Debug, PartialEq)]
 pub enum Expr {
@@ -20,7 +20,7 @@ impl Expr {
         Self::String(ExprString::new(string).into())
     }
 
-    pub fn call(callee: (Expr, Range<usize>), args: Vec<(Expr, Range<usize>)>) -> Self {
+    pub fn call(callee: ExprS, args: Vec<ExprS>) -> Self {
         Self::Call(Box::new(ExprCall { callee, args }))
     }
 
@@ -49,8 +49,8 @@ impl ExprString {
 
 #[derive(Debug, PartialEq)]
 pub struct ExprCall {
-    pub callee: (Expr, Range<usize>),
-    pub args: Vec<(Expr, Range<usize>)>,
+    pub callee: ExprS,
+    pub args: Vec<ExprS>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -61,3 +61,5 @@ impl ExprBool {
         Self(value)
     }
 }
+
+pub type ExprS = Spanned<Expr>;

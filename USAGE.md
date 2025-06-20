@@ -10,12 +10,12 @@ The prelude provides everything needed to lex, parse, compile, disassemble, and 
 
 ## Error Handling: ExprError & ExprResult<T>
 
-`ExprResult<T>` (type alias for `Result<T, Vec<(ExprError, Range<usize>)>>`) is the result type used to handle errors throughout the process of expression evaluation.
+`ExprResult<T>` (type alias for `Result<T, Vec<ExprErrorS>>`) is the result type used to handle errors throughout the process of expression evaluation.
 
 - Multiple errors are returned at a time
 - Errors have span information
 
-See: [errors.rs](./src/errors.rs)
+See: [errors.rs](./src/errors.rs), [span.rs](./src/span.rs)
 
 ## Lexer
 

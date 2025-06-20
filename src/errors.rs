@@ -1,13 +1,14 @@
 //! Errors
 
-use std::ops::Range;
-
 use lalrpop_util::ParseError;
 use thiserror::Error;
 
-use crate::lexer::Token;
+use crate::{
+    lexer::Token,
+    span::{Span, Spanned},
+};
 
-pub type ExprResult<T> = std::result::Result<T, Vec<(ExprError, Range<usize>)>>;
+pub type ExprResult<T> = std::result::Result<T, Vec<ExprErrorS>>;
 
 #[derive(Debug, Error, PartialEq)]
 pub enum ExprError {
@@ -22,7 +23,7 @@ pub enum ExprError {
 }
 
 impl diagnostics::AsDiagnostic for ExprError {
-    fn as_diagnostic(&self, source: &str, span: &Range<usize>) -> diagnostics::ExprDiagnostic {
+    fn as_diagnostic(&self, source: &str, span: &Span) -> diagnostics::ExprDiagnostic {
         match self {
             ExprError::LexError(e) => e.as_diagnostic(source, span),
             ExprError::CompileError(e) => e.as_diagnostic(source, span),
@@ -40,7 +41,7 @@ pub enum LexicalError {
 }
 
 impl diagnostics::AsDiagnostic for LexicalError {
-    fn as_diagnostic(&self, source: &str, span: &Range<usize>) -> diagnostics::ExprDiagnostic {
+    fn as_diagnostic(&self, source: &str, span: &Span) -> diagnostics::ExprDiagnostic {
         match self {
             LexicalError::InvalidToken => diagnostics::ExprDiagnostic {
                 code: "".to_string(),
@@ -73,9 +74,9 @@ pub enum SyntaxError {
 
 impl SyntaxError {
     pub fn from_parser_error(
-        err: ParseError<usize, Token, (ExprError, Range<usize>)>,
+        err: ParseError<usize, Token, ExprErrorS>,
         source: &str,
-    ) -> (ExprError, Range<usize>) {
+    ) -> ExprErrorS {
         match err {
             ParseError::InvalidToken { location } => {
                 (SyntaxError::InvalidToken.into(), location..location)
@@ -110,7 +111,7 @@ impl SyntaxError {
 }
 
 impl diagnostics::AsDiagnostic for SyntaxError {
-    fn as_diagnostic(&self, source: &str, span: &Range<usize>) -> diagnostics::ExprDiagnostic {
+    fn as_diagnostic(&self, source: &str, span: &Span) -> diagnostics::ExprDiagnostic {
         match self {
             SyntaxError::ExtraToken { token: _ } => diagnostics::ExprDiagnostic {
                 code: "".to_string(),
@@ -166,7 +167,7 @@ pub enum CompileError {
 }
 
 impl diagnostics::AsDiagnostic for CompileError {
-    fn as_diagnostic(&self, source: &str, span: &Range<usize>) -> diagnostics::ExprDiagnostic {
+    fn as_diagnostic(&self, source: &str, span: &Span) -> diagnostics::ExprDiagnostic {
         match self {
             CompileError::Undefined(_) => diagnostics::ExprDiagnostic {
                 code: "".to_string(),
@@ -200,7 +201,7 @@ pub enum RuntimeError {
 }
 
 impl diagnostics::AsDiagnostic for RuntimeError {
-    fn as_diagnostic(&self, source: &str, span: &Range<usize>) -> diagnostics::ExprDiagnostic {
+    fn as_diagnostic(&self, source: &str, span: &Span) -> diagnostics::ExprDiagnostic {
         match self {
             RuntimeError::EmptyStack => diagnostics::ExprDiagnostic {
                 code: "".to_string(),
@@ -212,18 +213,15 @@ impl diagnostics::AsDiagnostic for RuntimeError {
     }
 }
 
-pub mod diagnostics {
-    use std::ops::Range;
+pub type ExprErrorS = Spanned<ExprError>;
 
+pub mod diagnostics {
     use codespan_reporting::diagnostic::{Diagnostic, Label, Severity};
     use line_col::LineColLookup;
 
-    use crate::errors::ExprError;
+    use crate::{errors::ExprErrorS, span::Span};
 
-    pub fn get_diagnostics(
-        errs: &[(ExprError, Range<usize>)],
-        source: &str,
-    ) -> Vec<Diagnostic<()>> {
+    pub fn get_diagnostics(errs: &[ExprErrorS], source: &str) -> Vec<Diagnostic<()>> {
         errs.iter()
             .map(|(err, span)| {
                 let a = err.as_diagnostic(source, span);
@@ -235,7 +233,7 @@ pub mod diagnostics {
     }
 
     pub trait AsDiagnostic {
-        fn as_diagnostic(&self, source: &str, span: &Range<usize>) -> ExprDiagnostic;
+        fn as_diagnostic(&self, source: &str, span: &Span) -> ExprDiagnostic;
     }
 
     #[derive(Debug, Eq, PartialEq, Clone, Default)]
@@ -250,10 +248,7 @@ pub mod diagnostics {
     }
 
     impl ExprDiagnostic {
-        pub fn to_diagnostic(
-            &self,
-            span: &Range<usize>,
-        ) -> codespan_reporting::diagnostic::Diagnostic<()> {
+        pub fn to_diagnostic(&self, span: &Span) -> codespan_reporting::diagnostic::Diagnostic<()> {
             codespan_reporting::diagnostic::Diagnostic {
                 severity: DiagnosisSeverity::ERROR.to_severity(),
                 code: Some(self.code.clone()),
@@ -315,7 +310,7 @@ pub mod diagnostics {
         }
     }
 
-    pub fn get_range(source: &str, span: &Range<usize>) -> ExprDiagnosticRange {
+    pub fn get_range(source: &str, span: &Span) -> ExprDiagnosticRange {
         ExprDiagnosticRange::new(
             get_position(source, span.start),
             get_position(source, span.end),
@@ -445,7 +440,7 @@ pub mod diagnostics {
 
     #[cfg(test)]
     mod error_to_diagnostics_tests {
-        use crate::errors::{CompileError, LexicalError};
+        use crate::errors::{CompileError, ExprError, LexicalError};
 
         use super::*;
         use std::ops::Range;
@@ -454,7 +449,7 @@ pub mod diagnostics {
             "fn test_function(x: i32) -> i32 { x + 1 }"
         }
 
-        fn dummy_range() -> Range<usize> {
+        fn dummy_range() -> Span {
             Range { start: 0, end: 5 }
         }
 

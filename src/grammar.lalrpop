@@ -1,10 +1,11 @@
 //! Parser and associated types
 
-use crate::errors::{ExprError, SyntaxError};
+use crate::errors::{ExprErrorS, SyntaxError};
 use crate::ast;
 use crate::lexer::Token;
+use crate::span::Spanned;
 
-grammar<'err>(source: &str, errors: &'err mut Vec<(ExprError, std::ops::Range<usize>)>);
+grammar<'err>(source: &str, errors: &'err mut Vec<ExprErrorS>);
 
 pub Expr: ast::Expr = {
     ExprIdentifier,
@@ -50,7 +51,7 @@ ExprIdentifier: ast::Expr = <name:identifier> =>
 
 ExprS = Spanned<Expr>;
 
-Spanned<T>: (T, std::ops::Range<usize>) = <l:@L> <t:T> <r:@R> =>
+Spanned<T>: Spanned<T> = <l:@L> <t:T> <r:@R> =>
     (t, l..r);
 
 #[inline]
@@ -64,7 +65,7 @@ Args<E>: Vec<E> = {
 
 extern {
     type Location = usize;
-    type Error = (ExprError, std::ops::Range<usize>);
+    type Error = ExprErrorS;
 
     enum Token {
         "(" => Token::LParan,

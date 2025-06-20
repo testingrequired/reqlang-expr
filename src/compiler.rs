@@ -1,13 +1,13 @@
 //! The compiler and associated types
 
-use std::{ops::Range, rc::Rc};
+use std::rc::Rc;
 
 use crate::{
-    ast::Expr,
+    ast::{Expr, ExprS},
     builtins::{BuiltinFn, BuiltinFns},
     errors::{
         CompileError::{self, WrongNumberOfArgs},
-        ExprError, ExprResult,
+        ExprError, ExprErrorS, ExprResult,
     },
     prelude::FnArg,
     types::Type,
@@ -295,21 +295,21 @@ impl ExprByteCode {
 }
 
 /// Compile an [`ast::Expr`] into [`ExprByteCode`]
-pub fn compile(expr: &(Expr, Range<usize>), env: &CompileTimeEnv) -> ExprResult<ExprByteCode> {
+pub fn compile(expr: &ExprS, env: &CompileTimeEnv) -> ExprResult<ExprByteCode> {
     let mut strings: Vec<String> = vec![];
     let codes = compile_expr(expr, env, &mut strings)?;
     Ok(ExprByteCode::new(codes, strings))
 }
 
 fn compile_expr(
-    (expr, span): &(Expr, Range<usize>),
+    (expr, span): &ExprS,
     env: &CompileTimeEnv,
     strings: &mut Vec<String>,
 ) -> ExprResult<Vec<u8>> {
     use opcode::*;
 
     let mut codes = vec![];
-    let mut errs: Vec<(ExprError, Range<usize>)> = vec![];
+    let mut errs: Vec<ExprErrorS> = vec![];
 
     match expr {
         Expr::String(string) => {
