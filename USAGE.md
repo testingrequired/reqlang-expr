@@ -55,10 +55,8 @@ The parser takes a stream of tokens from the lexer and constructs an AST (Abstra
 
 ```rust
 let source = "(noop)";
-let lexer: Lexer<'_> = Lexer::new(&source);
-let tokens = lexer.collect::<Vec<_>>();
 
-let ast: Expr = ExprParser::new().parse(tokens).unwrap();
+let ast: Expr = parse(&source)?;
 ```
 
 See: [parser.rs](./src/parser.rs), [grammar.lalrpop](./src/grammar.lalrpop), [ast.rs](./src/ast.rs)
