@@ -1,11 +1,10 @@
 //! Parser and associated types
 
-use crate::errors::ExprError;
+use crate::errors::{ExprError, SyntaxError};
 use crate::ast;
 use crate::lexer::Token;
-use lalrpop_util::ParseError;
 
-grammar<'err>(errors: &'err mut Vec<ParseError<usize, Token, (ExprError, std::ops::Range<usize>)>>);
+grammar<'err>(source: &str, errors: &'err mut Vec<(ExprError, std::ops::Range<usize>)>);
 
 pub Expr: ast::Expr = {
     ExprIdentifier,
@@ -13,7 +12,7 @@ pub Expr: ast::Expr = {
     ExprString,
     ExprBool,
     <e:!> => {
-        errors.push(e.error);
+        errors.push(SyntaxError::from_parser_error(e.error, source));
         ast::Expr::Error
     }
 };
