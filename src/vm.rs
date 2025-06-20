@@ -8,7 +8,7 @@ use crate::{
         lookup::{BUILTIN, PROMPT, SECRET, VAR},
         opcode,
     },
-    errors::{ExprError, ExprResult},
+    errors::{ExprError, ExprResult, RuntimeError},
     prelude::lookup::{CLIENT_CTX, USER_BUILTIN},
     value::Value,
 };
@@ -72,9 +72,7 @@ impl Vm {
             return Err(errs.into());
         }
 
-        let value = self.stack_pop()?;
-
-        Ok(value)
+        self.stack_pop()
     }
 
     fn interpret_op(
@@ -213,10 +211,11 @@ impl Vm {
     }
 
     fn stack_pop(&mut self) -> ExprResult<Value> {
-        Ok(self
-            .stack
-            .pop()
-            .expect("should have a value to pop from the stack"))
+        if let Some(value) = self.stack.pop() {
+            return Ok(value);
+        };
+
+        Err(vec![(RuntimeError::EmptyStack.into(), 0..0)])
     }
 
     fn read_u8(&mut self) -> u8 {

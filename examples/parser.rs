@@ -6,12 +6,7 @@ fn main() {
 
     let source = read_in_source(args.path);
 
-    let lexer: Lexer<'_> = Lexer::new(&source);
-    let tokens = lexer.collect::<Vec<_>>();
-
-    let ast: Expr = ExprParser::new()
-        .parse(tokens)
-        .expect("should parse tokens to ast");
+    let ast = parse(&source);
 
     eprintln!("{ast:#?}");
 }

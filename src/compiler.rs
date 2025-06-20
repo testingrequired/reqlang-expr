@@ -445,6 +445,7 @@ fn compile_expr(
                 codes.push(opcode::FALSE);
             }
         },
+        Expr::Error => panic!("tried to compile despite parser errors"),
     }
 
     if !errs.is_empty() {

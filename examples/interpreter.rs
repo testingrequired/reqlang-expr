@@ -9,13 +9,7 @@ fn main() -> ExprResult<()> {
 
     let source = read_in_source(args.path);
 
-    let lexer: Lexer<'_> = Lexer::new(&source);
-    let tokens = lexer.collect::<Vec<_>>();
-
-    let ast: Expr = ExprParser::new()
-        .parse(tokens)
-        .expect("should parse tokens to ast");
-
+    let ast: Expr = parse(&source).expect("should parse successfully");
     let (var_keys, var_values) = unzip_key_values(args.vars);
     let (prompt_keys, prompt_values) = unzip_key_values(args.prompts);
     let (secret_keys, secret_values) = unzip_key_values(args.secrets);

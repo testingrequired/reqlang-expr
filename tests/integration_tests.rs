@@ -24,8 +24,7 @@ macro_rules! test {
 
                 #[test]
                 fn [< $test_name:lower $(_ $test_name2:lower)* _ast >]() {
-                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                    let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
+                    let ast = ::reqlang_expr::parser::parse(&$source);
 
                     ::pretty_assertions::assert_eq!($expected_ast, ast);
                 }
@@ -37,8 +36,7 @@ macro_rules! test {
                     env.add_user_builtins(vec!$builtins);
                     env.add_to_client_context("intest");
 
-                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                    let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
+                    let ast = ::reqlang_expr::parser::parse(&$source);
 
                     if let Ok(ast) = ast {
                         let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env);
@@ -54,8 +52,7 @@ macro_rules! test {
                     env.add_user_builtins(vec!$builtins);
                     env.add_to_client_context("intest");
 
-                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                    let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
+                    let ast = ::reqlang_expr::parser::parse(&$source);
 
                     if let Ok(ast) = ast {
                         if let Ok(op_codes) = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env) {
@@ -75,8 +72,7 @@ macro_rules! test {
                     env.add_user_builtins(vec!$builtins);
                     let i = env.add_to_client_context("intest");
 
-                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                    let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
+                    let ast = ::reqlang_expr::parser::parse(&$source);
 
                     if let Ok(ast) = ast {
                         if let Ok(op_codes) = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env) {
@@ -116,8 +112,7 @@ macro_rules! test {
                     env.add_user_builtins(vec!$builtins);
                     let i = env.add_to_client_context("intest");
 
-                    let tokens = ::reqlang_expr::lexer::Lexer::new($source);
-                    let ast = ::reqlang_expr::parser::ExprParser::new().parse(tokens);
+                    let ast = ::reqlang_expr::parser::parse(&$source);
 
                     if let Ok(ast) = ast {
                         if let Ok(op_codes) = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env) {
@@ -1361,7 +1356,7 @@ mod valid {
     }
 
     test! {
-        "(to_str (id (noop))";
+        "(to_str (id (noop)))";
 
         scenario: to_str call to builtin id;
 
@@ -2058,10 +2053,13 @@ mod invalid {
             Ok((1, Token::RParan, 2))
         ];
 
-        ast should be: Err(lalrpop_util::ParseError::UnrecognizedToken {
-            token: (1, Token::RParan, 2),
-            expected: vec![r#""(""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string()]
-        });
+        ast should be: Err(vec![(
+            SyntaxError::UnrecognizedToken {
+                token: String::from(")"),
+                expected: vec![r#""(""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string()]
+            }.into(),
+            1..2
+        )]);
 
         env: (vec![], vec![], vec![], vec![]);
 
@@ -2091,9 +2089,10 @@ mod invalid {
             Ok((1, Token::identifier("foo"), 4))
         ];
 
-        ast should be: Err(lalrpop_util::ParseError::User {
-            error: (LexicalError::InvalidToken.into(), 0..0)
-        });
+        ast should be: Err(vec![(
+            LexicalError::InvalidToken.into(),
+            0..0
+        )]);
 
         env: (vec![], vec![], vec![], vec![]);
 
@@ -2123,10 +2122,13 @@ mod invalid {
             Ok((3, Token::identifier("!bar"), 7)),
         ];
 
-        ast should be: Err(lalrpop_util::ParseError::UnrecognizedToken {
-            token: (3, Token::identifier("!bar"), 7),
-            expected: vec![]
-        });
+        ast should be: Err(vec![(
+            SyntaxError::UnrecognizedToken {
+                token: String::from("!bar"),
+                expected: vec![]
+            }.into(),
+            3..7
+        )]);
 
         env: (vec![], vec![], vec![], vec![]);
 
@@ -2156,10 +2158,13 @@ mod invalid {
             Ok((4, Token::identifier("bar"), 7)),
         ];
 
-        ast should be: Err(lalrpop_util::ParseError::UnrecognizedToken {
-            token: (4, Token::identifier("bar"), 7),
-            expected: vec![]
-        });
+        ast should be: Err(vec![(
+            SyntaxError::UnrecognizedToken {
+                token: String::from("bar"),
+                expected: vec![]
+            }.into(),
+            4..7
+        )]);
 
         env: (vec![], vec![], vec![], vec![]);
 
@@ -2189,9 +2194,10 @@ mod invalid {
             Err((LexicalError::InvalidToken.into(), 0..0)),
         ];
 
-        ast should be: Err(lalrpop_util::ParseError::User {
-            error: (LexicalError::InvalidToken.into(), 0..0)
-        });
+        ast should be: Err(vec![(
+            LexicalError::InvalidToken.into(),
+            0..0
+        )]);
 
         env: (vec![], vec![], vec![], vec![]);
 
@@ -2285,5 +2291,21 @@ mod invalid {
         };
 
         interpets to: Ok(Value::String("...".to_string()));
+    }
+
+    test! {
+        "(to_str (id (noop))";
+
+        scenario: missing end parans;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::String("noop".to_string()));
     }
 }

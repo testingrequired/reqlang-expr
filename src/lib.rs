@@ -1,7 +1,3 @@
-use lalrpop_util::lalrpop_mod;
-
-lalrpop_mod!(pub parser);
-
 pub mod prelude {
     pub use crate::ast::*;
     pub use crate::builtins::*;
@@ -15,6 +11,7 @@ pub mod prelude {
 }
 
 pub mod errors;
+pub mod parser;
 
 pub mod lexer;
 

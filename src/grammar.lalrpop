@@ -3,14 +3,19 @@
 use crate::errors::ExprError;
 use crate::ast;
 use crate::lexer::Token;
+use lalrpop_util::ParseError;
 
-grammar;
+grammar<'err>(errors: &'err mut Vec<ParseError<usize, Token, (ExprError, std::ops::Range<usize>)>>);
 
 pub Expr: ast::Expr = {
     ExprIdentifier,
     ExprCall,
     ExprString,
     ExprBool,
+    <e:!> => {
+        errors.push(e.error);
+        ast::Expr::Error
+    }
 };
 
 // Boolean Expressions

@@ -61,7 +61,7 @@ let tokens = lexer.collect::<Vec<_>>();
 let ast: Expr = ExprParser::new().parse(tokens).unwrap();
 ```
 
-See: [parser.lalrpop](./src/parser.lalrpop), [ast.rs](./src/ast.rs)
+See: [parser.rs](./src/parser.rs), [grammar.lalrpop](./src/grammar.lalrpop), [ast.rs](./src/ast.rs)
 
 ## Types
 
@@ -148,10 +148,8 @@ See: [builtins.rs](./src/builtins.rs), [types.rs](./src/types.rs), [value.rs](./
 
 ```rust
 let source = "(noop)";
-let lexer: Lexer<'_> = Lexer::new(&source);
-let tokens = lexer.collect::<Vec<_>>();
 
-let ast: Expr = ExprParser::new().parse(tokens).unwrap();
+let ast: Expr = parse(&source)?;
 
 let var_names = vec![];
 let prompt_names = vec![];
@@ -160,7 +158,7 @@ let client_context_names = vec![];
 
 let mut env = CompileTimeEnv::new(var_names, prompt_names, secret_names, client_context_namess);
 
-let bytecode = compile(&ast, &env);
+let bytecode = compile(&ast, &env)?;
 ```
 
 See: [compiler.rs](./src/compiler.rs)
@@ -214,10 +212,8 @@ See: [vm.rs](./src/vm.rs), [value.rs](./src/value.rs)
 
 ```rust
 let source = "(noop)";
-let lexer: Lexer<'_> = Lexer::new(&source);
-let tokens = lexer.collect::<Vec<_>>();
 
-let ast: Expr = ExprParser::new().parse(tokens).unwrap();
+let ast: Expr = parse(&source)?;
 
 let var_names = vec![];
 let prompt_names = vec![];
@@ -226,7 +222,7 @@ let client_context_names = vec![];
 
 let mut env = CompileTimeEnv::new(var_names, prompt_names, secret_names, client_context_names);
 
-let bytecode = compile(&ast, &env);
+let bytecode = compile(&ast, &env)?;
 
 let mut vm = Vm::new();
 
@@ -242,7 +238,7 @@ let runtime_env: RuntimeEnv = RuntimeEnv {
     client_context_values
 };
 
-let value = vm.interpret(bytecode.into(), &env, &runtime_env);
+let value = vm.interpret(bytecode.into(), &env, &runtime_env)?;
 ```
 
 See: [vm.rs](./src/vm.rs), [value.rs](./src/value.rs)

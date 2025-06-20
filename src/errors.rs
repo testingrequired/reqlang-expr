@@ -2,7 +2,10 @@
 
 use std::ops::Range;
 
+use lalrpop_util::ParseError;
 use thiserror::Error;
+
+use crate::lexer::Token;
 
 pub type ExprResult<T> = std::result::Result<T, Vec<(ExprError, Range<usize>)>>;
 
@@ -10,8 +13,12 @@ pub type ExprResult<T> = std::result::Result<T, Vec<(ExprError, Range<usize>)>>;
 pub enum ExprError {
     #[error("There was an error lexing expression: {0}")]
     LexError(#[from] LexicalError),
+    #[error("There was an error in the expression syntax: {0}")]
+    SyntaxError(#[from] SyntaxError),
     #[error("There was a compliation error with the expression: {0}")]
     CompileError(#[from] CompileError),
+    #[error("There was a runtime error with the expression: {0}")]
+    RuntimeError(#[from] RuntimeError),
 }
 
 impl diagnostics::AsDiagnostic for ExprError {
@@ -19,6 +26,8 @@ impl diagnostics::AsDiagnostic for ExprError {
         match self {
             ExprError::LexError(e) => e.as_diagnostic(source, span),
             ExprError::CompileError(e) => e.as_diagnostic(source, span),
+            ExprError::SyntaxError(e) => e.as_diagnostic(source, span),
+            ExprError::RuntimeError(e) => e.as_diagnostic(source, span),
         }
     }
 }
@@ -43,12 +52,117 @@ impl diagnostics::AsDiagnostic for LexicalError {
     }
 }
 
+#[derive(Debug, Clone, Error, PartialEq)]
+pub enum SyntaxError {
+    #[error("extraneous input: {token:?}")]
+    ExtraToken { token: String },
+    #[error("invalid input")]
+    InvalidToken,
+    #[error("unexpected input: {token:?}")]
+    UnexpectedInput { token: String },
+    #[error("unexpected end of file; expected: {expected:?}")]
+    UnrecognizedEOF { expected: Vec<String> },
+    #[error("unexpected {token:?}; expected: {expected:?}")]
+    UnrecognizedToken {
+        token: String,
+        expected: Vec<String>,
+    },
+    #[error("unterminated string")]
+    UnterminatedString,
+}
+
+impl SyntaxError {
+    pub fn from_parser_error(
+        err: ParseError<usize, Token, (ExprError, Range<usize>)>,
+        source: &str,
+    ) -> (ExprError, Range<usize>) {
+        match err {
+            ParseError::InvalidToken { location } => {
+                (SyntaxError::InvalidToken.into(), location..location)
+            }
+            ParseError::UnrecognizedEof { location, expected } => (
+                SyntaxError::UnrecognizedEOF { expected }.into(),
+                location..location,
+            ),
+            ParseError::UnrecognizedToken {
+                token: (start, _, end),
+                expected,
+            } => (
+                SyntaxError::UnrecognizedToken {
+                    token: source[start..end].to_string(),
+                    expected,
+                }
+                .into(),
+                start..end,
+            ),
+            ParseError::ExtraToken {
+                token: (start, _, end),
+            } => (
+                SyntaxError::ExtraToken {
+                    token: source[start..end].to_string(),
+                }
+                .into(),
+                start..end,
+            ),
+            ParseError::User { error } => error,
+        }
+    }
+}
+
+impl diagnostics::AsDiagnostic for SyntaxError {
+    fn as_diagnostic(&self, source: &str, span: &Range<usize>) -> diagnostics::ExprDiagnostic {
+        match self {
+            SyntaxError::ExtraToken { token: _ } => diagnostics::ExprDiagnostic {
+                code: "".to_string(),
+                range: diagnostics::get_range(source, span),
+                severity: Some(diagnostics::DiagnosisSeverity::ERROR),
+                message: format!("{self}"),
+            },
+            SyntaxError::InvalidToken => diagnostics::ExprDiagnostic {
+                code: "".to_string(),
+                range: diagnostics::get_range(source, span),
+                severity: Some(diagnostics::DiagnosisSeverity::ERROR),
+                message: format!("{self}"),
+            },
+            SyntaxError::UnexpectedInput { token: _ } => diagnostics::ExprDiagnostic {
+                code: "".to_string(),
+                range: diagnostics::get_range(source, span),
+                severity: Some(diagnostics::DiagnosisSeverity::ERROR),
+                message: format!("{self}"),
+            },
+            SyntaxError::UnrecognizedEOF { expected: _ } => diagnostics::ExprDiagnostic {
+                code: "".to_string(),
+                range: diagnostics::get_range(source, span),
+                severity: Some(diagnostics::DiagnosisSeverity::ERROR),
+                message: format!("{self}"),
+            },
+            SyntaxError::UnrecognizedToken {
+                token: _,
+                expected: _,
+            } => diagnostics::ExprDiagnostic {
+                code: "".to_string(),
+                range: diagnostics::get_range(source, span),
+                severity: Some(diagnostics::DiagnosisSeverity::ERROR),
+                message: format!("{self}"),
+            },
+            SyntaxError::UnterminatedString => diagnostics::ExprDiagnostic {
+                code: "".to_string(),
+                range: diagnostics::get_range(source, span),
+                severity: Some(diagnostics::DiagnosisSeverity::ERROR),
+                message: format!("{self}"),
+            },
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Error)]
 pub enum CompileError {
     #[error("undefined: {0}")]
     Undefined(String),
     #[error("expects {expected} arguments but received {actual}")]
     WrongNumberOfArgs { expected: usize, actual: usize },
+    #[error("call expression without a callee")]
+    NoCallee,
 }
 
 impl diagnostics::AsDiagnostic for CompileError {
@@ -64,6 +178,31 @@ impl diagnostics::AsDiagnostic for CompileError {
                 expected: _,
                 actual: _,
             } => diagnostics::ExprDiagnostic {
+                code: "".to_string(),
+                range: diagnostics::get_range(source, span),
+                severity: Some(diagnostics::DiagnosisSeverity::ERROR),
+                message: format!("{self}"),
+            },
+            CompileError::NoCallee => diagnostics::ExprDiagnostic {
+                code: "".to_string(),
+                range: diagnostics::get_range(source, span),
+                severity: Some(diagnostics::DiagnosisSeverity::ERROR),
+                message: format!("{self}"),
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Error)]
+pub enum RuntimeError {
+    #[error("attempting to pop from an empty stack")]
+    EmptyStack,
+}
+
+impl diagnostics::AsDiagnostic for RuntimeError {
+    fn as_diagnostic(&self, source: &str, span: &Range<usize>) -> diagnostics::ExprDiagnostic {
+        match self {
+            RuntimeError::EmptyStack => diagnostics::ExprDiagnostic {
                 code: "".to_string(),
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),

@@ -248,7 +248,9 @@ fn main() -> ExprResult<()> {
                     continue;
                 }
 
-                let ast = ExprParser::new().parse(tokens);
+                let mut errs = vec![];
+
+                let ast = parse(&source);
 
                 match ast {
                     Ok(ast) => {
@@ -298,7 +300,9 @@ fn main() -> ExprResult<()> {
                                 }
                             }
                             Err(err) => {
-                                let diagnostics = get_diagnostics(&err, &source);
+                                errs.extend(err);
+
+                                let diagnostics = get_diagnostics(&errs, &source);
 
                                 let file = SimpleFile::new("expression", source);
 
@@ -310,7 +314,16 @@ fn main() -> ExprResult<()> {
                         }
                     }
                     Err(err) => {
-                        println!("{err:#?}");
+                        errs.extend(err);
+
+                        let diagnostics = get_diagnostics(&errs, &source);
+
+                        let file = SimpleFile::new("expression", source);
+
+                        for diagnostic in diagnostics {
+                            term::emit(&mut writer.lock(), &config, &file, &diagnostic)
+                                .expect("should emit diagnostics to term");
+                        }
                     }
                 }
             }

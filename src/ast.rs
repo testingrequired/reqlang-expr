@@ -8,6 +8,7 @@ pub enum Expr {
     Identifier(Box<ExprIdentifier>),
     Call(Box<ExprCall>),
     String(Box<ExprString>),
+    Error,
 }
 
 impl Expr {

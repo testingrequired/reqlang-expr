@@ -24,12 +24,11 @@ See [USAGE.md](./USAGE.md) and [examples](./examples/) for usage examples.
 [![Verify](https://github.com/testingrequired/reqlang-expr/actions/workflows/ci.yml/badge.svg)](https://github.com/testingrequired/reqlang-expr/actions/workflows/ci.yml)
 
 - [Lexer](./src/lexer.rs)
-- [Parser](./src/exprlang.lalrpop), [AST](./src/ast.rs)
+- [Parser](./src/parser.rs), [Grammar](./src/grammer.lalrpop), [AST](./src/ast.rs)
 - [Bytecode Compiler](./src/compiler.rs)
 - [VM interpreter](./src/vm.rs)
 - [Disassembler](./src/disassembler.rs)
 - [Types](./src/types.rs)
-- [CLI](./src/main.rs)
 - [REPL](#repl)
 - [Example Usage](./examples/)
 - [Specification Examples](./spec/)

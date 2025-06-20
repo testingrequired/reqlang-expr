@@ -10,12 +10,7 @@ fn main() -> ExprResult<()> {
 
     let source = read_in_source(args.path);
 
-    let lexer: Lexer<'_> = Lexer::new(&source);
-    let tokens = lexer.collect::<Vec<_>>();
-
-    let ast: Expr = ExprParser::new()
-        .parse(tokens)
-        .expect("should parse tokens to ast");
+    let ast: Expr = parse(&source).expect("should parse successfully");
 
     let env = CompileTimeEnv::new(args.vars, args.prompts, args.secrets, vec![]);
 

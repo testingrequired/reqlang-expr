@@ -13,17 +13,17 @@ lalrpop = "0.22.2"
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
+nu-ansi-term = "0.50.0"
+reedline = "0.40.0"
+clap = { version = "4.4.16", features = ["derive"] }
 
 [dependencies]
 logos = "0.15.0"
 lalrpop-util = { version = "0.22.2", features = ["lexer", "unicode"] }
 pastey = "0.1.0"
 iota = "0.2.3"
-clap = { version = "4.4.16", features = ["derive"] }
-reedline = "0.40.0"
 regex = "1.11.1"
 thiserror = "2"
 once_cell = "1.21.3"
 codespan-reporting = "0.12.0"
 line-col = "0.2.1"
-nu-ansi-term = "0.50.0"
