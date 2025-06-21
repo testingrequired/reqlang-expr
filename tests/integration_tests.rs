@@ -1893,6 +1893,92 @@ mod valid {
     }
 
     test! {
+        "(eq true true)";
+
+        scenario: eq true true;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("eq"), 3)),
+            Ok((4, Token::True, 8)),
+            Ok((9, Token::True, 13)),
+            Ok((13, Token::RParan, 14))
+        ];
+
+        ast should be: Ok(Expr::call(
+            (Expr::identifier("eq"), 1..3),
+            vec![
+                (Expr::bool(true), 4..8),
+                (Expr::bool(true), 9..13),
+            ]
+        ));
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::TRUE,
+                opcode::TRUE,
+                opcode::EQ,
+            ],
+            strings: vec![]
+        });
+
+        disassembles to: "0000 TRUE\n0001 TRUE\n0002 EQ\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(true));
+    }
+
+    test! {
+        "(eq false true)";
+
+        scenario: eq false true;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("eq"), 3)),
+            Ok((4, Token::False, 9)),
+            Ok((10, Token::True, 14)),
+            Ok((14, Token::RParan, 15))
+        ];
+
+        ast should be: Ok(Expr::call(
+            (Expr::identifier("eq"), 1..3),
+            vec![
+                (Expr::bool(false), 4..9),
+                (Expr::bool(true), 10..14),
+            ]
+        ));
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::FALSE,
+                opcode::TRUE,
+                opcode::EQ,
+            ],
+            strings: vec![]
+        });
+
+        disassembles to: "0000 FALSE\n0001 TRUE\n0002 EQ\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Bool(false));
+    }
+
+    test! {
         "(eq `foo` `foo`)";
 
         scenario: builtin eq same string;

@@ -1,0 +1,11 @@
+[
+    Ok(
+        (
+            0,
+            Identifier(
+                "?prompt_name",
+            ),
+            12,
+        ),
+    ),
+]

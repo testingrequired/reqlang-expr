@@ -70,14 +70,14 @@ See [/spec](./spec/) for more syntax examples.
 | `trim_end(value: String) -> String`                       | Trim whitespace from the end of a string        |
 | `lowercase(value: String) -> String`                      | Return a lowercase version of a string          |
 | `uppercase(value: String) -> String`                      | Return a uppercase version of a string          |
-| `eq(a: Value, b: Value) -> Bool`                          | Compare two values for equality                 |
 | `type(value: Value) -> String`                            | Get the string representation of a value's type |
 
 ### Operator Functions
 
-| Fn                         | Description                              |
-| -------------------------- | ---------------------------------------- |
-| `not(value: Bool) -> Bool` | Logical NOT operation on a boolean value |
+| Fn                               | Description                              |
+| -------------------------------- | ---------------------------------------- |
+| `eq(a: Value, b: Value) -> Bool` | Compare two values for equality          |
+| `not(value: Bool) -> Bool`       | Logical NOT operation on a boolean value |
 
 ### Why Backticks For Strings?
 

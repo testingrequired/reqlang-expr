@@ -21,7 +21,8 @@ pub mod opcode {
         CONSTANT,
         TRUE,
         FALSE,
-        NOT
+        NOT,
+        EQ
     }
 }
 
@@ -155,12 +156,6 @@ impl Default for CompileTimeEnv {
                     args: vec![FnArg::new("value", Type::String)],
                     return_type: Type::String,
                     func: Rc::new(BuiltinFns::uppercase),
-                }),
-                Rc::new(BuiltinFn {
-                    name: String::from("eq"),
-                    args: vec![FnArg::new("a", Type::Value), FnArg::new("b", Type::Value)],
-                    return_type: Type::Bool,
-                    func: Rc::new(BuiltinFns::eq),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("type"),
@@ -377,6 +372,49 @@ fn compile_expr(
             let identifier_name = expr_call.callee.0.identifier_name().unwrap_or_default();
 
             match identifier_name {
+                "eq" => {
+                    if expr_call.args.is_empty() {
+                        errs.push((
+                            ExprError::CompileError(WrongNumberOfArgs {
+                                expected: 2,
+                                actual: 0,
+                            }),
+                            span.clone(),
+                        ));
+                    } else if expr_call.args.len() > 2 {
+                        errs.push((
+                            ExprError::CompileError(WrongNumberOfArgs {
+                                expected: 2,
+                                actual: expr_call.args.len(),
+                            }),
+                            span.clone(),
+                        ));
+                    } else {
+                        let arg = expr_call.args.first().expect("should have first argument");
+
+                        match compile_expr(arg, env, strings) {
+                            Ok(arg_bytecode) => {
+                                codes.extend(arg_bytecode);
+                            }
+                            Err(err) => {
+                                errs.extend(err);
+                            }
+                        }
+
+                        let arg2 = expr_call.args.get(1).expect("should have second argument");
+
+                        match compile_expr(arg2, env, strings) {
+                            Ok(arg_bytecode) => {
+                                codes.extend(arg_bytecode);
+                            }
+                            Err(err) => {
+                                errs.extend(err);
+                            }
+                        }
+
+                        codes.push(opcode::EQ);
+                    }
+                }
                 "not" => {
                     if expr_call.args.is_empty() {
                         errs.push((
