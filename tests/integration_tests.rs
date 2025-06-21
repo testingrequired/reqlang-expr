@@ -36,13 +36,16 @@ macro_rules! test {
                     env.add_user_builtins(vec!$builtins);
                     env.add_to_client_context("intest");
 
-                    let ast = ::reqlang_expr::parser::parse(&$source);
-
-                    if let Ok(ast) = ast {
-                        let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env);
-                        let expected_op_codes: ::reqlang_expr::errors::ExprResult<ExprByteCode> = $expected_op_codes;
-                        ::pretty_assertions::assert_eq!(expected_op_codes, op_codes);
-                    }
+                    match ::reqlang_expr::parser::parse(&$source) {
+                        Ok(ast) => {
+                            let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env);
+                            let expected_op_codes: ::reqlang_expr::errors::ExprResult<ExprByteCode> = $expected_op_codes;
+                            ::pretty_assertions::assert_eq!(expected_op_codes, op_codes);
+                        }
+                        Err(err) => {
+                            ::pretty_assertions::assert_eq!($expected_op_codes, Err(err));
+                        }
+                    };
                 }
 
                 #[test]
@@ -72,22 +75,32 @@ macro_rules! test {
                     env.add_user_builtins(vec!$builtins);
                     let i = env.add_to_client_context("intest");
 
-                    let ast = ::reqlang_expr::parser::parse(&$source);
+                    match ::reqlang_expr::parser::parse(&$source) {
+                        Ok(ast) => {
+                            let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env);
 
-                    if let Ok(ast) = ast {
-                        if let Ok(op_codes) = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env) {
-                            let mut vm = Vm::new();
-                            let mut runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
+                            match op_codes {
+                                Ok(op_codes) => {
+                                    let mut vm = Vm::new();
+                                    let mut runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
 
-                            runtime_env.add_to_client_context(i, Value::Bool(true));
+                                    runtime_env.add_to_client_context(i, Value::Bool(true));
 
-                            let value = vm.interpret(op_codes.into(), &env, &runtime_env);
+                                    let value = vm.interpret(op_codes.into(), &env, &runtime_env);
 
-                            let expected_interpretation: ::reqlang_expr::errors::ExprResult<Value> = $expected_interpretation;
-
-                            ::pretty_assertions::assert_eq!(expected_interpretation, value);
+                                    let expected_interpretation: ::reqlang_expr::errors::ExprResult<Value> = $expected_interpretation;
+                                    ::pretty_assertions::assert_eq!(expected_interpretation, value);
+                                },
+                                Err(err) => {
+                                    let expected_interpretation: ::reqlang_expr::errors::ExprResult<Value> = $expected_interpretation;
+                                    ::pretty_assertions::assert_eq!(expected_interpretation, Err(err));
+                                }
+                            }
                         }
-                    }
+                        Err(err) => {
+                            ::pretty_assertions::assert_eq!($expected_op_codes, Err(err));
+                        }
+                    };
                 }
             }
         }
@@ -2065,10 +2078,13 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![],
-            strings: vec![]
-        });
+        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![(
+            SyntaxError::UnrecognizedToken {
+                token: String::from(")"),
+                expected: vec![r#""(""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string()]
+            }.into(),
+            1..2
+        )]);
 
         disassembles to: "";
 
@@ -2098,10 +2114,10 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![],
-            strings: vec![]
-        });
+        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![(
+            LexicalError::InvalidToken.into(),
+            0..0
+        )]);
 
         disassembles to: "";
 
@@ -2134,10 +2150,13 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![],
-            strings: vec![]
-        });
+        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![(
+            SyntaxError::UnrecognizedToken {
+                token: String::from("!bar"),
+                expected: vec![]
+            }.into(),
+            3..7
+        )]);
 
         disassembles to: "";
 
@@ -2170,10 +2189,13 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![],
-            strings: vec![]
-        });
+        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![(
+            SyntaxError::UnrecognizedToken {
+                token: String::from("bar"),
+                expected: vec![]
+            }.into(),
+            4..7
+        )]);
 
 
         disassembles to: "";
@@ -2203,12 +2225,10 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
-                opcode::CONSTANT, 0
-            ],
-            strings: vec![]
-        });
+        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![(
+            LexicalError::InvalidToken.into(),
+            0..0
+        )]);
 
         disassembles to: "";
 
@@ -2234,7 +2254,7 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Err(vec![(
+        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![(
             CompileError::Undefined("foo".to_string()).into(),
             0..3
         )]);
@@ -2245,7 +2265,10 @@ mod invalid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::String("...".to_string()));
+        interpets to: Err(vec![(
+            CompileError::Undefined("foo".to_string()).into(),
+            0..3
+        )]);
     }
 
     test! {
@@ -2279,7 +2302,7 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Err(vec![
+        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![
             (CompileError::Undefined("foo".to_string()).into(), 8..11),
             (CompileError::Undefined("foo".to_string()).into(), 12..15)
         ]);
@@ -2290,7 +2313,10 @@ mod invalid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::String("...".to_string()));
+        interpets to: Err(vec![
+            (CompileError::Undefined("foo".to_string()).into(), 8..11),
+            (CompileError::Undefined("foo".to_string()).into(), 12..15)
+        ]);
     }
 
     test! {
