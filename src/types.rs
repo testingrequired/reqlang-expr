@@ -80,6 +80,7 @@ impl From<Value> for Type {
                 }
             }
             Value::Bool(_) => Type::Bool,
+            Value::Type(ty) => *ty.clone(),
         }
     }
 }
@@ -91,6 +92,20 @@ mod from_tests {
     use crate::prelude::{BuiltinFn, FnArg};
 
     use super::*;
+
+    #[test]
+    fn test_from_type_value() {
+        let type_value = Value::Type(Type::String.into());
+        let ty: Type = type_value.into();
+        assert_eq!(Type::String, ty);
+    }
+
+    #[test]
+    fn test_get_type_type_value() {
+        let string_value = Value::Type(Type::String.into());
+        let ty: Type = string_value.get_type();
+        assert_eq!(Type::String, ty);
+    }
 
     #[test]
     fn test_from_string_value() {

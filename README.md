@@ -70,7 +70,7 @@ See [/spec](./spec/) for more syntax examples.
 | `trim_end(value: String) -> String`                       | Trim whitespace from the end of a string        |
 | `lowercase(value: String) -> String`                      | Return a lowercase version of a string          |
 | `uppercase(value: String) -> String`                      | Return a uppercase version of a string          |
-| `type(value: Value) -> String`                            | Get the string representation of a value's type |
+| `type(value: Value) -> Type`                              | Get the string representation of a value's type |
 
 ### Operator Functions
 

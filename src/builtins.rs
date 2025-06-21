@@ -263,7 +263,7 @@ impl BuiltinFns {
     pub fn get_type(args: Vec<Value>) -> Value {
         let value_arg = args.first().expect("should have first expression passed");
 
-        Value::String(value_arg.get_type().name())
+        Value::Type(value_arg.get_type().into())
     }
 }
 

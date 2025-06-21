@@ -1776,7 +1776,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::String("String".to_string()));
+        interpets to: Ok(Value::Type(Type::String.into()));
     }
 
     test! {
@@ -1792,7 +1792,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::String("Bool".to_string()));
+        interpets to: Ok(Value::Type(Type::Bool.into()));
     }
 
     test! {
@@ -1808,7 +1808,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::String("Bool".to_string()));
+        interpets to: Ok(Value::Type(Type::Bool.into()));
     }
 
     test! {
@@ -1824,7 +1824,15 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::String("Fn(Value) -> Value".to_string()));
+        interpets to: Ok(
+            Value::Type(
+                Type::Fn {
+                    args: vec![Type::Value],
+                    variadic_arg: None,
+                    returns: Type::Value.into()
+                }.into()
+            )
+        );
     }
 
     test! {
@@ -1840,7 +1848,15 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::String("Fn(String, String, ...String) -> String".to_string()));
+        interpets to: Ok(
+            Value::Type(
+                Type::Fn {
+                    args: vec![Type::String, Type::String],
+                    variadic_arg: Some(Type::String.into()),
+                    returns: Type::String.into()
+                }.into()
+            )
+        );
     }
 
     test! {

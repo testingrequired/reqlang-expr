@@ -72,6 +72,7 @@ pub enum Type {
         returns: Box<Type>,
     },
     Bool,
+    Unknown,
 }
 ```
 
@@ -168,11 +169,16 @@ The virtual machine (VM) takes in a runtime environment, evaluates a stream of b
 
 ### Values
 
-`Value` represent expression values. There are three types of values:
+`Value` represent expression values during runtime.
 
-- `String(String)`
-- `Bool(bool)`
-- `Fn(BuiltinFn)`
+```rust
+pub enum Value {
+    String(String),
+    Fn(Rc<BuiltinFn>),
+    Bool(bool),
+    Type(Box<Type>),
+}
+```
 
 See: [value.rs](./src/value.rs), [builtins.rs](./src/builtins.rs)
 
