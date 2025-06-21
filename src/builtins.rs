@@ -259,12 +259,6 @@ impl BuiltinFns {
 
         Value::String(string_arg.to_uppercase().to_string())
     }
-
-    pub fn get_type(args: Vec<Value>) -> Value {
-        let value_arg = args.first().expect("should have first expression passed");
-
-        Value::Type(value_arg.get_type().into())
-    }
 }
 
 #[cfg(test)]
