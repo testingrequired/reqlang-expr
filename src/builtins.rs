@@ -135,15 +135,6 @@ impl BuiltinFns {
         Value::Bool(string_arg.is_empty())
     }
 
-    pub fn not(args: Vec<Value>) -> Value {
-        let bool_arg = args
-            .first()
-            .expect("should have boolean expression passed")
-            .get_bool();
-
-        Value::Bool(!bool_arg)
-    }
-
     pub fn and(args: Vec<Value>) -> Value {
         let a_arg = args
             .first()

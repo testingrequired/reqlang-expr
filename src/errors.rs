@@ -6,6 +6,7 @@ use thiserror::Error;
 use crate::{
     lexer::Token,
     span::{Span, Spanned},
+    types::Type,
 };
 
 pub type ExprResult<T> = std::result::Result<T, Vec<ExprErrorS>>;
@@ -164,6 +165,8 @@ pub enum CompileError {
     WrongNumberOfArgs { expected: usize, actual: usize },
     #[error("call expression without a callee")]
     NoCallee,
+    #[error("expected type {expected} but received {actual}")]
+    TypeMismatch { expected: Type, actual: Type },
 }
 
 impl diagnostics::AsDiagnostic for CompileError {
@@ -185,6 +188,15 @@ impl diagnostics::AsDiagnostic for CompileError {
                 message: format!("{self}"),
             },
             CompileError::NoCallee => diagnostics::ExprDiagnostic {
+                code: "".to_string(),
+                range: diagnostics::get_range(source, span),
+                severity: Some(diagnostics::DiagnosisSeverity::ERROR),
+                message: format!("{self}"),
+            },
+            CompileError::TypeMismatch {
+                expected: _,
+                actual: _,
+            } => diagnostics::ExprDiagnostic {
                 code: "".to_string(),
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),

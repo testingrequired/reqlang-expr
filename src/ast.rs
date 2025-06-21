@@ -1,6 +1,6 @@
 //! Abstract syntax tree types
 
-use crate::span::Spanned;
+use crate::{span::Spanned, types::Type};
 
 #[derive(Debug, PartialEq)]
 pub enum Expr {
@@ -16,6 +16,13 @@ impl Expr {
         Self::Identifier(Box::new(ExprIdentifier::new(identifier)))
     }
 
+    pub fn identifier_name(&self) -> Option<&str> {
+        match self {
+            Expr::Identifier(expr_identifier) => Some(expr_identifier.name()),
+            _ => None,
+        }
+    }
+
     pub fn string(string: &str) -> Self {
         Self::String(ExprString::new(string).into())
     }
@@ -27,6 +34,20 @@ impl Expr {
     pub fn bool(value: bool) -> Self {
         Self::Bool(Box::new(ExprBool::new(value)))
     }
+
+    pub fn is_bool(&self) -> bool {
+        self.get_type() == Type::Bool
+    }
+
+    pub fn get_type(&self) -> Type {
+        match self {
+            Expr::Bool(_) => Type::Bool,
+            Expr::Identifier(_) => Type::Unknown,
+            Expr::Call(_) => Type::Unknown,
+            Expr::String(_) => Type::String,
+            Expr::Error => Type::Unknown,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -35,6 +56,10 @@ pub struct ExprIdentifier(pub String);
 impl ExprIdentifier {
     pub fn new(identifier: &str) -> Self {
         Self(identifier.to_string())
+    }
+
+    pub fn name(&self) -> &str {
+        &self.0
     }
 }
 

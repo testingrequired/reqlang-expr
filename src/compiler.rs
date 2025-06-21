@@ -20,7 +20,8 @@ pub mod opcode {
         GET,
         CONSTANT,
         TRUE,
-        FALSE
+        FALSE,
+        NOT
     }
 }
 
@@ -77,12 +78,6 @@ impl Default for CompileTimeEnv {
                     args: vec![FnArg::new("value", Type::String)],
                     return_type: Type::String,
                     func: Rc::new(BuiltinFns::is_empty),
-                }),
-                Rc::new(BuiltinFn {
-                    name: String::from("not"),
-                    args: vec![FnArg::new("value", Type::Bool)],
-                    return_type: Type::Bool,
-                    func: Rc::new(BuiltinFns::not),
                 }),
                 Rc::new(BuiltinFn {
                     name: String::from("and"),
@@ -379,63 +374,125 @@ fn compile_expr(
             }
         }
         Expr::Call(expr_call) => {
-            let callee_bytecode = compile_expr(&expr_call.callee, env, strings)?;
+            let identifier_name = expr_call.callee.0.identifier_name().unwrap_or_default();
 
-            if let Some(_op) = callee_bytecode.first() {
-                if let Some(lookup) = callee_bytecode.get(1) {
-                    if let Some(index) = callee_bytecode.get(2) {
-                        match *lookup {
-                            lookup::BUILTIN => {
-                                let builtin = env.get_builtin((*index).into()).unwrap();
+            match identifier_name {
+                "not" => {
+                    if expr_call.args.is_empty() {
+                        errs.push((
+                            ExprError::CompileError(WrongNumberOfArgs {
+                                expected: 1,
+                                actual: 0,
+                            }),
+                            span.clone(),
+                        ));
+                    } else if expr_call.args.len() > 1 {
+                        errs.push((
+                            ExprError::CompileError(WrongNumberOfArgs {
+                                expected: 1,
+                                actual: expr_call.args.len(),
+                            }),
+                            span.clone(),
+                        ));
 
-                                let call_arity: usize = expr_call.args.len();
+                        let arg = expr_call.args.first().expect("should have first argument");
 
-                                if !builtin.arity_matches(call_arity.try_into().unwrap()) {
-                                    errs.push((
-                                        ExprError::CompileError(WrongNumberOfArgs {
-                                            expected: builtin.arity() as usize,
-                                            actual: call_arity,
-                                        }),
-                                        span.clone(),
-                                    ));
+                        if !arg.0.is_bool() {
+                            errs.push((
+                                CompileError::TypeMismatch {
+                                    expected: Type::Bool,
+                                    actual: arg.0.get_type(),
+                                }
+                                .into(),
+                                arg.1.clone(),
+                            ));
+                        }
+                    } else {
+                        let arg = expr_call.args.first().expect("should have first argument");
+                        if !arg.0.is_bool() {
+                            errs.push((
+                                CompileError::TypeMismatch {
+                                    expected: Type::Bool,
+                                    actual: arg.0.get_type(),
+                                }
+                                .into(),
+                                arg.1.clone(),
+                            ));
+                        }
+
+                        match compile_expr(arg, env, strings) {
+                            Ok(arg_bytecode) => {
+                                codes.extend(arg_bytecode);
+                            }
+                            Err(err) => {
+                                errs.extend(err);
+                            }
+                        }
+
+                        codes.push(opcode::NOT);
+                    }
+                }
+                _ => {
+                    let callee_bytecode = compile_expr(&expr_call.callee, env, strings)?;
+
+                    if let Some(_op) = callee_bytecode.first() {
+                        if let Some(lookup) = callee_bytecode.get(1) {
+                            if let Some(index) = callee_bytecode.get(2) {
+                                match *lookup {
+                                    lookup::BUILTIN => {
+                                        let builtin = env.get_builtin((*index).into()).unwrap();
+
+                                        let call_arity: usize = expr_call.args.len();
+
+                                        if !builtin.arity_matches(call_arity.try_into().unwrap()) {
+                                            errs.push((
+                                                ExprError::CompileError(WrongNumberOfArgs {
+                                                    expected: builtin.arity() as usize,
+                                                    actual: call_arity,
+                                                }),
+                                                span.clone(),
+                                            ));
+                                        }
+                                    }
+                                    lookup::USER_BUILTIN => {
+                                        let builtin =
+                                            env.get_user_builtin((*index).into()).unwrap();
+
+                                        let call_arity: usize = expr_call.args.len();
+
+                                        if !builtin.arity_matches(call_arity.try_into().unwrap()) {
+                                            errs.push((
+                                                ExprError::CompileError(WrongNumberOfArgs {
+                                                    expected: builtin.arity() as usize,
+                                                    actual: call_arity,
+                                                }),
+                                                span.clone(),
+                                            ));
+                                        }
+                                    }
+                                    _ => {}
                                 }
                             }
-                            lookup::USER_BUILTIN => {
-                                let builtin = env.get_user_builtin((*index).into()).unwrap();
-
-                                let call_arity: usize = expr_call.args.len();
-
-                                if !builtin.arity_matches(call_arity.try_into().unwrap()) {
-                                    errs.push((
-                                        ExprError::CompileError(WrongNumberOfArgs {
-                                            expected: builtin.arity() as usize,
-                                            actual: call_arity,
-                                        }),
-                                        span.clone(),
-                                    ));
-                                }
-                            }
-                            _ => {}
                         }
                     }
+
+                    codes.extend(callee_bytecode);
+
+                    for arg in expr_call.args.iter() {
+                        match compile_expr(arg, env, strings) {
+                            Ok(arg_bytecode) => {
+                                codes.extend(arg_bytecode);
+                            }
+                            Err(err) => {
+                                errs.extend(err);
+                            }
+                        }
+                    }
+
+                    codes.push(opcode::CALL);
+                    codes.push(expr_call.args.len() as u8);
                 }
             }
-
-            codes.extend(callee_bytecode);
-
-            for arg in expr_call.args.iter() {
-                match compile_expr(arg, env, strings) {
-                    Ok(arg_bytecode) => {
-                        codes.extend(arg_bytecode);
-                    }
-                    Err(err) => {
-                        errs.extend(err);
-                    }
-                }
-            }
-
-            codes.push(opcode::CALL);
-            codes.push(expr_call.args.len() as u8);
         }
         Expr::Bool(value) => match value.0 {
             true => {

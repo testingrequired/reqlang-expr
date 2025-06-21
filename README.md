@@ -59,7 +59,6 @@ See [/spec](./spec/) for more syntax examples.
 | `id(value: Value) -> Value`                               | Returns the string arugment passed to it        |
 | `noop() -> String`                                        | Returns the string "noop"                       |
 | `is_empty(value: String) -> String`                       | Checks if the given string is empty             |
-| `not(value: Bool) -> Bool`                                | Logical NOT operation on a boolean value        |
 | `and(a: Bool, b: Bool) -> Bool`                           | Logical AND operation between two booleans      |
 | `or(a: Bool, b: Bool) -> Bool`                            | Logical OR operation between two booleans       |
 | `cond(cond: Bool, then: Value, else: Value) -> Bool`      | Conditional expression                          |
@@ -73,6 +72,12 @@ See [/spec](./spec/) for more syntax examples.
 | `uppercase(value: String) -> String`                      | Return a uppercase version of a string          |
 | `eq(a: Value, b: Value) -> Bool`                          | Compare two values for equality                 |
 | `type(value: Value) -> String`                            | Get the string representation of a value's type |
+
+### Operator Functions
+
+| Fn                         | Description                              |
+| -------------------------- | ---------------------------------------- |
+| `not(value: Bool) -> Bool` | Logical NOT operation on a boolean value |
 
 ### Why Backticks For Strings?
 

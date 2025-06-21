@@ -933,14 +933,13 @@ mod valid {
 
         compiles to: Ok(ExprByteCode {
             codes: vec![
-                opcode::GET, lookup::BUILTIN, 3,
                 opcode::FALSE,
-                opcode::CALL, 1
+                opcode::NOT
             ],
             strings: vec![]
         });
 
-        disassembles to: "0000 GET BUILTIN         3 == 'not'\n0003 FALSE\n0004 CALL             (1 args)\n";
+        disassembles to: "0000 FALSE\n0001 NOT\n";
 
         runtime env: {
             ..Default::default()
@@ -978,7 +977,7 @@ mod valid {
 
         compiles to: Ok(ExprByteCode {
             codes: vec![
-                opcode::GET, lookup::BUILTIN, 4,
+                opcode::GET, lookup::BUILTIN, 3,
                 opcode::TRUE,
                 opcode::FALSE,
                 opcode::CALL, 2
@@ -986,7 +985,7 @@ mod valid {
             strings: vec![]
         });
 
-        disassembles to: "0000 GET BUILTIN         4 == 'and'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         3 == 'and'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1024,7 +1023,7 @@ mod valid {
 
         compiles to: Ok(ExprByteCode {
             codes: vec![
-                opcode::GET, lookup::BUILTIN, 4,
+                opcode::GET, lookup::BUILTIN, 3,
                 opcode::TRUE,
                 opcode::TRUE,
                 opcode::CALL, 2
@@ -1032,7 +1031,7 @@ mod valid {
             strings: vec![]
         });
 
-        disassembles to: "0000 GET BUILTIN         4 == 'and'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         3 == 'and'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1070,14 +1069,14 @@ mod valid {
 
         compiles to: Ok(ExprByteCode {
             codes: vec![
-                opcode::GET, lookup::BUILTIN, 4,
+                opcode::GET, lookup::BUILTIN, 3,
                 opcode::FALSE, opcode::TRUE,
                 opcode::CALL, 2
             ],
             strings: vec![]
         });
 
-        disassembles to: "0000 GET BUILTIN         4 == 'and'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         3 == 'and'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1115,14 +1114,14 @@ mod valid {
 
         compiles to: Ok(ExprByteCode {
             codes: vec![
-                opcode::GET, lookup::BUILTIN, 5,
+                opcode::GET, lookup::BUILTIN, 4,
                 opcode::TRUE, opcode::FALSE,
                 opcode::CALL, 2
             ],
             strings: vec![]
         });
 
-        disassembles to: "0000 GET BUILTIN         5 == 'or'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         4 == 'or'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1160,14 +1159,14 @@ mod valid {
 
         compiles to: Ok(ExprByteCode {
             codes: vec![
-                opcode::GET, lookup::BUILTIN, 5,
+                opcode::GET, lookup::BUILTIN, 4,
                 opcode::TRUE, opcode::TRUE,
                 opcode::CALL, 2
             ],
             strings: vec![]
         });
 
-        disassembles to: "0000 GET BUILTIN         5 == 'or'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         4 == 'or'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1205,7 +1204,7 @@ mod valid {
 
         compiles to: Ok(ExprByteCode {
             codes: vec![
-                opcode::GET, lookup::BUILTIN, 5,
+                opcode::GET, lookup::BUILTIN, 4,
                 opcode::FALSE,
                 opcode::TRUE,
                 opcode::CALL, 2
@@ -1213,7 +1212,7 @@ mod valid {
             strings: vec![]
         });
 
-        disassembles to: "0000 GET BUILTIN         5 == 'or'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         4 == 'or'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1253,7 +1252,7 @@ mod valid {
 
         compiles to: Ok(ExprByteCode {
             codes: vec![
-                opcode::GET, lookup::BUILTIN, 6,
+                opcode::GET, lookup::BUILTIN, 5,
                 opcode::TRUE,
                 opcode::CONSTANT, 0,
                 opcode::CONSTANT, 1,
@@ -1265,7 +1264,7 @@ mod valid {
             ]
         });
 
-        disassembles to: "0000 GET BUILTIN         6 == 'cond'\n0003 TRUE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
+        disassembles to: "0000 GET BUILTIN         5 == 'cond'\n0003 TRUE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1305,7 +1304,7 @@ mod valid {
 
         compiles to: Ok(ExprByteCode {
             codes: vec![
-                opcode::GET, lookup::BUILTIN, 6,
+                opcode::GET, lookup::BUILTIN, 5,
                 opcode::FALSE,
                 opcode::CONSTANT, 0,
                 opcode::CONSTANT, 1,
@@ -1317,7 +1316,7 @@ mod valid {
             ]
         });
 
-        disassembles to: "0000 GET BUILTIN         6 == 'cond'\n0003 FALSE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
+        disassembles to: "0000 GET BUILTIN         5 == 'cond'\n0003 FALSE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1581,7 +1580,7 @@ mod valid {
 
         compiles to: Ok(ExprByteCode {
             codes: vec![
-                opcode::GET, lookup::BUILTIN, 9,
+                opcode::GET, lookup::BUILTIN, 8,
                 opcode::GET, lookup::VAR, 0,
                 opcode::GET, lookup::VAR, 1,
                 opcode::CALL, 2
@@ -1589,7 +1588,7 @@ mod valid {
             strings: vec![]
         });
 
-        disassembles to: "0000 GET BUILTIN         9 == 'contains'\n0003 GET VAR             0 == 'a'\n0006 GET VAR             1 == 'b'\n0009 CALL             (2 args)\n";
+        disassembles to: "0000 GET BUILTIN         8 == 'contains'\n0003 GET VAR             0 == 'a'\n0006 GET VAR             1 == 'b'\n0009 CALL             (2 args)\n";
 
         runtime env: {
             vars: vec!["foo".to_string(), "foobar".to_string()],
@@ -2373,5 +2372,208 @@ mod invalid {
             }.into(),
             19..19
         )]);
+    }
+
+    test! {
+        "(not)";
+
+        scenario: not called with zero args;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("not"), 4)),
+            Ok((4, Token::RParan, 5)),
+        ];
+
+        ast should be: Ok(Expr::Call(ExprCall {
+            callee: (Expr::identifier("not"), 1..4),
+            args: vec![]
+        }.into()));
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        compiles to: Err(vec![(
+            CompileError::WrongNumberOfArgs { expected: 1, actual: 0 }.into(),
+            0..5
+        )]);
+
+        disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Err(vec![(
+            CompileError::WrongNumberOfArgs { expected: 1, actual: 0 }.into(),
+            0..5
+        )]);
+    }
+
+    test! {
+        "(not true false)";
+
+        scenario: not called with to many args;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("not"), 4)),
+            Ok((5, Token::True, 9)),
+            Ok((10, Token::False, 15)),
+            Ok((15, Token::RParan, 16)),
+        ];
+
+        ast should be: Ok(Expr::Call(ExprCall {
+            callee: (Expr::identifier("not"), 1..4),
+            args: vec![
+                (Expr::bool(true), 5..9),
+                (Expr::bool(false), 10..15),
+            ]
+        }.into()));
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        compiles to: Err(vec![(
+            CompileError::WrongNumberOfArgs { expected: 1, actual: 2 }.into(),
+            0..16
+        )]);
+
+        disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Err(vec![(
+            CompileError::WrongNumberOfArgs { expected: 1, actual: 2 }.into(),
+            0..16
+        )]);
+    }
+
+    test! {
+        "(not `true`)";
+
+        scenario: not called with string arg;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("not"), 4)),
+            Ok((5, Token::String(String::from("true")), 11)),
+            Ok((11, Token::RParan, 12)),
+        ];
+
+        ast should be: Ok(Expr::Call(ExprCall {
+            callee: (Expr::identifier("not"), 1..4),
+            args: vec![
+                (Expr::string("true"), 5..11),
+            ]
+        }.into()));
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        compiles to: Err(vec![(
+            CompileError::TypeMismatch { expected: Type::Bool, actual: Type::String }.into(),
+            5..11
+        )]);
+
+        disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Err(vec![(
+            CompileError::TypeMismatch { expected: Type::Bool, actual: Type::String }.into(),
+            5..11
+        )]);
+    }
+
+    test! {
+        "(not true `true`)";
+
+        scenario: not called with bool then a string arg;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("not"), 4)),
+            Ok((5, Token::True, 9)),
+            Ok((10, Token::String(String::from("true")), 16)),
+            Ok((16, Token::RParan, 17)),
+        ];
+
+        ast should be: Ok(Expr::Call(ExprCall {
+            callee: (Expr::identifier("not"), 1..4),
+            args: vec![
+                (Expr::bool(true), 5..9),
+                (Expr::string("true"), 10..16),
+            ]
+        }.into()));
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        compiles to: Err(vec![(
+            CompileError::WrongNumberOfArgs { expected: 1, actual: 2 }.into(),
+            0..17
+        )]);
+
+        disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Err(vec![(
+            CompileError::WrongNumberOfArgs { expected: 1, actual: 2 }.into(),
+            0..17
+        )]);
+    }
+
+    test! {
+        "(not `true` true)";
+
+        scenario: not called with string then a bool arg;
+
+        tokens should be: vec![
+            Ok((0, Token::LParan, 1)),
+            Ok((1, Token::identifier("not"), 4)),
+            Ok((5, Token::String(String::from("true")), 11)),
+            Ok((12, Token::True, 16)),
+            Ok((16, Token::RParan, 17)),
+        ];
+
+        ast should be: Ok(Expr::Call(ExprCall {
+            callee: (Expr::identifier("not"), 1..4),
+            args: vec![
+                (Expr::string("true"), 5..11),
+                (Expr::bool(true), 12..16),
+            ]
+        }.into()));
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        compiles to: Err(vec![
+            (CompileError::WrongNumberOfArgs { expected: 1, actual: 2 }.into(), 0..17),
+            (CompileError::TypeMismatch { expected: Type::Bool, actual: Type::String }.into(), 5..11)
+        ]);
+
+        disassembles to: "";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Err(vec![
+            (CompileError::WrongNumberOfArgs { expected: 1, actual: 2 }.into(), 0..17),
+            (CompileError::TypeMismatch { expected: Type::Bool, actual: Type::String }.into(), 5..11)
+        ]);
     }
 }
