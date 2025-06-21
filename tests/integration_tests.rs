@@ -1,6 +1,6 @@
 macro_rules! test {
     (
-        $source:expr;
+        $source:tt;
         scenario: $test_name:ident $( $test_name2:ident)*;
         tokens should be: $expected_tokens:expr;
         ast should be: $expected_ast:expr;
@@ -108,7 +108,7 @@ macro_rules! test {
     };
 
     (
-        $source:expr;
+        $source:tt;
         scenario: $test_name:ident $( $test_name2:ident)*;
         env: $env:tt;
         user builtins: $builtins:tt;
