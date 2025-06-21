@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-cargo run --example repl -- $@
+cargo run -q --example repl -- $@
