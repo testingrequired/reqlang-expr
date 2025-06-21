@@ -8,7 +8,7 @@ A small (tiny) WIP expression language for [reqlang](https://github.com/testingr
 
 ```toml
 [dependencies]
-reqlang-expr = "0.6.0"
+reqlang-expr = "0.7.0"
 ```
 
 ```sh
@@ -236,7 +236,7 @@ cargo run -q --example disassembler -- spec/valid/call_id.expr
 #### stderr
 
 ```
-VERSION 0600
+VERSION 0700
 ----
 0000 GET BUILTIN         0 == 'id'
 0003 GET BUILTIN         1 == 'noop'

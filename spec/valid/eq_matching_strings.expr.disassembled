@@ -1,4 +1,4 @@
-VERSION 0600
+VERSION 0700
 ----
 0000 CONSTANT            0 == 'foo'
 0002 CONSTANT            0 == 'foo'

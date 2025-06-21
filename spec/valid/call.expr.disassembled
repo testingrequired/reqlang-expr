@@ -1,4 +1,4 @@
-VERSION 0600
+VERSION 0700
 ----
 0000 GET BUILTIN         1 == 'noop'
 0003 CALL             (0 args)

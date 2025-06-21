@@ -1,4 +1,4 @@
-VERSION 0600
+VERSION 0700
 ----
 0000 GET BUILTIN         0 == 'id'
 0003 GET BUILTIN         0 == 'id'
