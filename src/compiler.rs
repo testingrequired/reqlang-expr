@@ -334,6 +334,11 @@ fn compile_expr(
                             codes.push(GET);
                             codes.push(lookup::PROMPT);
                             codes.push(index);
+                        } else {
+                            errs.push((
+                                CompileError::Undefined(identifier_name.to_string()).into(),
+                                span.clone(),
+                            ));
                         }
                     }
                     "!" => {
@@ -341,6 +346,11 @@ fn compile_expr(
                             codes.push(GET);
                             codes.push(lookup::SECRET);
                             codes.push(index);
+                        } else {
+                            errs.push((
+                                CompileError::Undefined(identifier_name.to_string()).into(),
+                                span.clone(),
+                            ));
                         }
                     }
                     ":" => {
@@ -348,6 +358,11 @@ fn compile_expr(
                             codes.push(GET);
                             codes.push(lookup::VAR);
                             codes.push(index);
+                        } else {
+                            errs.push((
+                                CompileError::Undefined(identifier_name.to_string()).into(),
+                                span.clone(),
+                            ));
                         }
                     }
                     "@" => {
@@ -355,6 +370,11 @@ fn compile_expr(
                             codes.push(GET);
                             codes.push(lookup::CLIENT_CTX);
                             codes.push(index);
+                        } else {
+                            errs.push((
+                                CompileError::Undefined(identifier_name.to_string()).into(),
+                                span.clone(),
+                            ));
                         }
                     }
                     _ => {
@@ -378,6 +398,14 @@ fn compile_expr(
                             ExprError::CompileError(WrongNumberOfArgs {
                                 expected: 2,
                                 actual: 0,
+                            }),
+                            span.clone(),
+                        ));
+                    } else if expr_call.args.len() == 1 {
+                        errs.push((
+                            ExprError::CompileError(WrongNumberOfArgs {
+                                expected: 2,
+                                actual: 1,
                             }),
                             span.clone(),
                         ));
