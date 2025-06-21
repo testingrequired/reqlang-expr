@@ -261,13 +261,32 @@ impl CompileTimeEnv {
 /// The compiled bytecode for an expression
 #[derive(Debug, Clone, PartialEq)]
 pub struct ExprByteCode {
-    pub codes: Vec<u8>,
-    pub strings: Vec<String>,
+    version: [u8; 4],
+    codes: Vec<u8>,
+    strings: Vec<String>,
 }
 
 impl ExprByteCode {
     pub fn new(codes: Vec<u8>, strings: Vec<String>) -> Self {
-        Self { codes, strings }
+        let version_bytes = get_version_bytes();
+        let version_bytes_from_codes = &codes[0..4];
+
+        assert_eq!(
+            version_bytes, version_bytes_from_codes,
+            "Version bytes do not match"
+        );
+
+        let codes = codes[4..].to_vec();
+
+        Self {
+            version: version_bytes,
+            codes,
+            strings,
+        }
+    }
+
+    pub fn version(&self) -> &[u8; 4] {
+        &self.version
     }
 
     pub fn codes(&self) -> &[u8] {
@@ -279,10 +298,24 @@ impl ExprByteCode {
     }
 }
 
+pub fn get_version_bytes() -> [u8; 4] {
+    [
+        env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap(),
+        env!("CARGO_PKG_VERSION_MINOR").parse().unwrap(),
+        env!("CARGO_PKG_VERSION_PATCH").parse().unwrap(),
+        0,
+    ]
+}
+
 /// Compile an [`ast::Expr`] into [`ExprByteCode`]
 pub fn compile(expr: &ExprS, env: &CompileTimeEnv) -> ExprResult<ExprByteCode> {
     let mut strings: Vec<String> = vec![];
-    let codes = compile_expr(expr, env, &mut strings)?;
+    let mut codes = vec![];
+
+    codes.extend(get_version_bytes());
+
+    codes.extend(compile_expr(expr, env, &mut strings)?);
+
     Ok(ExprByteCode::new(codes, strings))
 }
 
@@ -602,4 +635,43 @@ fn compile_expr(
     }
 
     Ok(codes)
+}
+
+#[cfg(test)]
+mod compiler_tests {
+    use super::*;
+
+    #[test]
+    pub fn current_version_bytes() {
+        let version_bytes = get_version_bytes();
+
+        assert_eq!(version_bytes, [0, 6, 0, 0]);
+    }
+
+    #[test]
+    pub fn valid_bytecode_version_bytes() {
+        let mut codes = get_version_bytes().to_vec();
+        codes.push(opcode::TRUE);
+
+        ExprByteCode::new(codes.to_vec(), vec![]);
+    }
+
+    #[test]
+    #[should_panic(expected = "Version bytes do not match")]
+    pub fn invalid_bytecode_version_bytes() {
+        let mut codes: Vec<u8> = [0, 0, 0, 0].to_vec();
+        codes.push(opcode::TRUE);
+
+        ExprByteCode::new(codes.to_vec(), vec![]);
+    }
+
+    #[test]
+    pub fn get_version_bytes_from_bytecode() {
+        let mut codes = get_version_bytes().to_vec();
+        codes.push(opcode::TRUE);
+
+        let bytecode = ExprByteCode::new(codes.to_vec(), vec![]);
+
+        assert_eq!(bytecode.version(), &get_version_bytes());
+    }
 }

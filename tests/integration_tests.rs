@@ -1,3 +1,5 @@
+use reqlang_expr::prelude::get_version_bytes;
+
 macro_rules! test {
     (
         $source:tt;
@@ -159,6 +161,13 @@ macro_rules! test {
     };
 }
 
+fn make_test_bytecode(input: Vec<u8>) -> Vec<u8> {
+    let mut codes = get_version_bytes().to_vec();
+    codes.extend(input);
+
+    codes
+}
+
 mod valid {
     test! {
         "foo";
@@ -182,12 +191,12 @@ mod valid {
             }.into()
         ];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::USER_BUILTIN, 0
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n";
 
@@ -218,12 +227,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::CONSTANT, 0
-            ],
-            strings: vec!["test string".to_string()]
-        });
+            ]),
+            vec!["test string".to_string()]
+        ));
 
         disassembles to: "0000 CONSTANT            0 == 'test string'\n";
 
@@ -251,13 +260,13 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 1,
                 opcode::CALL, 0
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET BUILTIN         1 == 'noop'\n0003 CALL             (0 args)\n";
 
@@ -283,12 +292,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 1
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET BUILTIN         1 == 'noop'\n";
 
@@ -321,15 +330,15 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 0,
                 opcode::GET, lookup::BUILTIN, 1,
                 opcode::CALL, 0,
                 opcode::CALL, 1
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET BUILTIN         1 == 'noop'\n0006 CALL             (0 args)\n0008 CALL             (1 args)\n";
 
@@ -361,16 +370,16 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 0,
                 opcode::CONSTANT, 0,
                 opcode::CALL, 1
-            ],
-            strings: vec![
+            ]),
+            vec![
                 "test value".to_string(),
             ]
-        });
+        ));
 
         disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 CONSTANT            0 == 'test value'\n0005 CALL             (1 args)\n";
 
@@ -402,14 +411,14 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 0,
                 opcode::GET, lookup::VAR, 1,
                 opcode::CALL, 1
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET VAR             1 == 'b'\n0006 CALL             (1 args)\n";
 
@@ -447,8 +456,8 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 0,
 
                 opcode::GET, lookup::BUILTIN, 0,
@@ -456,9 +465,9 @@ mod valid {
                 opcode::CALL, 1,
 
                 opcode::CALL, 1
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET BUILTIN         0 == 'id'\n0006 GET VAR             1 == 'b'\n0009 CALL             (1 args)\n0011 CALL             (1 args)\n";
 
@@ -485,12 +494,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::VAR, 1
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET VAR             1 == 'b'\n";
 
@@ -518,12 +527,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::PROMPT, 1
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET PROMPT          1 == 'b'\n";
 
@@ -556,14 +565,14 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 0,
                 opcode::GET, lookup::PROMPT, 1,
                 opcode::CALL, 1
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET PROMPT          1 == 'b'\n0006 CALL             (1 args)\n";
 
@@ -591,12 +600,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::SECRET, 1
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET SECRET          1 == 'b'\n";
 
@@ -624,12 +633,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::CLIENT_CTX, 1
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET CLIENT_CTX      1 == 'b'\n";
 
@@ -667,13 +676,13 @@ mod valid {
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::USER_BUILTIN, 0,
                 opcode::CALL, 0
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 CALL             (0 args)\n";
 
@@ -710,14 +719,14 @@ mod valid {
             func: std::rc::Rc::new(|_| Value::String(String::new()))
         }.into()];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::USER_BUILTIN, 0,
                 opcode::GET, lookup::VAR, 0,
                 opcode::CALL, 1
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET VAR             0 == 'a'\n0006 CALL             (1 args)\n";
 
@@ -814,8 +823,8 @@ mod valid {
             }.into()
         ];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::USER_BUILTIN, 0,
                 opcode::GET, lookup::USER_BUILTIN, 1,
                 opcode::GET, lookup::VAR, 0,
@@ -827,9 +836,9 @@ mod valid {
                 opcode::GET, lookup::SECRET, 0,
                 opcode::CALL, 1,
                 opcode::CALL, 3
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET USER_BUILTIN    1 == 'bar'\n0006 GET VAR             0 == 'a'\n0009 CALL             (1 args)\n0011 GET USER_BUILTIN    2 == 'fiz'\n0014 GET PROMPT          0 == 'b'\n0017 CALL             (1 args)\n0019 GET USER_BUILTIN    3 == 'baz'\n0022 GET SECRET          0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
 
@@ -858,12 +867,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::TRUE
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 TRUE\n";
 
@@ -889,12 +898,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::FALSE
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 FALSE\n";
 
@@ -931,13 +940,13 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::FALSE,
                 opcode::NOT
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 FALSE\n0001 NOT\n";
 
@@ -975,15 +984,15 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 3,
                 opcode::TRUE,
                 opcode::FALSE,
                 opcode::CALL, 2
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET BUILTIN         3 == 'and'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
 
@@ -1021,15 +1030,15 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 3,
                 opcode::TRUE,
                 opcode::TRUE,
                 opcode::CALL, 2
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET BUILTIN         3 == 'and'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
@@ -1067,14 +1076,14 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 3,
                 opcode::FALSE, opcode::TRUE,
                 opcode::CALL, 2
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET BUILTIN         3 == 'and'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
@@ -1112,14 +1121,14 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 4,
                 opcode::TRUE, opcode::FALSE,
                 opcode::CALL, 2
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET BUILTIN         4 == 'or'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
 
@@ -1157,14 +1166,14 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 4,
                 opcode::TRUE, opcode::TRUE,
                 opcode::CALL, 2
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET BUILTIN         4 == 'or'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
@@ -1202,15 +1211,15 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 4,
                 opcode::FALSE,
                 opcode::TRUE,
                 opcode::CALL, 2
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET BUILTIN         4 == 'or'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
@@ -1250,19 +1259,19 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 5,
                 opcode::TRUE,
                 opcode::CONSTANT, 0,
                 opcode::CONSTANT, 1,
                 opcode::CALL, 3
-            ],
-            strings: vec![
+            ]),
+            vec![
                 "foo".to_string(),
                 "bar".to_string(),
             ]
-        });
+        ));
 
         disassembles to: "0000 GET BUILTIN         5 == 'cond'\n0003 TRUE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
 
@@ -1302,19 +1311,19 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 5,
                 opcode::FALSE,
                 opcode::CONSTANT, 0,
                 opcode::CONSTANT, 1,
                 opcode::CALL, 3
-            ],
-            strings: vec![
+            ]),
+            vec![
                 "foo".to_string(),
                 "bar".to_string(),
             ]
-        });
+        ));
 
         disassembles to: "0000 GET BUILTIN         5 == 'cond'\n0003 FALSE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
 
@@ -1578,15 +1587,15 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 8,
                 opcode::GET, lookup::VAR, 0,
                 opcode::GET, lookup::VAR, 1,
                 opcode::CALL, 2
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET BUILTIN         8 == 'contains'\n0003 GET VAR             0 == 'a'\n0006 GET VAR             1 == 'b'\n0009 CALL             (2 args)\n";
 
@@ -1876,12 +1885,12 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::CLIENT_CTX, 0
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET CLIENT_CTX      0 == 'intest'\n";
 
@@ -1933,14 +1942,14 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::TRUE,
                 opcode::TRUE,
                 opcode::EQ,
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 TRUE\n0001 TRUE\n0002 EQ\n";
 
@@ -1976,14 +1985,14 @@ mod valid {
 
         user builtins: [];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::FALSE,
                 opcode::TRUE,
                 opcode::EQ,
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 FALSE\n0001 TRUE\n0002 EQ\n";
 
@@ -2146,16 +2155,16 @@ mod valid {
             }.into()
         ];
 
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
                 opcode::GET, lookup::USER_BUILTIN, 0,
                 opcode::GET, lookup::USER_BUILTIN, 1,
                 opcode::GET, lookup::USER_BUILTIN, 2,
                 opcode::GET, lookup::USER_BUILTIN, 3,
                 opcode::CALL, 3
-            ],
-            strings: vec![]
-        });
+            ]),
+            vec![]
+        ));
 
         disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET USER_BUILTIN    1 == 'bar'\n0006 GET USER_BUILTIN    2 == 'fiz'\n0009 GET USER_BUILTIN    3 == 'baz'\n0012 CALL             (3 args)\n";
 

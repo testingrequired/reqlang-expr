@@ -267,6 +267,8 @@ impl Vm {
 
 #[cfg(test)]
 mod tests {
+    use crate::compiler::get_version_bytes;
+
     use super::*;
 
     #[test]
@@ -274,7 +276,10 @@ mod tests {
     fn test_invalid_opcode_99() {
         let mut vm = Vm::new();
 
-        let bytecode = Box::new(ExprByteCode::new(vec![99], vec![])); // 99 as invalid opcode
+        let mut codes = get_version_bytes().to_vec();
+        codes.push(99);
+
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![])); // 99 as invalid opcode
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 
@@ -287,7 +292,12 @@ mod tests {
     fn test_invalid_look_99() {
         let mut vm = Vm::new();
 
-        let bytecode = Box::new(ExprByteCode::new(vec![opcode::GET, 99, 0], vec![])); // 99 as invalid opcode
+        let mut codes = get_version_bytes().to_vec();
+        codes.push(opcode::GET);
+        codes.push(99);
+        codes.push(0);
+
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![])); // 99 as invalid opcode
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 

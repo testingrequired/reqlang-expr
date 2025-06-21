@@ -82,6 +82,14 @@ See: [types.rs](./src/types.rs)
 
 The compiler produces bytecode from an AST and a [compile time environment](#compile-time-environment).
 
+### Bytecode
+
+The compiler produces bytecode from an AST in the form of vector of [op codes](#op-codes).
+
+#### Version Byte Prefix
+
+Valid bytecode will always begin with 4 bytes representing the current language version. This means op codes start at ip/index 4.
+
 ### Op Codes
 
 | Op Code    | Op Byte | Args                             | Description                                                            |

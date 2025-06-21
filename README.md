@@ -95,7 +95,7 @@ These expressions will be embedded in places where double quotes are common (e.g
 Lex an expression in to a list of tokens.
 
 ```sh
-cargo run -q --example lexer spec/call_with_args.expr
+cargo run -q --example lexer spec/valid/call_id.expr
 ```
 
 #### stderr
@@ -129,17 +129,15 @@ cargo run -q --example lexer spec/call_with_args.expr
         (
             5,
             Identifier(
-                "id",
+                "noop",
             ),
-            7,
+            9,
         ),
     ),
     Ok(
         (
-            8,
-            Identifier(
-                ":a",
-            ),
+            9,
+            RParan,
             10,
         ),
     ),
@@ -148,13 +146,6 @@ cargo run -q --example lexer spec/call_with_args.expr
             10,
             RParan,
             11,
-        ),
-    ),
-    Ok(
-        (
-            11,
-            RParan,
-            12,
         ),
     ),
 ]
@@ -165,50 +156,43 @@ cargo run -q --example lexer spec/call_with_args.expr
 Parse an expression into an AST.
 
 ```sh
-cargo run -q --example parser spec/call_with_args.expr
+cargo run -q --example parser spec/valid/call_id.expr
 ```
 
 #### stderr
 
 ```
-Call(
-    ExprCall {
-        callee: (
-            Identifier(
-                ExprIdentifier(
-                    "id",
+Ok(
+    Call(
+        ExprCall {
+            callee: (
+                Identifier(
+                    ExprIdentifier(
+                        "id",
+                    ),
                 ),
+                1..3,
             ),
-            1..3,
-        ),
-        args: [
-            (
-                Call(
-                    ExprCall {
-                        callee: (
-                            Identifier(
-                                ExprIdentifier(
-                                    "id",
-                                ),
-                            ),
-                            5..7,
-                        ),
-                        args: [
-                            (
+            args: [
+                (
+                    Call(
+                        ExprCall {
+                            callee: (
                                 Identifier(
                                     ExprIdentifier(
-                                        ":a",
+                                        "noop",
                                     ),
                                 ),
-                                8..10,
+                                5..9,
                             ),
-                        ],
-                    },
+                            args: [],
+                        },
+                    ),
+                    4..10,
                 ),
-                4..11,
-            ),
-        ],
-    },
+            ],
+        },
+    ),
 )
 ```
 
@@ -217,8 +201,8 @@ Call(
 Compile an expression into bytecode to stdout.
 
 ```sh
-cargo run -q --example compiler -- spec/call_with_args.expr \
-    --vars a \
+cargo run -q --example compiler -- spec/valid/variable.expr \
+    --vars b \
     > output.exprbin
 ```
 
@@ -228,19 +212,10 @@ cargo run -q --example compiler -- spec/call_with_args.expr \
 ExprByteCode {
     codes: [
         1,
-        0,
-        0,
         1,
         0,
-        0,
-        1,
-        1,
-        0,
-        0,
-        1,
-        0,
-        1,
     ],
+    strings: [],
 }
 ```
 
@@ -255,18 +230,16 @@ ExprByteCode {
 Compile expression and disassemble it.
 
 ```sh
-cargo run -q --example disassembler -- spec/call_id_with_id_arg.expr
+cargo run -q --example disassembler -- spec/valid/call_id.expr
 ```
 
 #### stderr
 
 ```
 0000 GET BUILTIN         0 == 'id'
-0003 GET BUILTIN         0 == 'id'
-0006 GET BUILTIN         1 == 'noop'
-0009 CALL             (0 args)
-0011 CALL             (1 args)
-0013 CALL             (1 args)
+0003 GET BUILTIN         1 == 'noop'
+0006 CALL             (0 args)
+0008 CALL             (1 args)
 ```
 
 ### Interpreter
@@ -274,14 +247,15 @@ cargo run -q --example disassembler -- spec/call_id_with_id_arg.expr
 Interpret an expression.
 
 ```sh
-cargo run -q --example interpreter -- spec/variable.expr \
-    --vars b=b_value
+cargo run -q --example interpreter -- spec/valid/greeting_name.expr \
+    --vars greeting=Hello \
+    --prompts name=World
 ```
 
 #### stdout
 
 ```
-`b_value`
+`Hello World`
 ```
 
 ### REPL
