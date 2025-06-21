@@ -1,0 +1,3 @@
+0000 CONSTANT            0 == 'foo'
+0002 CONSTANT            0 == 'foo'
+0004 EQ
