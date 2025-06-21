@@ -6,8 +6,7 @@ fn main() {
 
     let source = read_in_source(args.path);
 
-    let lexer: Lexer<'_> = Lexer::new(&source);
-    let tokens = lexer.collect::<Vec<_>>();
+    let tokens = lex(&source);
 
     eprintln!("{tokens:#?}");
 }

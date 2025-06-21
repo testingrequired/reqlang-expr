@@ -34,8 +34,7 @@ The lexer takes an input string and returns a stream of tokens.
 
 ```rust
 let source = "(noop)";
-let lexer: Lexer<'_> = Lexer::new(&source);
-let tokens = lexer.collect::<Vec<_>>();
+let tokens: lex(&source);
 ```
 
 See: [lexer.rs](./src/lexer.rs)

@@ -240,10 +240,8 @@ fn main() -> ExprResult<()> {
                     continue;
                 }
 
-                let lexer: Lexer<'_> = Lexer::new(&source);
-                let tokens = lexer.collect::<Vec<_>>();
-
                 if repl_mode == ReplMode::Lex {
+                    let tokens = lex(&source);
                     println!("{tokens:#?}");
                     continue;
                 }

@@ -8,6 +8,14 @@ use crate::{
     span::Spanned,
 };
 
+/// Parse source code in to a list of [`Token`].
+pub fn lex(source: &str) -> Vec<Result<(usize, Token, usize), ExprErrorS>> {
+    let lexer: Lexer<'_> = Lexer::new(&source);
+    let tokens: Vec<Result<(usize, Token, usize), ExprErrorS>> = lexer.collect::<Vec<_>>();
+
+    tokens
+}
+
 /// Converts a [`String`] source in to a vector of [`Token`]
 #[derive(Debug)]
 pub struct Lexer<'a> {

@@ -1,9 +1,11 @@
+//! Parsing source code in to expressions
+
 use lalrpop_util::lalrpop_mod;
 
 use crate::{
     ast,
     errors::{ExprResult, SyntaxError},
-    lexer::Lexer,
+    lexer::lex,
     parser::grammar::ExprParser,
 };
 
@@ -11,8 +13,7 @@ lalrpop_mod!(grammar);
 
 /// Parse source code in to an [`ast::Expr`].
 pub fn parse(source: &str) -> ExprResult<ast::Expr> {
-    let lexer: Lexer<'_> = Lexer::new(&source);
-    let tokens = lexer.collect::<Vec<_>>();
+    let tokens = lex(source);
 
     let mut errs = vec![];
 

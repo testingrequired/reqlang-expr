@@ -17,7 +17,7 @@ macro_rules! test {
 
                 #[test]
                 fn [< $test_name:lower $(_ $test_name2:lower)* _tokens >]() {
-                    let tokens = ::reqlang_expr::lexer::Lexer::new($source).collect::<Vec<_>>();
+                    let tokens = ::reqlang_expr::lexer::lex($source);
 
                     ::pretty_assertions::assert_eq!($expected_tokens, tokens);
                 }
