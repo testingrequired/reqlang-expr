@@ -469,6 +469,8 @@ These CLI arguments work the same as the other reqlang-expr CLIs
 --client-context <CLIENT_CONTEXT>...  List of indexed client context names
 ```
 
+##### Example
+
 [`./spec/greeting_name.expr`](./spec/greeting_name.expr)
 
 ```
