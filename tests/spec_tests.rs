@@ -33,7 +33,7 @@ fn spec_files_disassembled(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResu
         let expected_disassembled =
             read_to_string(expected_disassembled_path).expect("should be able to read file");
 
-        let (args, expected_interpreted) = if let Some((i, _)) = expected_disassembled
+        let (args, expected_disassembled) = if let Some((i, _)) = expected_disassembled
             .lines()
             .next()
             .filter(|line| line.starts_with("//"))
@@ -64,13 +64,22 @@ fn spec_files_disassembled(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResu
 
         let env = CompileTimeEnv::new(var_keys, prompt_keys, secret_keys, client_context_keys);
 
-        let ast = parse(&expr_source)?;
-        let bytecode = compile(&(ast, 0..expr_source.len()), &env)?;
+        match parse(&expr_source) {
+            Ok(ast) => match compile(&(ast, 0..expr_source.len()), &env) {
+                Ok(bytecode) => {
+                    let disassemble = Disassembler::new(&bytecode, &env);
+                    let disassembly = disassemble.disassemble();
 
-        let disassemble = Disassembler::new(&bytecode, &env);
-        let disassembly = disassemble.disassemble();
-
-        pretty_assertions::assert_eq!(disassembly, expected_interpreted);
+                    pretty_assertions::assert_eq!(disassembly, expected_disassembled);
+                }
+                Err(err) => {
+                    pretty_assertions::assert_eq!(format!("{err:#?}"), expected_disassembled);
+                }
+            },
+            Err(err) => {
+                pretty_assertions::assert_eq!(format!("{err:#?}"), expected_disassembled);
+            }
+        }
     }
 
     Ok(())
@@ -116,24 +125,41 @@ fn spec_files_interpreted(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResul
 
         let env = CompileTimeEnv::new(var_keys, prompt_keys, secret_keys, client_context_keys);
 
-        let ast = parse(&expr_source)?;
-        let bytecode = compile(&(ast, 0..expr_source.len()), &env)?;
+        match parse(&expr_source) {
+            Ok(ast) => match compile(&(ast, 0..expr_source.len()), &env) {
+                Ok(bytecode) => {
+                    let mut vm = Vm::new();
 
-        let mut vm = Vm::new();
+                    let runtime_env: RuntimeEnv = RuntimeEnv {
+                        vars: var_values,
+                        prompts: prompt_values,
+                        secrets: secret_values,
+                        client_context: client_context_values
+                            .iter()
+                            .map(|string_value| Value::String(string_value.clone()))
+                            .collect(),
+                    };
 
-        let runtime_env: RuntimeEnv = RuntimeEnv {
-            vars: var_values,
-            prompts: prompt_values,
-            secrets: secret_values,
-            client_context: client_context_values
-                .iter()
-                .map(|string_value| Value::String(string_value.clone()))
-                .collect(),
-        };
-
-        let value = vm.interpret(bytecode.into(), &env, &runtime_env)?;
-
-        pretty_assertions::assert_eq!(value.to_string(), expected_interpreted);
+                    match vm.interpret(bytecode.into(), &env, &runtime_env) {
+                        Ok(value) => {
+                            pretty_assertions::assert_eq!(value.to_string(), expected_interpreted);
+                        }
+                        Err(err) => {
+                            pretty_assertions::assert_eq!(
+                                format!("{err:#?}"),
+                                expected_interpreted
+                            );
+                        }
+                    }
+                }
+                Err(err) => {
+                    pretty_assertions::assert_eq!(format!("{err:#?}"), expected_interpreted);
+                }
+            },
+            Err(err) => {
+                pretty_assertions::assert_eq!(format!("{err:#?}"), expected_interpreted);
+            }
+        }
     }
 
     Ok(())

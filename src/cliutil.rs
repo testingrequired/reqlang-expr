@@ -103,7 +103,7 @@ where
 /// ```
 /// use reqlang_expr::cliutil::read_in_source;
 ///
-/// let source_code = read_in_source(Some("./spec/call_id.expr".to_string()));
+/// let source_code = read_in_source(Some("./spec/valid/call_id.expr".to_string()));
 ///
 /// assert_eq!("(id (noop))", source_code);
 /// ```

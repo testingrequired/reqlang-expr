@@ -1,0 +1,10 @@
+[
+    (
+        CompileError(
+            Undefined(
+                "a",
+            ),
+        ),
+        0..1,
+    ),
+]
