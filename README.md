@@ -452,7 +452,7 @@ A suite of programmatic tests that validate the behavior of the lexer, parser, c
 
 ### Specification Tests
 
-These tests read in `*.expr` files in the `spec/` directory and compare the output against their corrosponding expected result files (e.g. `*.expr.tokens`, `*.expr.interpreted`, `*.expr.disasssembled`).
+These tests read in `*.expr` files in the `spec/` directory and compare the output against their corrosponding expected result files (e.g. `*.expr.tokens`, `*.expr.interpreted`, `*.expr.disasssembled`). These spec files are split between valid and invalid examples.
 
 [./tests/spec_tests.rs](./tests/spec_tests.rs)
 
@@ -469,17 +469,41 @@ These CLI arguments work the same as the other reqlang-expr CLIs
 --client-context <CLIENT_CONTEXT>...  List of indexed client context names
 ```
 
-##### Example
+##### Valid Example
 
-[`./spec/greeting_name.expr`](./spec/greeting_name.expr)
+[`./spec/valid/greeting_name.expr`](./spec/valid/greeting_name.expr)
 
 ```
 (concat :greeting ` ` ?name)
 ```
 
-[`./spec/greeting_name.expr.interpreted`](./spec/greeting_name.expr.interpreted)
+[`./spec/valid/greeting_name.expr.interpreted`](./spec/valid/greeting_name.expr.interpreted)
 
 ```
 //--vars greeting=Hello --prompts name=World
 `Hello World`
+```
+
+##### Invalid Example
+
+[`./spec/invalid/eq_no_args.expr`](./spec/invalid/eq_no_args.expr)
+
+```
+(eq)
+```
+
+[`./spec/invalid/eq_no_args.expr.interpreted`](./spec/invalid/eq_no_args.expr.interpreted)
+
+```
+[
+    (
+        CompileError(
+            WrongNumberOfArgs {
+                expected: 2,
+                actual: 0,
+            },
+        ),
+        0..4,
+    ),
+]
 ```
