@@ -1,0 +1,11 @@
+[
+    (
+        CompileError(
+            WrongNumberOfArgs {
+                expected: 2,
+                actual: 3,
+            },
+        ),
+        0..20,
+    ),
+]
