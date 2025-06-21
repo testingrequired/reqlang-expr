@@ -32,7 +32,7 @@ See [USAGE.md](./USAGE.md) and [examples](./examples/) for usage examples.
 - [REPL](#repl)
 - [Example Usage](./examples/)
 - [Specification Examples](./spec/)
-- [Tests](./tests/integration_tests.rs)
+- [Tests](#tests)
 
 ## Syntax
 
@@ -440,4 +440,44 @@ interpret   > /exit
 interpret   > (id :foo)
 
 `bar`
+```
+
+## Tests
+
+### Integration Tests
+
+A suite of programimatic tests that validate the behavior of the lexer, parser, compiler, disassembler, and VM.
+
+[./tests/integration_tests.rs](./tests/integration_tests.rs)
+
+### Specification Tests
+
+These tests read in `*.expr` files in the `spec/` directory and compare the output against their corrosponding expected result files (e.g. `*.expr.tokens`, `*.expr.interpreted`, `*.expr.disasssembled`).
+
+[./tests/spec_tests.rs](./tests/spec_tests.rs)
+
+#### Compiler and Runtime Environments
+
+The expected result files `*.expr.interpreted`, `*.expr.disasssembled` accept a CLI formatted list of arguments from the first line. The frist line must be prefixed with `//`. The arguments are passed to the compiler and VM.
+
+These CLI arguments work the same as the other reqlang-expr CLIs
+
+```
+--vars <VARS>...                      List of indexed variable names
+--prompts <PROMPTS>...                List of indexed prompt names
+--secrets <SECRETS>...                List of indexed secret names
+--client-context <CLIENT_CONTEXT>...  List of indexed client context names
+```
+
+[`./spec/greeting_name.expr`](./spec/greeting_name.expr)
+
+```
+(concat :greeting ` ` ?name)
+```
+
+[`./spec/greeting_name.expr.interpreted`](./spec/greeting_name.expr.interpreted)
+
+```
+//--vars greeting=Hello --prompts name=World
+`Hello World`
 ```
