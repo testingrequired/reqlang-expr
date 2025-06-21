@@ -1,0 +1,3 @@
+0000 GET BUILTIN        14 == 'type'
+0003 GET BUILTIN         0 == 'id'
+0006 CALL             (1 args)
