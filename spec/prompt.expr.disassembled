@@ -1,0 +1,2 @@
+//--prompts prompt_name=foo
+0000 GET PROMPT          0 == 'prompt_name'

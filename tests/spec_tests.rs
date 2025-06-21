@@ -23,6 +23,60 @@ fn spec_files_tokens(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResult<()>
 }
 
 #[rstest]
+fn spec_files_disassembled(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResult<()> {
+    let expected_disassembled_path = path.with_extension("expr.disassembled");
+    let expr_source = read_to_string(path).expect("should be able to read file");
+
+    if expected_disassembled_path.exists() {
+        use reqlang_expr::disassembler::Disassembler;
+
+        let expected_disassembled =
+            read_to_string(expected_disassembled_path).expect("should be able to read file");
+
+        let (args, expected_interpreted) = if let Some((i, _)) = expected_disassembled
+            .lines()
+            .next()
+            .filter(|line| line.starts_with("//"))
+            .and_then(|line| Some((line.len() + 1, line)))
+        {
+            expected_disassembled.split_at(i)
+        } else {
+            ("", expected_disassembled.as_str())
+        };
+
+        let args = if args.is_empty() {
+            vec![]
+        } else {
+            let args: Vec<&str> = args[2..].trim().split_whitespace().collect();
+            let mut args_with_empty_prefix = Vec::with_capacity(args.len() + 1);
+            args_with_empty_prefix.push("");
+            args_with_empty_prefix.extend(args);
+
+            args_with_empty_prefix
+        };
+
+        let args = Args::try_parse_from(args).expect("should parse args");
+
+        let (var_keys, _) = unzip_key_values(args.vars);
+        let (prompt_keys, _) = unzip_key_values(args.prompts);
+        let (secret_keys, _) = unzip_key_values(args.secrets);
+        let (client_context_keys, _) = unzip_key_values(args.client_context);
+
+        let env = CompileTimeEnv::new(var_keys, prompt_keys, secret_keys, client_context_keys);
+
+        let ast = parse(&expr_source)?;
+        let bytecode = compile(&(ast, 0..expr_source.len()), &env)?;
+
+        let disassemble = Disassembler::new(&bytecode, &env);
+        let disassembly = disassemble.disassemble();
+
+        pretty_assertions::assert_eq!(disassembly, expected_interpreted);
+    }
+
+    Ok(())
+}
+
+#[rstest]
 fn spec_files_interpreted(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResult<()> {
     let expected_iterpreted_path = path.with_extension("expr.interpreted");
     let expr_source = read_to_string(path).expect("should be able to read file");
