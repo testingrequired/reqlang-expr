@@ -98,7 +98,8 @@ macro_rules! test {
                             }
                         }
                         Err(err) => {
-                            ::pretty_assertions::assert_eq!($expected_op_codes, Err(err));
+                            let expected_op_codes: ::reqlang_expr::errors::ExprResult<ExprByteCode> = $expected_op_codes;
+                            ::pretty_assertions::assert_eq!(expected_op_codes, Err(err));
                         }
                     };
                 }
@@ -1934,51 +1935,6 @@ mod valid {
 
         interpets to: Ok(Value::Bool(false));
     }
-}
-
-mod invalid {
-    test! {
-        "foo";
-
-        scenario: identifier;
-
-        tokens should be: vec![
-            Ok((0, Token::identifier("foo"), 3))
-        ];
-
-        ast should be: Ok(Expr::identifier("foo"));
-
-        env: (vec![], vec![], vec![], vec![]);
-
-        user builtins: [
-            BuiltinFn {
-                name: "foo".to_string(),
-                args: vec![],
-                return_type: Type::String,
-                func: std::rc::Rc::new(|_| Value::String(String::new()))
-            }.into()
-        ];
-
-        compiles to: Ok(ExprByteCode {
-            codes: vec![
-                opcode::GET, lookup::USER_BUILTIN, 0
-            ],
-            strings: vec![]
-        });
-
-        disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n";
-
-        runtime env: {
-            ..Default::default()
-        };
-
-        interpets to: Ok(Value::Fn(BuiltinFn {
-                name: "foo".to_string(),
-                args: vec![],
-                return_type: Type::String,
-                func: std::rc::Rc::new(|_| Value::String(String::new()))
-            }.into()));
-    }
 
     test! {
         "(foo bar fiz baz)";
@@ -2055,6 +2011,51 @@ mod invalid {
 
         interpets to: Ok(Value::String("".to_string()));
     }
+}
+
+mod invalid {
+    test! {
+        "foo";
+
+        scenario: identifier;
+
+        tokens should be: vec![
+            Ok((0, Token::identifier("foo"), 3))
+        ];
+
+        ast should be: Ok(Expr::identifier("foo"));
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [
+            BuiltinFn {
+                name: "foo".to_string(),
+                args: vec![],
+                return_type: Type::String,
+                func: std::rc::Rc::new(|_| Value::String(String::new()))
+            }.into()
+        ];
+
+        compiles to: Ok(ExprByteCode {
+            codes: vec![
+                opcode::GET, lookup::USER_BUILTIN, 0
+            ],
+            strings: vec![]
+        });
+
+        disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Fn(BuiltinFn {
+                name: "foo".to_string(),
+                args: vec![],
+                return_type: Type::String,
+                func: std::rc::Rc::new(|_| Value::String(String::new()))
+            }.into()));
+    }
 
     test! {
         "()";
@@ -2078,7 +2079,7 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![(
+        compiles to: ExprResult::<ExprByteCode>::Err(vec![(
             SyntaxError::UnrecognizedToken {
                 token: String::from(")"),
                 expected: vec![r#""(""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string()]
@@ -2114,7 +2115,7 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![(
+        compiles to: ExprResult::<ExprByteCode>::Err(vec![(
             LexicalError::InvalidToken.into(),
             0..0
         )]);
@@ -2150,7 +2151,7 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![(
+        compiles to: ExprResult::<ExprByteCode>::Err(vec![(
             SyntaxError::UnrecognizedToken {
                 token: String::from("!bar"),
                 expected: vec![]
@@ -2189,7 +2190,7 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![(
+        compiles to: ExprResult::<ExprByteCode>::Err(vec![(
             SyntaxError::UnrecognizedToken {
                 token: String::from("bar"),
                 expected: vec![]
@@ -2225,7 +2226,7 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![(
+        compiles to: ExprResult::<ExprByteCode>::Err(vec![(
             LexicalError::InvalidToken.into(),
             0..0
         )]);
@@ -2254,7 +2255,7 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![(
+        compiles to: ExprResult::<ExprByteCode>::Err(vec![(
             CompileError::Undefined("foo".to_string()).into(),
             0..3
         )]);
@@ -2302,7 +2303,7 @@ mod invalid {
 
         user builtins: [];
 
-        compiles to: Err::<ExprByteCode, Vec<(ExprError, std::ops::Range<usize>)>>(vec![
+        compiles to: ExprResult::<ExprByteCode>::Err(vec![
             (CompileError::Undefined("foo".to_string()).into(), 8..11),
             (CompileError::Undefined("foo".to_string()).into(), 12..15)
         ]);
