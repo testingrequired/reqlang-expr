@@ -236,6 +236,8 @@ cargo run -q --example disassembler -- spec/valid/call_id.expr
 #### stderr
 
 ```
+VERSION 0600
+----
 0000 GET BUILTIN         0 == 'id'
 0003 GET BUILTIN         1 == 'noop'
 0006 CALL             (0 args)

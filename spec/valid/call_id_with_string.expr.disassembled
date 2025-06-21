@@ -1,3 +1,5 @@
+VERSION 0600
+----
 0000 GET BUILTIN         0 == 'id'
 0003 CONSTANT            0 == 'test'
 0005 CALL             (1 args)

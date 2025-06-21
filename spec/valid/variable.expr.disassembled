@@ -1,2 +1,4 @@
 //--vars b=foo
+VERSION 0600
+----
 0000 GET VAR             0 == 'b'

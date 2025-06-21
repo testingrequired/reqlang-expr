@@ -1,2 +1,4 @@
 //--prompts prompt_name=foo
+VERSION 0600
+----
 0000 GET PROMPT          0 == 'prompt_name'

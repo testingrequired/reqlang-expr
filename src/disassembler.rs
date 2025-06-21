@@ -21,6 +21,16 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
 
         let mut op_idx = 0;
 
+        out.push_str(&format!(
+            "VERSION {}\n----\n",
+            self.bytecode
+                .version()
+                .iter()
+                .map(|byte| byte.to_string())
+                .collect::<Vec<String>>()
+                .join("")
+        ));
+
         while op_idx < self.bytecode.codes().len() {
             let (op_byte_size, disassembled_byte_idx, disassembled_op) =
                 self.disassemble_op(op_idx);

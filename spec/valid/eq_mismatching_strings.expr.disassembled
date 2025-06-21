@@ -1,3 +1,5 @@
+VERSION 0600
+----
 0000 CONSTANT            0 == 'foo'
 0002 CONSTANT            1 == 'bar'
 0004 EQ

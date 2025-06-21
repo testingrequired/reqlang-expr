@@ -198,7 +198,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET USER_BUILTIN    0 == 'foo'\n";
 
         runtime env: {
             ..Default::default()
@@ -234,7 +234,7 @@ mod valid {
             vec!["test string".to_string()]
         ));
 
-        disassembles to: "0000 CONSTANT            0 == 'test string'\n";
+        disassembles to: "VERSION 0600\n----\n0000 CONSTANT            0 == 'test string'\n";
 
         runtime env: {
             ..Default::default()
@@ -268,7 +268,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET BUILTIN         1 == 'noop'\n0003 CALL             (0 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         1 == 'noop'\n0003 CALL             (0 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -299,7 +299,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET BUILTIN         1 == 'noop'\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         1 == 'noop'\n";
 
         runtime env: {
             ..Default::default()
@@ -340,7 +340,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET BUILTIN         1 == 'noop'\n0006 CALL             (0 args)\n0008 CALL             (1 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         0 == 'id'\n0003 GET BUILTIN         1 == 'noop'\n0006 CALL             (0 args)\n0008 CALL             (1 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -381,7 +381,7 @@ mod valid {
             ]
         ));
 
-        disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 CONSTANT            0 == 'test value'\n0005 CALL             (1 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         0 == 'id'\n0003 CONSTANT            0 == 'test value'\n0005 CALL             (1 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -420,7 +420,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET VAR             1 == 'b'\n0006 CALL             (1 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         0 == 'id'\n0003 GET VAR             1 == 'b'\n0006 CALL             (1 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string(), "b_value".to_string()],
@@ -469,7 +469,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET BUILTIN         0 == 'id'\n0006 GET VAR             1 == 'b'\n0009 CALL             (1 args)\n0011 CALL             (1 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         0 == 'id'\n0003 GET BUILTIN         0 == 'id'\n0006 GET VAR             1 == 'b'\n0009 CALL             (1 args)\n0011 CALL             (1 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string(), "b_value".to_string()],
@@ -501,7 +501,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET VAR             1 == 'b'\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET VAR             1 == 'b'\n";
 
         runtime env: {
             vars: vec!["a_value".to_string(), "b_value".to_string()],
@@ -534,7 +534,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET PROMPT          1 == 'b'\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET PROMPT          1 == 'b'\n";
 
         runtime env: {
             prompts: vec!["a_value".to_string(), "b_value".to_string()],
@@ -574,7 +574,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET BUILTIN         0 == 'id'\n0003 GET PROMPT          1 == 'b'\n0006 CALL             (1 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         0 == 'id'\n0003 GET PROMPT          1 == 'b'\n0006 CALL             (1 args)\n";
 
         runtime env: {
             prompts: vec!["a_value".to_string(), "b_value".to_string()],
@@ -607,7 +607,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET SECRET          1 == 'b'\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET SECRET          1 == 'b'\n";
 
         runtime env: {
             secrets: vec!["a_value".to_string(), "b_value".to_string()],
@@ -640,7 +640,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET CLIENT_CTX      1 == 'b'\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET CLIENT_CTX      1 == 'b'\n";
 
         runtime env: {
             client_context: vec![Value::String("a_value".to_string()), Value::String("b_value".to_string())],
@@ -684,7 +684,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 CALL             (0 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET USER_BUILTIN    0 == 'foo'\n0003 CALL             (0 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -728,7 +728,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET VAR             0 == 'a'\n0006 CALL             (1 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET VAR             0 == 'a'\n0006 CALL             (1 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -840,7 +840,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET USER_BUILTIN    1 == 'bar'\n0006 GET VAR             0 == 'a'\n0009 CALL             (1 args)\n0011 GET USER_BUILTIN    2 == 'fiz'\n0014 GET PROMPT          0 == 'b'\n0017 CALL             (1 args)\n0019 GET USER_BUILTIN    3 == 'baz'\n0022 GET SECRET          0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET USER_BUILTIN    1 == 'bar'\n0006 GET VAR             0 == 'a'\n0009 CALL             (1 args)\n0011 GET USER_BUILTIN    2 == 'fiz'\n0014 GET PROMPT          0 == 'b'\n0017 CALL             (1 args)\n0019 GET USER_BUILTIN    3 == 'baz'\n0022 GET SECRET          0 == 'c'\n0025 CALL             (1 args)\n0027 CALL             (3 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string()],
@@ -874,7 +874,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 TRUE\n";
+        disassembles to: "VERSION 0600\n----\n0000 TRUE\n";
 
         runtime env: {
             ..Default::default()
@@ -905,7 +905,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 FALSE\n";
+        disassembles to: "VERSION 0600\n----\n0000 FALSE\n";
 
         runtime env: {
             ..Default::default()
@@ -948,7 +948,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 FALSE\n0001 NOT\n";
+        disassembles to: "VERSION 0600\n----\n0000 FALSE\n0001 NOT\n";
 
         runtime env: {
             ..Default::default()
@@ -994,7 +994,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET BUILTIN         3 == 'and'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         3 == 'and'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1040,7 +1040,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET BUILTIN         3 == 'and'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         3 == 'and'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1085,7 +1085,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET BUILTIN         3 == 'and'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         3 == 'and'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1130,7 +1130,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET BUILTIN         4 == 'or'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         4 == 'or'\n0003 TRUE\n0004 FALSE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1175,7 +1175,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET BUILTIN         4 == 'or'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         4 == 'or'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1221,7 +1221,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET BUILTIN         4 == 'or'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         4 == 'or'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1273,7 +1273,7 @@ mod valid {
             ]
         ));
 
-        disassembles to: "0000 GET BUILTIN         5 == 'cond'\n0003 TRUE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         5 == 'cond'\n0003 TRUE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1325,7 +1325,7 @@ mod valid {
             ]
         ));
 
-        disassembles to: "0000 GET BUILTIN         5 == 'cond'\n0003 FALSE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         5 == 'cond'\n0003 FALSE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1597,7 +1597,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET BUILTIN         8 == 'contains'\n0003 GET VAR             0 == 'a'\n0006 GET VAR             1 == 'b'\n0009 CALL             (2 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET BUILTIN         8 == 'contains'\n0003 GET VAR             0 == 'a'\n0006 GET VAR             1 == 'b'\n0009 CALL             (2 args)\n";
 
         runtime env: {
             vars: vec!["foo".to_string(), "foobar".to_string()],
@@ -1892,7 +1892,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET CLIENT_CTX      0 == 'intest'\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET CLIENT_CTX      0 == 'intest'\n";
 
         runtime env: {
             ..Default::default()
@@ -1951,7 +1951,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 TRUE\n0001 TRUE\n0002 EQ\n";
+        disassembles to: "VERSION 0600\n----\n0000 TRUE\n0001 TRUE\n0002 EQ\n";
 
         runtime env: {
             ..Default::default()
@@ -1994,7 +1994,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 FALSE\n0001 TRUE\n0002 EQ\n";
+        disassembles to: "VERSION 0600\n----\n0000 FALSE\n0001 TRUE\n0002 EQ\n";
 
         runtime env: {
             ..Default::default()
@@ -2166,7 +2166,7 @@ mod valid {
             vec![]
         ));
 
-        disassembles to: "0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET USER_BUILTIN    1 == 'bar'\n0006 GET USER_BUILTIN    2 == 'fiz'\n0009 GET USER_BUILTIN    3 == 'baz'\n0012 CALL             (3 args)\n";
+        disassembles to: "VERSION 0600\n----\n0000 GET USER_BUILTIN    0 == 'foo'\n0003 GET USER_BUILTIN    1 == 'bar'\n0006 GET USER_BUILTIN    2 == 'fiz'\n0009 GET USER_BUILTIN    3 == 'baz'\n0012 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()
