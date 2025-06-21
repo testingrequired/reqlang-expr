@@ -18,6 +18,10 @@ use reqlang_expr::{
 };
 
 fn main() -> ExprResult<()> {
+    let crate_version = env!("CARGO_PKG_VERSION");
+
+    eprintln!("reqlang-expr v{}", crate_version);
+
     let args = Args::parse();
 
     let mut prompt = DefaultPrompt::default();
