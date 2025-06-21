@@ -446,7 +446,7 @@ interpret   > (id :foo)
 
 ### Integration Tests
 
-A suite of programimatic tests that validate the behavior of the lexer, parser, compiler, disassembler, and VM.
+A suite of programmatic tests that validate the behavior of the lexer, parser, compiler, disassembler, and VM.
 
 [./tests/integration_tests.rs](./tests/integration_tests.rs)
 
