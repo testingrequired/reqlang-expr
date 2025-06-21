@@ -50,6 +50,7 @@ fn main() -> ExprResult<()> {
         "/set var ".into(),
         "/set prompt ".into(),
         "/set secret ".into(),
+        "/version".into(),
         "id".into(),
         "noop".into(),
         "is_empty".into(),
@@ -163,6 +164,11 @@ fn main() -> ExprResult<()> {
 
                 if MODE_GET_PATTERN.is_match(&source) {
                     println!("MODE: {repl_mode:#?}");
+                    continue;
+                }
+
+                if VERSION_PATTERN.is_match(&source) {
+                    println!("{}", crate_version);
                     continue;
                 }
 
@@ -377,6 +383,16 @@ static ENV_PATTERN: Lazy<Regex> = Lazy::new(|| Regex::new(r"/env").expect(INVALI
 ///
 /// Exit the REPL
 static EXIT_PATTERN: Lazy<Regex> = Lazy::new(|| Regex::new(r"^/exit$").expect(INVALID_REGEX_ERROR));
+
+/// # Version Command
+///
+/// ```repl
+/// /version
+/// ```
+///
+/// Print the current language version
+static VERSION_PATTERN: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^/version$").expect(INVALID_REGEX_ERROR));
 
 /// # Set Mode Command
 ///
