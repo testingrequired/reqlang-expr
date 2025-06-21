@@ -23,7 +23,7 @@ fn spec_files_tokens(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResult<()>
 }
 
 #[rstest]
-fn spec_files_interpreted(#[files("spec/**/variable.expr")] path: PathBuf) -> ExprResult<()> {
+fn spec_files_interpreted(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResult<()> {
     let expected_iterpreted_path = path.with_extension("expr.interpreted");
     let expr_source = read_to_string(path).expect("should be able to read file");
 
@@ -42,7 +42,9 @@ fn spec_files_interpreted(#[files("spec/**/variable.expr")] path: PathBuf) -> Ex
             ("", expected_interpreted.as_str())
         };
 
-        let args = {
+        let args = if args.is_empty() {
+            vec![]
+        } else {
             let args: Vec<&str> = args[2..].trim().split_whitespace().collect();
             let mut args_with_empty_prefix = Vec::with_capacity(args.len() + 1);
             args_with_empty_prefix.push("");
