@@ -856,7 +856,6 @@ dependencies = [
  "reedline",
  "regex",
  "rstest",
- "shlex",
  "thiserror",
 ]
 
