@@ -56,6 +56,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             opcode::NOT => self.disassemble_op_u8("NOT", op_idx, opcode::NOT),
             opcode::EQ => self.disassemble_op_u8("EQ", op_idx, opcode::EQ),
             opcode::TYPE => self.disassemble_op_u8("TYPE", op_idx, opcode::TYPE),
+            opcode::ID => self.disassemble_op_u8("ID", op_idx, opcode::ID),
             _ => (1, "".to_string()),
         };
 
