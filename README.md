@@ -33,6 +33,7 @@ See [USAGE.md](./USAGE.md) and [examples](./examples/) for usage examples.
 - [Example Usage](./examples/)
 - [Specification Examples](./spec/)
 - [Tests](#tests)
+- [Transpile To Typescript](https://github.com/testingrequired/reqlang-expr-tspl)
 
 ## Syntax
 
