@@ -21,6 +21,8 @@ jobs:
         run: cargo build --verbose
       - name: Run tests
         run: cargo test --verbose
+      - name: Build docker image
+        run: docker build -t reqlang-expr-repl:0.7.0 .
       - name: Setup pages
         id: pages
         uses: actions/configure-pages@v5
