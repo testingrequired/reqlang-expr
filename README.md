@@ -269,6 +269,14 @@ A simple REPL to interpret expressions.
 cargo run -q --example repl
 ```
 
+Or using Docker:
+
+```sh
+docker build -t reqlang-expr-repl:0.7.0 .
+
+docker run -it --rm --read-only reqlang-expr-repl:0.7.0
+```
+
 #### Repl Mode
 
 The REPL works in different modes:
