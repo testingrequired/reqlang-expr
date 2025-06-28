@@ -592,44 +592,42 @@ fn compile_expr(
                 _ => {
                     let callee_bytecode = compile_expr(&expr_call.callee, env, strings)?;
 
-                    if let Some(_op) = callee_bytecode.first() {
-                        if let Some(lookup) = callee_bytecode.get(1) {
-                            if let Some(index) = callee_bytecode.get(2) {
-                                match *lookup {
-                                    lookup::BUILTIN => {
-                                        let builtin = env.get_builtin((*index).into()).unwrap();
+                    if let Some(_op) = callee_bytecode.first()
+                        && let Some(lookup) = callee_bytecode.get(1)
+                        && let Some(index) = callee_bytecode.get(2)
+                    {
+                        match *lookup {
+                            lookup::BUILTIN => {
+                                let builtin = env.get_builtin((*index).into()).unwrap();
 
-                                        let call_arity: usize = expr_call.args.len();
+                                let call_arity: usize = expr_call.args.len();
 
-                                        if !builtin.arity_matches(call_arity.try_into().unwrap()) {
-                                            errs.push((
-                                                ExprError::CompileError(WrongNumberOfArgs {
-                                                    expected: builtin.arity() as usize,
-                                                    actual: call_arity,
-                                                }),
-                                                span.clone(),
-                                            ));
-                                        }
-                                    }
-                                    lookup::USER_BUILTIN => {
-                                        let builtin =
-                                            env.get_user_builtin((*index).into()).unwrap();
-
-                                        let call_arity: usize = expr_call.args.len();
-
-                                        if !builtin.arity_matches(call_arity.try_into().unwrap()) {
-                                            errs.push((
-                                                ExprError::CompileError(WrongNumberOfArgs {
-                                                    expected: builtin.arity() as usize,
-                                                    actual: call_arity,
-                                                }),
-                                                span.clone(),
-                                            ));
-                                        }
-                                    }
-                                    _ => {}
+                                if !builtin.arity_matches(call_arity.try_into().unwrap()) {
+                                    errs.push((
+                                        ExprError::CompileError(WrongNumberOfArgs {
+                                            expected: builtin.arity() as usize,
+                                            actual: call_arity,
+                                        }),
+                                        span.clone(),
+                                    ));
                                 }
                             }
+                            lookup::USER_BUILTIN => {
+                                let builtin = env.get_user_builtin((*index).into()).unwrap();
+
+                                let call_arity: usize = expr_call.args.len();
+
+                                if !builtin.arity_matches(call_arity.try_into().unwrap()) {
+                                    errs.push((
+                                        ExprError::CompileError(WrongNumberOfArgs {
+                                            expected: builtin.arity() as usize,
+                                            actual: call_arity,
+                                        }),
+                                        span.clone(),
+                                    ));
+                                }
+                            }
+                            _ => {}
                         }
                     }
 
