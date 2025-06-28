@@ -88,7 +88,6 @@ impl Vm {
             opcode::NOT => self.op_not(),
             opcode::EQ => self.op_eq(),
             opcode::TYPE => self.op_type(),
-            opcode::ID => self.op_id(),
             _ => panic!("Invalid OP code: {op_code}"),
         }
     }
@@ -261,16 +260,6 @@ impl Vm {
         let value = self.stack_pop()?;
 
         self.stack_push(Value::Type(value.get_type().into()));
-
-        Ok(())
-    }
-
-    fn op_id(&mut self) -> ExprResult<()> {
-        assert_eq!(opcode::ID, self.read_u8(), "Expected ID opcode");
-
-        let value = self.stack_pop()?;
-
-        self.stack_push(value);
 
         Ok(())
     }

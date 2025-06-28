@@ -330,14 +330,15 @@ mod valid {
 
         compiles to: Ok(ExprByteCode::new(
             crate::make_test_bytecode(vec![
+                opcode::GET, lookup::BUILTIN, 0,
                 opcode::GET, lookup::BUILTIN, 1,
                 opcode::CALL, 0,
-                opcode::ID
+                opcode::CALL, 1
             ]),
             vec![]
         ));
 
-        disassembles to: "VERSION 0700\n----\n0000 GET BUILTIN         1 == 'noop'\n0003 CALL             (0 args)\n0005 ID\n";
+        disassembles to: "VERSION 0700\n----\n0000 GET BUILTIN         0 == 'id'\n0003 GET BUILTIN         1 == 'noop'\n0006 CALL             (0 args)\n0008 CALL             (1 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -369,15 +370,16 @@ mod valid {
 
         compiles to: Ok(ExprByteCode::new(
             crate::make_test_bytecode(vec![
+                opcode::GET, lookup::BUILTIN, 0,
                 opcode::CONSTANT, 0,
-                opcode::ID
+                opcode::CALL, 1
             ]),
             vec![
                 "test value".to_string(),
             ]
         ));
 
-        disassembles to: "VERSION 0700\n----\n0000 CONSTANT            0 == 'test value'\n0002 ID\n";
+        disassembles to: "VERSION 0700\n----\n0000 GET BUILTIN         0 == 'id'\n0003 CONSTANT            0 == 'test value'\n0005 CALL             (1 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -409,13 +411,14 @@ mod valid {
 
         compiles to: Ok(ExprByteCode::new(
             crate::make_test_bytecode(vec![
+                opcode::GET, lookup::BUILTIN, 0,
                 opcode::GET, lookup::VAR, 1,
-                opcode::ID
+                opcode::CALL, 1
             ]),
             vec![]
         ));
 
-        disassembles to: "VERSION 0700\n----\n0000 GET VAR             1 == 'b'\n0003 ID\n";
+        disassembles to: "VERSION 0700\n----\n0000 GET BUILTIN         0 == 'id'\n0003 GET VAR             1 == 'b'\n0006 CALL             (1 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string(), "b_value".to_string()],
@@ -453,14 +456,18 @@ mod valid {
 
         compiles to: Ok(ExprByteCode::new(
             crate::make_test_bytecode(vec![
+                opcode::GET, lookup::BUILTIN, 0,
+
+                opcode::GET, lookup::BUILTIN, 0,
                 opcode::GET, lookup::VAR, 1,
-                opcode::ID,
-                opcode::ID
+                opcode::CALL, 1,
+
+                opcode::CALL, 1
             ]),
             vec![]
         ));
 
-        disassembles to: "VERSION 0700\n----\n0000 GET VAR             1 == 'b'\n0003 ID\n0004 ID\n";
+        disassembles to: "VERSION 0700\n----\n0000 GET BUILTIN         0 == 'id'\n0003 GET BUILTIN         0 == 'id'\n0006 GET VAR             1 == 'b'\n0009 CALL             (1 args)\n0011 CALL             (1 args)\n";
 
         runtime env: {
             vars: vec!["a_value".to_string(), "b_value".to_string()],
@@ -558,13 +565,14 @@ mod valid {
 
         compiles to: Ok(ExprByteCode::new(
             crate::make_test_bytecode(vec![
+                opcode::GET, lookup::BUILTIN, 0,
                 opcode::GET, lookup::PROMPT, 1,
-                opcode::ID
+                opcode::CALL, 1
             ]),
             vec![]
         ));
 
-        disassembles to: "VERSION 0700\n----\n0000 GET PROMPT          1 == 'b'\n0003 ID\n";
+        disassembles to: "VERSION 0700\n----\n0000 GET BUILTIN         0 == 'id'\n0003 GET PROMPT          1 == 'b'\n0006 CALL             (1 args)\n";
 
         runtime env: {
             prompts: vec!["a_value".to_string(), "b_value".to_string()],

@@ -23,8 +23,7 @@ pub mod opcode {
         FALSE,
         NOT,
         EQ,
-        TYPE,
-        ID
+        TYPE
     }
 }
 
@@ -421,37 +420,6 @@ fn compile_expr(
             let identifier_name = expr_call.callee.0.identifier_name().unwrap_or_default();
 
             match identifier_name {
-                "id" => {
-                    if expr_call.args.is_empty() {
-                        errs.push((
-                            ExprError::CompileError(WrongNumberOfArgs {
-                                expected: 1,
-                                actual: 0,
-                            }),
-                            span.clone(),
-                        ));
-                    } else if expr_call.args.len() > 1 {
-                        errs.push((
-                            ExprError::CompileError(WrongNumberOfArgs {
-                                expected: 1,
-                                actual: expr_call.args.len(),
-                            }),
-                            span.clone(),
-                        ));
-                    } else {
-                        let arg = expr_call.args.first().expect("should have first argument");
-
-                        match compile_expr(arg, env, strings) {
-                            Ok(arg_bytecode) => {
-                                codes.extend(arg_bytecode);
-                                codes.push(opcode::ID);
-                            }
-                            Err(err) => {
-                                errs.extend(err);
-                            }
-                        }
-                    }
-                }
                 "type" => {
                     if expr_call.args.is_empty() {
                         errs.push((
