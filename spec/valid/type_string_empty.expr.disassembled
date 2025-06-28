@@ -1,4 +1,5 @@
 VERSION 0700
 ----
-0000 CONSTANT            0 == ''
-0002 TYPE
+0000 GET BUILTIN        14 == 'type'
+0003 CONSTANT            0 == ''
+0005 CALL             (1 args)

@@ -55,30 +55,30 @@ See [/spec](./spec/) for more syntax examples.
 
 ### Builtin Functions
 
-| Fn                                                        | Description                                   |
-| --------------------------------------------------------- | --------------------------------------------- |
-| `id(value: Value) -> Value`                               | Returns the string arugment passed to it      |
-| `noop() -> String`                                        | Returns the string "noop"                     |
-| `is_empty(value: String) -> String`                       | Checks if the given string is empty           |
-| `and(a: Bool, b: Bool) -> Bool`                           | Logical AND operation between two booleans    |
-| `or(a: Bool, b: Bool) -> Bool`                            | Logical OR operation between two booleans     |
-| `cond(cond: Bool, then: Value, else: Value) -> Bool`      | Conditional expression                        |
-| `to_str(value: Value) -> String`                          | Converts a value to its string representation |
-| `concat(a: String, b: String, ...rest: String) -> String` | Concatenates a list of values in to a string  |
-| `contains(needle: String, haystack: String) -> Bool`      | Checks for a substring match                  |
-| `trim(value: String) -> String`                           | Trim whitespace from a string                 |
-| `trim_start(value: String) -> String`                     | Trim whitespace from the start of a string    |
-| `trim_end(value: String) -> String`                       | Trim whitespace from the end of a string      |
-| `lowercase(value: String) -> String`                      | Return a lowercase version of a string        |
-| `uppercase(value: String) -> String`                      | Return a uppercase version of a string        |
+| Fn                                                        | Description                                     |
+| --------------------------------------------------------- | ----------------------------------------------- |
+| `id(value: Value) -> Value`                               | Returns the string arugment passed to it        |
+| `noop() -> String`                                        | Returns the string "noop"                       |
+| `is_empty(value: String) -> String`                       | Checks if the given string is empty             |
+| `and(a: Bool, b: Bool) -> Bool`                           | Logical AND operation between two booleans      |
+| `or(a: Bool, b: Bool) -> Bool`                            | Logical OR operation between two booleans       |
+| `cond(cond: Bool, then: Value, else: Value) -> Bool`      | Conditional expression                          |
+| `to_str(value: Value) -> String`                          | Converts a value to its string representation   |
+| `concat(a: String, b: String, ...rest: String) -> String` | Concatenates a list of values in to a string    |
+| `contains(needle: String, haystack: String) -> Bool`      | Checks for a substring match                    |
+| `trim(value: String) -> String`                           | Trim whitespace from a string                   |
+| `trim_start(value: String) -> String`                     | Trim whitespace from the start of a string      |
+| `trim_end(value: String) -> String`                       | Trim whitespace from the end of a string        |
+| `lowercase(value: String) -> String`                      | Return a lowercase version of a string          |
+| `uppercase(value: String) -> String`                      | Return a uppercase version of a string          |
+| `type(value: Value) -> Type`                              | Get the string representation of a value's type |
 
 ### Operator Functions
 
-| Fn                               | Description                                     |
-| -------------------------------- | ----------------------------------------------- |
-| `eq(a: Value, b: Value) -> Bool` | Compare two values for equality                 |
-| `not(value: Bool) -> Bool`       | Logical NOT operation on a boolean value        |
-| `type(value: Value) -> Type`     | Get the string representation of a value's type |
+| Fn                               | Description                              |
+| -------------------------------- | ---------------------------------------- |
+| `eq(a: Value, b: Value) -> Bool` | Compare two values for equality          |
+| `not(value: Bool) -> Bool`       | Logical NOT operation on a boolean value |
 
 ### Why Backticks For Strings?
 

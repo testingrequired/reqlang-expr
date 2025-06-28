@@ -101,7 +101,6 @@ Valid bytecode will always begin with 4 bytes representing the current language 
 | `FALSE`    |       4 |                                  | Push a `false` value on to the stack                                   |
 | `NOT`      |       5 |                                  | Pop a boolean value from the stack, negate, then push it on the stack  |
 | `EQ`       |       6 |                                  | Pop last two values from the stack, compare them, push result on stack |
-| `TYPE`     |       7 |                                  | Pop the last value from the stack and put it's type on the stack       |
 
 ### Lookup Types
 
