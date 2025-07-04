@@ -3,7 +3,7 @@
 use std::rc::Rc;
 
 use crate::{
-    ast::{Expr, ExprS, IdentifierKind},
+    ast::{Expr, ExprS, IdentifierKind, add_type_to_expr},
     builtins::{BuiltinFn, BuiltinFns},
     errors::{
         CompileError::{self, WrongNumberOfArgs},
@@ -235,12 +235,39 @@ impl CompileTimeEnv {
         self.vars.get(index)
     }
 
+    pub fn get_var_index(&self, name: &str) -> Option<usize> {
+        let index = self
+            .vars
+            .iter()
+            .position(|context_name| context_name == name);
+
+        index
+    }
+
     pub fn get_prompt(&self, index: usize) -> Option<&String> {
         self.prompts.get(index)
     }
 
+    pub fn get_prompt_index(&self, name: &str) -> Option<usize> {
+        let index = self
+            .prompts
+            .iter()
+            .position(|context_name| context_name == name);
+
+        index
+    }
+
     pub fn get_secret(&self, index: usize) -> Option<&String> {
         self.secrets.get(index)
+    }
+
+    pub fn get_secret_index(&self, name: &str) -> Option<usize> {
+        let index = self
+            .secrets
+            .iter()
+            .position(|context_name| context_name == name);
+
+        index
     }
 
     pub fn get_client_context(&self, index: usize) -> Option<&String> {
@@ -323,7 +350,7 @@ pub fn get_version_bytes() -> [u8; 4] {
 }
 
 /// Compile an [`ast::Expr`] into [`ExprByteCode`]
-pub fn compile(expr: &ExprS, env: &CompileTimeEnv) -> ExprResult<ExprByteCode> {
+pub fn compile(expr: &mut ExprS, env: &CompileTimeEnv) -> ExprResult<ExprByteCode> {
     let mut strings: Vec<String> = vec![];
     let mut codes = vec![];
 
@@ -335,7 +362,7 @@ pub fn compile(expr: &ExprS, env: &CompileTimeEnv) -> ExprResult<ExprByteCode> {
 }
 
 fn compile_expr(
-    (expr, span): &ExprS,
+    (expr, span): &mut ExprS,
     env: &CompileTimeEnv,
     strings: &mut Vec<String>,
 ) -> ExprResult<Vec<u8>> {
@@ -343,6 +370,8 @@ fn compile_expr(
 
     let mut codes = vec![];
     let mut errs: Vec<ExprErrorS> = vec![];
+
+    add_type_to_expr(expr, env);
 
     match expr {
         Expr::String(string) => {
@@ -414,7 +443,7 @@ fn compile_expr(
             }
         }
         Expr::Call(expr_call) => {
-            let callee_bytecode = compile_expr(&expr_call.callee, env, strings)?;
+            let callee_bytecode = compile_expr(&mut expr_call.callee, env, strings)?;
 
             if let Some(_op) = callee_bytecode.first()
                 && let Some(lookup) = callee_bytecode.get(1)
@@ -485,7 +514,7 @@ fn compile_expr(
 
             codes.extend(callee_bytecode);
 
-            for arg in expr_call.args.iter() {
+            for arg in expr_call.args.iter_mut() {
                 match compile_expr(arg, env, strings) {
                     Ok(arg_bytecode) => {
                         codes.extend(arg_bytecode);

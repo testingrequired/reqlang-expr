@@ -1,6 +1,9 @@
-use std::fmt::{Debug, Display};
+use std::{
+    fmt::{Debug, Display},
+    rc::Rc,
+};
 
-use crate::value::Value;
+use crate::{prelude::BuiltinFn, value::Value};
 
 #[derive(Clone, PartialEq)]
 pub enum Type {
@@ -81,6 +84,29 @@ impl From<Value> for Type {
             }
             Value::Bool(_) => Type::Bool,
             Value::Type(ty) => *ty.clone(),
+        }
+    }
+}
+
+impl From<Rc<BuiltinFn>> for Type {
+    fn from(value: Rc<BuiltinFn>) -> Self {
+        let args: Vec<Type> = value
+            .args
+            .iter()
+            .filter(|x| x.variadic == false)
+            .map(|x| x.ty.clone())
+            .collect();
+        let varg = value
+            .args
+            .iter()
+            .find(|x| x.variadic == true)
+            .map(|x| Box::new(x.ty.clone()));
+        let returns = value.return_type.clone();
+
+        Self::Fn {
+            args,
+            variadic_arg: varg,
+            returns: returns.into(),
         }
     }
 }

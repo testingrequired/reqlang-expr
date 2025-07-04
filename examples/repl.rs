@@ -267,7 +267,7 @@ fn main() -> ExprResult<()> {
                             continue;
                         }
 
-                        let bytecode = compile(&(ast, 0..source.len()), &env);
+                        let bytecode = compile(&mut (ast, 0..source.len()), &env);
 
                         match bytecode {
                             Ok(bytecode) => {

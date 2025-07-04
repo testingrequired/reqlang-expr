@@ -17,7 +17,7 @@ fn main() -> ExprResult<()> {
 
     let env = CompileTimeEnv::new(var_keys, prompt_keys, secret_keys, client_context_keys);
 
-    let bytecode = compile(&(ast, 0..source.len()), &env)?;
+    let bytecode = compile(&mut (ast, 0..source.len()), &env)?;
 
     let mut vm = Vm::new();
 

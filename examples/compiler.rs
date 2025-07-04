@@ -12,7 +12,7 @@ fn main() -> ExprResult<()> {
 
     let env = CompileTimeEnv::new(args.vars.clone(), vec![], vec![], vec![]);
 
-    let bytecode = compile(&(ast, 0..source.len()), &env)?;
+    let bytecode = compile(&mut (ast, 0..source.len()), &env)?;
 
     eprintln!("{bytecode:#?}");
 

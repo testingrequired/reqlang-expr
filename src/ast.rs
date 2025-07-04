@@ -1,6 +1,6 @@
 //! Abstract syntax tree types
 
-use crate::{span::Spanned, types::Type};
+use crate::{prelude::CompileTimeEnv, span::Spanned, types::Type};
 
 #[derive(Debug, PartialEq)]
 pub enum Expr {
@@ -14,6 +14,14 @@ pub enum Expr {
 impl Expr {
     pub fn identifier(identifier: &str) -> Self {
         Self::Identifier(Box::new(ExprIdentifier::new(identifier)))
+    }
+
+    pub fn identifier_with_type(identifier: &str, ty: Type) -> Self {
+        Self::Identifier(Box::new(ExprIdentifier(
+            identifier.to_string(),
+            ExprIdentifier::get_identifier_kind(identifier),
+            Some(ty),
+        )))
     }
 
     pub fn identifier_name(&self) -> Option<&str> {
@@ -152,3 +160,87 @@ impl ExprBool {
 }
 
 pub type ExprS = Spanned<Expr>;
+
+pub fn add_type_to_expr_parse(expr: &mut Expr) {
+    match expr {
+        Expr::Identifier(expr_identifier) => match expr_identifier.identifier_kind() {
+            IdentifierKind::Builtin => {}
+            IdentifierKind::Var => {
+                expr_identifier.2 = Some(Type::String);
+            }
+            IdentifierKind::Prompt => {
+                expr_identifier.2 = Some(Type::String);
+            }
+            IdentifierKind::Secret => {
+                expr_identifier.2 = Some(Type::String);
+            }
+            IdentifierKind::Client => {
+                expr_identifier.2 = Some(Type::String);
+            }
+        },
+        Expr::Call(expr_call) => {
+            for arg in &mut expr_call.args {
+                add_type_to_expr_parse(&mut arg.0);
+            }
+        }
+        _ => {}
+    }
+}
+
+pub fn add_type_to_expr(expr: &mut Expr, env: &CompileTimeEnv) {
+    match expr {
+        Expr::Identifier(expr_identifier) => match expr_identifier.identifier_kind() {
+            IdentifierKind::Builtin => {
+                if let Some((_, index)) = env.get_builtin_index(expr_identifier.lookup_name()) {
+                    if let Some(v) = env.get_builtin(index as usize) {
+                        let v_type: Type = v.clone().into();
+
+                        expr_identifier.2 = Some(v_type);
+                    }
+                } else if let Some((_, index)) =
+                    env.get_user_builtin_index(expr_identifier.lookup_name())
+                {
+                    if let Some(v) = env.get_builtin(index as usize) {
+                        let v_type: Type = v.clone().into();
+
+                        expr_identifier.2 = Some(v_type);
+                    }
+                }
+            }
+            IdentifierKind::Var => {
+                let index = env.get_var_index(expr_identifier.lookup_name());
+
+                if let Some(_) = index {
+                    expr_identifier.2 = Some(Type::String);
+                }
+            }
+            IdentifierKind::Prompt => {
+                let index = env.get_prompt_index(expr_identifier.lookup_name());
+
+                if let Some(_) = index {
+                    expr_identifier.2 = Some(Type::String);
+                }
+            }
+            IdentifierKind::Secret => {
+                let index = env.get_secret_index(expr_identifier.lookup_name());
+
+                if let Some(_) = index {
+                    expr_identifier.2 = Some(Type::String);
+                }
+            }
+            IdentifierKind::Client => {
+                let index = env.get_client_context_index(expr_identifier.lookup_name());
+
+                if let Some(_) = index {
+                    expr_identifier.2 = Some(Type::String);
+                }
+            }
+        },
+        Expr::Call(expr_call) => {
+            for arg in &mut expr_call.args {
+                add_type_to_expr(&mut arg.0, env);
+            }
+        }
+        _ => {}
+    }
+}

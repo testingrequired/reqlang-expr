@@ -14,7 +14,7 @@ fn main() -> ExprResult<()> {
 
     let env = CompileTimeEnv::new(args.vars, args.prompts, args.secrets, vec![]);
 
-    let bytecode = compile(&(ast, 0..source.len()), &env)?;
+    let bytecode = compile(&mut (ast, 0..source.len()), &env)?;
 
     let disassemble = Disassembler::new(&bytecode, &env);
     let disassembly = disassemble.disassemble();

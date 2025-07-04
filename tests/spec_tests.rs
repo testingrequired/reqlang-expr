@@ -65,7 +65,7 @@ fn spec_files_disassembled(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResu
         let env = CompileTimeEnv::new(var_keys, prompt_keys, secret_keys, client_context_keys);
 
         match parse(&expr_source) {
-            Ok(ast) => match compile(&(ast, 0..expr_source.len()), &env) {
+            Ok(ast) => match compile(&mut (ast, 0..expr_source.len()), &env) {
                 Ok(bytecode) => {
                     let disassemble = Disassembler::new(&bytecode, &env);
                     let disassembly = disassemble.disassemble();
@@ -126,7 +126,7 @@ fn spec_files_interpreted(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResul
         let env = CompileTimeEnv::new(var_keys, prompt_keys, secret_keys, client_context_keys);
 
         match parse(&expr_source) {
-            Ok(ast) => match compile(&(ast, 0..expr_source.len()), &env) {
+            Ok(ast) => match compile(&mut (ast, 0..expr_source.len()), &env) {
                 Ok(bytecode) => {
                     let mut vm = Vm::new();
 

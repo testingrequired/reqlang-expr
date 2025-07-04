@@ -40,7 +40,7 @@ macro_rules! test {
 
                     match ::reqlang_expr::parser::parse(&$source) {
                         Ok(ast) => {
-                            let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env);
+                            let op_codes = ::reqlang_expr::compiler::compile(&mut (ast, 0..$source.len()), &env);
                             let expected_op_codes: ::reqlang_expr::errors::ExprResult<ExprByteCode> = $expected_op_codes;
                             ::pretty_assertions::assert_eq!(expected_op_codes, op_codes);
                         }
@@ -59,7 +59,7 @@ macro_rules! test {
 
                     let ast = ::reqlang_expr::parser::parse(&$source);
 
-                    if let Ok(ast) = ast && let Ok(op_codes) = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env) {
+                    if let Ok(ast) = ast && let Ok(op_codes) = ::reqlang_expr::compiler::compile(&mut (ast, 0..$source.len()), &env) {
                         let expected_disassembly: String = $expected_disassembly.to_string();
                         let disassemble = ::reqlang_expr::disassembler::Disassembler::new(&op_codes, &env);
                         let disassembly = disassemble.disassemble();
@@ -77,7 +77,7 @@ macro_rules! test {
 
                     match ::reqlang_expr::parser::parse(&$source) {
                         Ok(ast) => {
-                            let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env);
+                            let op_codes = ::reqlang_expr::compiler::compile(&mut (ast, 0..$source.len()), &env);
 
                             match op_codes {
                                 Ok(op_codes) => {
@@ -128,7 +128,7 @@ macro_rules! test {
 
                     match ::reqlang_expr::parser::parse(&$source) {
                         Ok(ast) => {
-                            let op_codes = ::reqlang_expr::compiler::compile(&(ast, 0..$source.len()), &env);
+                            let op_codes = ::reqlang_expr::compiler::compile(&mut (ast, 0..$source.len()), &env);
 
                             match op_codes {
                                 Ok(op_codes) => {
@@ -408,7 +408,7 @@ mod valid {
         ];
 
         ast should be: Ok(Expr::call((Expr::identifier("id"), 1..3), vec![
-            (Expr::identifier(":b"), 4..6)
+            (Expr::identifier_with_type(":b", Type::String), 4..6)
         ]));
 
         env: (vec!["a".to_string(), "b".to_string()], vec![], vec![], vec![]);
@@ -452,7 +452,7 @@ mod valid {
 
         ast should be: Ok(Expr::call((Expr::identifier("id"), 1..3), vec![
             (Expr::call((Expr::identifier("id"), 5..7), vec![
-                (Expr::identifier(":b"), 8..10)
+                (Expr::identifier_with_type(":b", Type::String), 8..10)
             ]), 4..11)
         ]));
 
@@ -492,7 +492,7 @@ mod valid {
             Ok((0, Token::identifier(":b"), 2))
         ];
 
-        ast should be: Ok(Expr::identifier(":b"));
+        ast should be: Ok(Expr::identifier_with_type(":b", Type::String));
 
         env: (vec!["a".to_string(), "b".to_string()], vec![], vec![], vec![]);
 
@@ -525,7 +525,7 @@ mod valid {
             Ok((0, Token::identifier("?b"), 2))
         ];
 
-        ast should be: Ok(Expr::identifier("?b"));
+        ast should be: Ok(Expr::identifier_with_type("?b", Type::String));
 
         env: (vec![], vec!["a".to_string(), "b".to_string()], vec![], vec![]);
 
@@ -562,7 +562,7 @@ mod valid {
         ];
 
         ast should be: Ok(Expr::call((Expr::identifier("id"), 1..3), vec![
-            (Expr::identifier("?b"), 4..6)
+            (Expr::identifier_with_type("?b", Type::String), 4..6)
         ]));
 
         env: (vec![], vec!["a".to_string(), "b".to_string()], vec![], vec![]);
@@ -598,7 +598,7 @@ mod valid {
             Ok((0, Token::identifier("!b"), 2))
         ];
 
-        ast should be: Ok(Expr::identifier("!b"));
+        ast should be: Ok(Expr::identifier_with_type("!b", Type::String));
 
         env: (vec![], vec![], vec!["a".to_string(), "b".to_string()], vec![]);
 
@@ -631,7 +631,7 @@ mod valid {
             Ok((0, Token::identifier("@b"), 2))
         ];
 
-        ast should be: Ok(Expr::identifier("@b"));
+        ast should be: Ok(Expr::identifier_with_type("@b", Type::String));
 
         env: (vec![], vec![], vec![], vec!["a".to_string(), "b".to_string()]);
 
@@ -711,7 +711,7 @@ mod valid {
 
         ast should be: Ok(Expr::call(
             (Expr::identifier("foo"), 1..4),
-            vec![(Expr::identifier(":a"), 5..7)]
+            vec![(Expr::identifier_with_type(":a", Type::String), 5..7)]
         ));
 
         env: (vec!["a".to_string()], vec![], vec![], vec![]);
@@ -775,16 +775,16 @@ mod valid {
                 (Expr::call(
                     (Expr::identifier("bar"), 6..9),
                     vec![
-                        (Expr::identifier(":a"), 10..12)
+                        (Expr::identifier_with_type(":a", Type::String), 10..12)
                     ]
                 ), 5..13),
                 (Expr::call(
                     (Expr::identifier("fiz"), 15..18),
-                    vec![(Expr::identifier("?b"), 19..21)]
+                    vec![(Expr::identifier_with_type("?b", Type::String), 19..21)]
                 ), 14..22),
                 (Expr::call(
                     (Expr::identifier("baz"), 24..27),
-                    vec![(Expr::identifier("!c"), 28..30)]
+                    vec![(Expr::identifier_with_type("!c", Type::String), 28..30)]
                 ), 23..31)
             ]
         ));
@@ -1582,8 +1582,8 @@ mod valid {
             Expr::Call(ExprCall {
                 callee: (Expr::identifier("contains"), 1..9),
                 args: vec![
-                    (Expr::identifier(":a"), 10..12),
-                    (Expr::identifier(":b"), 13..15)
+                    (Expr::Identifier(ExprIdentifier(":a".to_string(), IdentifierKind::Var, Some(Type::String)).into()), 10..12),
+                    (Expr::identifier_with_type(":b", Type::String), 13..15)
                 ]
             }.into())
         );
@@ -1883,7 +1883,7 @@ mod valid {
         ];
 
         ast should be: Ok(
-            Expr::identifier("@intest")
+            Expr::identifier_with_type("@intest", Type::String)
         );
 
         env: (vec![], vec![], vec![], vec![]);

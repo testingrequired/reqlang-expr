@@ -3,7 +3,7 @@
 use lalrpop_util::lalrpop_mod;
 
 use crate::{
-    ast,
+    ast::{self, add_type_to_expr_parse},
     errors::{ExprResult, SyntaxError},
     lexer::lex,
     parser::grammar::ExprParser,
@@ -21,13 +21,15 @@ pub fn parse(source: &str) -> ExprResult<ast::Expr> {
 
     let mut parser_errors = Vec::new();
 
-    let expr = match expr_parser.parse(source, &mut parser_errors, tokens) {
+    let mut expr = match expr_parser.parse(source, &mut parser_errors, tokens) {
         Ok(ast) => ast,
         Err(err) => {
             errs.push(SyntaxError::from_parser_error(err, source));
             ast::Expr::Error
         }
     };
+
+    add_type_to_expr_parse(&mut expr);
 
     errs.extend(parser_errors);
 
