@@ -28,6 +28,7 @@ impl FnArg {
     }
 }
 
+#[derive(Clone)]
 /// Builtin function used in expressions
 pub struct BuiltinFn {
     // Needs to follow identifier naming rules
@@ -36,7 +37,7 @@ pub struct BuiltinFn {
     pub args: Vec<FnArg>,
     pub return_type: Type,
     // Function used at runtime
-    pub func: std::rc::Rc<dyn Fn(Vec<Value>) -> ExprResult<Value>>,
+    pub func: fn(Vec<Value>) -> ExprResult<Value>,
 }
 
 impl BuiltinFn {
@@ -286,9 +287,11 @@ impl BuiltinFns {
 
 #[cfg(test)]
 mod value_tests {
-    use std::rc::Rc;
-
     use super::*;
+
+    fn example_builtin(_args: Vec<Value>) -> ExprResult<Value> {
+        Ok(Value::String("".to_string()))
+    }
 
     #[test]
     fn test_builtins_display_var_arity() {
@@ -300,7 +303,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![FnArg::new_varadic("rest", Type::String)],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
+                    func: example_builtin
                 }
             )
         )
@@ -316,7 +319,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
+                    func: example_builtin
                 }
             )
         )
@@ -332,7 +335,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
+                    func: example_builtin
                 }
             )
         )
@@ -348,7 +351,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![FnArg::new("value", Type::String)],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
+                    func: example_builtin
                 }
             )
         )
@@ -364,7 +367,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![FnArg::new("value", Type::String)],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
+                    func: example_builtin
                 }
             )
         )
@@ -380,7 +383,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![FnArg::new("a", Type::String), FnArg::new("b", Type::String)],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
+                    func: example_builtin
                 }
             )
         )
@@ -396,7 +399,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![FnArg::new("a", Type::String), FnArg::new("b", Type::String)],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
+                    func: example_builtin
                 }
             )
         )

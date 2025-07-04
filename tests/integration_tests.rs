@@ -167,6 +167,12 @@ fn make_test_bytecode(input: Vec<u8>) -> Vec<u8> {
 }
 
 mod valid {
+    use reqlang_expr::{errors::ExprResult, value::Value};
+
+    fn example_builtin(_args: Vec<Value>) -> ExprResult<Value> {
+        Ok(Value::String("".to_string()))
+    }
+
     test! {
         "foo";
 
@@ -185,7 +191,7 @@ mod valid {
                 name: "foo".to_string(),
                 args: vec![],
                 return_type: Type::String,
-                func: std::rc::Rc::new(|_| Ok(Value::String(String::new())))
+                func: crate::valid::example_builtin
             }.into()
         ];
 
@@ -206,7 +212,7 @@ mod valid {
                 name: "foo".to_string(),
                 args: vec![],
                 return_type: Type::String,
-                func: std::rc::Rc::new(|_| Ok(Value::String(String::new())))
+                func: crate::valid::example_builtin
             }.into()));
     }
 
@@ -307,9 +313,8 @@ mod valid {
             name: "noop".to_string(),
             args: vec![],
             return_type: Type::String,
-            func: std::rc::Rc::new(|_|
-                Ok(Value::String("noop".to_string())))
-            }.into()));
+            func: crate::valid::example_builtin
+        }.into()));
     }
 
     test! {
@@ -677,7 +682,7 @@ mod valid {
             name: "foo".to_string(),
             args: vec![],
             return_type: Type::String,
-            func: std::rc::Rc::new(|_| Ok(Value::String(String::new())))
+            func: crate::valid::example_builtin
         }.into()];
 
         compiles to: Ok(ExprByteCode::new(
@@ -720,7 +725,7 @@ mod valid {
             name: "foo".to_string(),
             args: vec![FnArg::new("value", Type::String)],
             return_type: Type::String,
-            func: std::rc::Rc::new(|_| Ok(Value::String(String::new())))
+            func: crate::valid::example_builtin
         }.into()];
 
         compiles to: Ok(ExprByteCode::new(
@@ -805,25 +810,25 @@ mod valid {
                     FnArg::new("c", Type::String)
                 ],
                 return_type: Type::String,
-                func: std::rc::Rc::new(|_| Ok(Value::String(String::new())))
+                func: crate::valid::example_builtin
             }.into(),
             BuiltinFn {
                 name: "bar".to_string(),
                 args: vec![FnArg::new("value", Type::String)],
                 return_type: Type::String,
-                func: std::rc::Rc::new(|_| Ok(Value::String(String::new())))
+                func: crate::valid::example_builtin
             }.into(),
             BuiltinFn {
                 name: "fiz".to_string(),
                 args: vec![FnArg::new("value", Type::String)],
                 return_type: Type::String,
-                func: std::rc::Rc::new(|_| Ok(Value::String(String::new())))
+                func: crate::valid::example_builtin
             }.into(),
             BuiltinFn {
                 name: "baz".to_string(),
                 args: vec![FnArg::new("value", Type::String)],
                 return_type: Type::String,
-                func: std::rc::Rc::new(|_| Ok(Value::String(String::new())))
+                func: crate::valid::example_builtin
             }.into()
         ];
 
@@ -2140,25 +2145,25 @@ mod valid {
                     FnArg::new("c", Type::Fn { args: vec![], returns: Type::Value.into(), variadic_arg: None }),
                 ],
                 return_type: Type::String,
-                func: std::rc::Rc::new(|_| Ok(Value::String(String::new())))
+                func: crate::valid::example_builtin
             }.into(),
             BuiltinFn {
                 name: "bar".to_string(),
                 args: vec![],
                 return_type: Type::String,
-                func: std::rc::Rc::new(|_| Ok(Value::String(String::new())))
+                func: crate::valid::example_builtin
             }.into(),
             BuiltinFn {
                 name: "fiz".to_string(),
                 args: vec![],
                 return_type: Type::String,
-                func: std::rc::Rc::new(|_| Ok(Value::String(String::new())))
+                func: crate::valid::example_builtin
             }.into(),
             BuiltinFn {
                 name: "baz".to_string(),
                 args: vec![],
                 return_type: Type::String,
-                func: std::rc::Rc::new(|_| Ok(Value::String(String::new())))
+                func: crate::valid::example_builtin
             }.into()
         ];
 

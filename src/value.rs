@@ -1,6 +1,6 @@
 //! The core value type used in the virtual machine.
 
-use std::{fmt::Display, rc::Rc};
+use std::fmt::Display;
 
 use crate::{
     builtins::BuiltinFn,
@@ -11,7 +11,7 @@ use crate::{
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     String(String),
-    Fn(Rc<BuiltinFn>),
+    Fn(Box<BuiltinFn>),
     Bool(bool),
     Type(Box<Type>),
 }
@@ -35,7 +35,7 @@ impl Value {
         }
     }
 
-    pub fn get_func(&self) -> ExprResult<Rc<BuiltinFn>> {
+    pub fn get_func(&self) -> ExprResult<Box<BuiltinFn>> {
         match self {
             Value::Fn(f) => Ok(f.clone()),
             _ => Err(vec![(
@@ -90,6 +90,10 @@ mod tests {
     use super::*;
 
     use pretty_assertions::assert_eq;
+
+    fn example_builtin(_args: Vec<Value>) -> ExprResult<Value> {
+        Ok(Value::String("".to_string()))
+    }
 
     #[test]
     fn get_bool_on_string() {
@@ -154,12 +158,13 @@ mod tests {
 
     #[test]
     fn get_func_on_func() {
-        let expected_fn: Rc<BuiltinFn> = Rc::new(BuiltinFn {
+        let expected_fn: Box<BuiltinFn> = BuiltinFn {
             name: String::from("name"),
             args: vec![],
             return_type: Type::Unknown,
-            func: Rc::new(|_| Ok(Value::Bool(true))),
-        });
+            func: example_builtin,
+        }
+        .into();
 
         let value = Value::Fn(expected_fn.clone());
 

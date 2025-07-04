@@ -1,7 +1,4 @@
-use std::{
-    fmt::{Debug, Display},
-    rc::Rc,
-};
+use std::fmt::{Debug, Display};
 
 use crate::{prelude::BuiltinFn, value::Value};
 
@@ -88,8 +85,8 @@ impl From<Value> for Type {
     }
 }
 
-impl From<Rc<BuiltinFn>> for Type {
-    fn from(value: Rc<BuiltinFn>) -> Self {
+impl From<Box<BuiltinFn>> for Type {
+    fn from(value: Box<BuiltinFn>) -> Self {
         let args: Vec<Type> = value
             .args
             .iter()
@@ -113,11 +110,16 @@ impl From<Rc<BuiltinFn>> for Type {
 
 #[cfg(test)]
 mod from_tests {
-    use std::rc::Rc;
-
-    use crate::prelude::{BuiltinFn, FnArg};
+    use crate::{
+        errors::ExprResult,
+        prelude::{BuiltinFn, FnArg},
+    };
 
     use super::*;
+
+    fn example_builtin(_args: Vec<Value>) -> ExprResult<Value> {
+        Ok(Value::String("".to_string()))
+    }
 
     #[test]
     fn test_from_type_value() {
@@ -163,12 +165,15 @@ mod from_tests {
 
     #[test]
     fn test_from_fn_value() {
-        let builtin_fn = Value::Fn(Rc::new(BuiltinFn {
-            name: "test".to_string(),
-            args: vec![FnArg::new("a", Type::Value)],
-            return_type: Type::String,
-            func: Rc::new(|_| Ok(Value::String("".to_string()))),
-        }));
+        let builtin_fn = Value::Fn(
+            BuiltinFn {
+                name: "test".to_string(),
+                args: vec![FnArg::new("a", Type::Value)],
+                return_type: Type::String,
+                func: example_builtin,
+            }
+            .into(),
+        );
 
         let ty: Type = builtin_fn.into();
 
@@ -184,12 +189,15 @@ mod from_tests {
 
     #[test]
     fn test_get_type_fn_value() {
-        let builtin_fn = Value::Fn(Rc::new(BuiltinFn {
-            name: "test".to_string(),
-            args: vec![FnArg::new("a", Type::Value)],
-            return_type: Type::String,
-            func: Rc::new(|_| Ok(Value::String("".to_string()))),
-        }));
+        let builtin_fn = Value::Fn(
+            BuiltinFn {
+                name: "test".to_string(),
+                args: vec![FnArg::new("a", Type::Value)],
+                return_type: Type::String,
+                func: example_builtin,
+            }
+            .into(),
+        );
 
         let ty: Type = builtin_fn.get_type();
 
