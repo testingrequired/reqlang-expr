@@ -1942,14 +1942,15 @@ mod valid {
 
         compiles to: Ok(ExprByteCode::new(
             crate::make_test_bytecode(vec![
+                opcode::GET, lookup::BUILTIN, 15,
                 opcode::TRUE,
                 opcode::TRUE,
-                opcode::EQ,
+                opcode::CALL, 2
             ]),
             vec![]
         ));
 
-        disassembles to: "VERSION 0700\n----\n0000 TRUE\n0001 TRUE\n0002 EQ\n";
+        disassembles to: "VERSION 0700\n----\n0000 GET BUILTIN        15 == 'eq'\n0003 TRUE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1985,14 +1986,15 @@ mod valid {
 
         compiles to: Ok(ExprByteCode::new(
             crate::make_test_bytecode(vec![
+                opcode::GET, lookup::BUILTIN, 15,
                 opcode::FALSE,
                 opcode::TRUE,
-                opcode::EQ,
+                opcode::CALL, 2
             ]),
             vec![]
         ));
 
-        disassembles to: "VERSION 0700\n----\n0000 FALSE\n0001 TRUE\n0002 EQ\n";
+        disassembles to: "VERSION 0700\n----\n0000 GET BUILTIN        15 == 'eq'\n0003 FALSE\n0004 TRUE\n0005 CALL             (2 args)\n";
 
         runtime env: {
             ..Default::default()

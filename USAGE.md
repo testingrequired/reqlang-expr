@@ -92,15 +92,14 @@ Valid bytecode will always begin with 4 bytes representing the current language 
 
 ### Op Codes
 
-| Op Code    | Op Byte | Args                             | Description                                                            |
-| ---------- | ------: | -------------------------------- | ---------------------------------------------------------------------- |
-| `CALL`     |       0 | $INDEX, $ARG_COUNT               | Call builtin `$INDEX` with `$ARG_COUNT` arguments                      |
-| `GET`      |       1 | [$LOOKUP](#lookup-types), $INDEX | Get a builtin/variable/prompt/secret from the env by `$INDEX`          |
-| `CONSTANT` |       2 | $CONST_INDEX                     | Get constant value by `$CONST_INDEX`                                   |
-| `TRUE`     |       3 |                                  | Push a `true` value on to the stack                                    |
-| `FALSE`    |       4 |                                  | Push a `false` value on to the stack                                   |
-| `NOT`      |       5 |                                  | Pop a boolean value from the stack, negate, then push it on the stack  |
-| `EQ`       |       6 |                                  | Pop last two values from the stack, compare them, push result on stack |
+| Op Code    | Op Byte | Args                             | Description                                                           |
+| ---------- | ------: | -------------------------------- | --------------------------------------------------------------------- |
+| `CALL`     |       0 | $INDEX, $ARG_COUNT               | Call builtin `$INDEX` with `$ARG_COUNT` arguments                     |
+| `GET`      |       1 | [$LOOKUP](#lookup-types), $INDEX | Get a builtin/variable/prompt/secret from the env by `$INDEX`         |
+| `CONSTANT` |       2 | $CONST_INDEX                     | Get constant value by `$CONST_INDEX`                                  |
+| `TRUE`     |       3 |                                  | Push a `true` value on to the stack                                   |
+| `FALSE`    |       4 |                                  | Push a `false` value on to the stack                                  |
+| `NOT`      |       5 |                                  | Pop a boolean value from the stack, negate, then push it on the stack |
 
 ### Lookup Types
 

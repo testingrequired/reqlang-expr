@@ -1,5 +1,6 @@
 VERSION 0700
 ----
-0000 TRUE
-0001 TRUE
-0002 EQ
+0000 GET BUILTIN        15 == 'eq'
+0003 TRUE
+0004 TRUE
+0005 CALL             (2 args)

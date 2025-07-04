@@ -265,6 +265,15 @@ impl BuiltinFns {
 
         Value::Type(value_arg.get_type().into())
     }
+
+    pub fn eq(args: Vec<Value>) -> Value {
+        let first_arg = args.first().expect("should have first expression passed");
+        let second_arg = args.get(1).expect("should have second expression passed");
+
+        let equals = first_arg == second_arg;
+
+        equals.into()
+    }
 }
 
 #[cfg(test)]

@@ -86,7 +86,6 @@ impl Vm {
             opcode::TRUE => self.op_true(),
             opcode::FALSE => self.op_false(),
             opcode::NOT => self.op_not(),
-            opcode::EQ => self.op_eq(),
             _ => panic!("Invalid OP code: {op_code}"),
         }
     }
@@ -238,17 +237,6 @@ impl Vm {
         let value = self.stack_pop()?;
 
         self.stack_push(Value::Bool(!value.get_bool()));
-
-        Ok(())
-    }
-
-    fn op_eq(&mut self) -> ExprResult<()> {
-        assert_eq!(opcode::EQ, self.read_u8(), "Expected EQ opcode");
-
-        let value = self.stack_pop()?;
-        let value2 = self.stack_pop()?;
-
-        self.stack_push(Value::Bool(value == value2));
 
         Ok(())
     }

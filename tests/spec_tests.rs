@@ -70,14 +70,14 @@ fn spec_files_disassembled(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResu
                     let disassemble = Disassembler::new(&bytecode, &env);
                     let disassembly = disassemble.disassemble();
 
-                    pretty_assertions::assert_eq!(disassembly, expected_disassembled);
+                    pretty_assertions::assert_eq!(expected_disassembled, disassembly);
                 }
                 Err(err) => {
-                    pretty_assertions::assert_eq!(format!("{err:#?}"), expected_disassembled);
+                    pretty_assertions::assert_eq!(expected_disassembled, format!("{err:#?}"));
                 }
             },
             Err(err) => {
-                pretty_assertions::assert_eq!(format!("{err:#?}"), expected_disassembled);
+                pretty_assertions::assert_eq!(expected_disassembled, format!("{err:#?}"));
             }
         }
     }

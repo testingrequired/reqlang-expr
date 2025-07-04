@@ -54,7 +54,6 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             opcode::TRUE => self.disassemble_op_true("TRUE", op_idx),
             opcode::FALSE => self.disassemble_op_false("FALSE", op_idx),
             opcode::NOT => self.disassemble_op_u8("NOT", op_idx, opcode::NOT),
-            opcode::EQ => self.disassemble_op_u8("EQ", op_idx, opcode::EQ),
             _ => (1, "".to_string()),
         };
 

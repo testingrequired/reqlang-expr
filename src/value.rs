@@ -49,3 +49,9 @@ impl Display for Value {
         }
     }
 }
+
+impl From<bool> for Value {
+    fn from(value: bool) -> Self {
+        Self::Bool(value)
+    }
+}
