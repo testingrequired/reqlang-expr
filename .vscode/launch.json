@@ -1,0 +1,92 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug example 'compiler'",
+      "cargo": {
+        "args": ["build", "--example=compiler", "--package=reqlang-expr"],
+        "filter": {
+          "name": "compiler",
+          "kind": "example"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug example 'disassembler'",
+      "cargo": {
+        "args": ["build", "--example=disassembler", "--package=reqlang-expr"],
+        "filter": {
+          "name": "disassembler",
+          "kind": "example"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug example 'interpreter'",
+      "cargo": {
+        "args": ["build", "--example=interpreter", "--package=reqlang-expr"],
+        "filter": {
+          "name": "interpreter",
+          "kind": "example"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug example 'lexer'",
+      "cargo": {
+        "args": ["build", "--example=lexer", "--package=reqlang-expr"],
+        "filter": {
+          "name": "lexer",
+          "kind": "example"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug example 'parser'",
+      "cargo": {
+        "args": ["build", "--example=parser", "--package=reqlang-expr"],
+        "filter": {
+          "name": "parser",
+          "kind": "example"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug example 'repl'",
+      "cargo": {
+        "args": ["build", "--example=repl", "--package=reqlang-expr"],
+        "filter": {
+          "name": "repl",
+          "kind": "example"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
