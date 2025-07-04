@@ -3,7 +3,7 @@
 use std::rc::Rc;
 
 use crate::{
-    ast::{Expr, ExprS},
+    ast::{Expr, ExprS, IdentifierKind},
     builtins::{BuiltinFn, BuiltinFns},
     errors::{
         CompileError::{self, WrongNumberOfArgs},
@@ -357,78 +357,60 @@ fn compile_expr(
             }
         }
         Expr::Identifier(identifier) => {
-            let identifier_name = identifier.0.as_str();
+            let identifier_lookup_name = identifier.lookup_name();
+            let identifier_name = identifier.full_name().to_string();
 
-            if let Some((_, index)) = env.get_builtin_index(identifier_name) {
-                codes.push(GET);
-                codes.push(lookup::BUILTIN);
-                codes.push(index);
-            } else if let Some((_, index)) = env.get_user_builtin_index(identifier_name) {
-                codes.push(GET);
-                codes.push(lookup::USER_BUILTIN);
-                codes.push(index);
-            } else {
-                let identifier_prefix = &identifier_name[..1];
-                let identifier_suffix = &identifier_name[1..];
+            let identifier_undefined_err = (
+                CompileError::Undefined(identifier_name).into(),
+                span.clone(),
+            );
 
-                match identifier_prefix {
-                    "?" => {
-                        if let Some(index) = get(&env.prompts, identifier_suffix) {
-                            codes.push(GET);
-                            codes.push(lookup::PROMPT);
-                            codes.push(index);
-                        } else {
-                            errs.push((
-                                CompileError::Undefined(identifier_name.to_string()).into(),
-                                span.clone(),
-                            ));
-                        }
+            let result = match identifier.identifier_kind() {
+                IdentifierKind::Var => get(&env.vars, identifier_lookup_name).map(|index| {
+                    codes.push(GET);
+                    codes.push(lookup::VAR);
+                    codes.push(index);
+                }),
+                IdentifierKind::Prompt => get(&env.prompts, identifier_lookup_name).map(|index| {
+                    codes.push(GET);
+                    codes.push(lookup::PROMPT);
+                    codes.push(index);
+                }),
+                IdentifierKind::Secret => get(&env.secrets, identifier_lookup_name).map(|index| {
+                    codes.push(GET);
+                    codes.push(lookup::SECRET);
+                    codes.push(index);
+                }),
+                IdentifierKind::Client => {
+                    get(&env.client_context, identifier_lookup_name).map(|index| {
+                        codes.push(GET);
+                        codes.push(lookup::CLIENT_CTX);
+                        codes.push(index);
+                    })
+                }
+                IdentifierKind::Builtin => {
+                    if let Some((_, index)) = env.get_builtin_index(identifier_lookup_name) {
+                        codes.push(GET);
+                        codes.push(lookup::BUILTIN);
+                        codes.push(index);
+
+                        Some(())
+                    } else if let Some((_, index)) =
+                        env.get_user_builtin_index(identifier_lookup_name)
+                    {
+                        codes.push(GET);
+                        codes.push(lookup::USER_BUILTIN);
+                        codes.push(index);
+
+                        Some(())
+                    } else {
+                        None
                     }
-                    "!" => {
-                        if let Some(index) = get(&env.secrets, identifier_suffix) {
-                            codes.push(GET);
-                            codes.push(lookup::SECRET);
-                            codes.push(index);
-                        } else {
-                            errs.push((
-                                CompileError::Undefined(identifier_name.to_string()).into(),
-                                span.clone(),
-                            ));
-                        }
-                    }
-                    ":" => {
-                        if let Some(index) = get(&env.vars, identifier_suffix) {
-                            codes.push(GET);
-                            codes.push(lookup::VAR);
-                            codes.push(index);
-                        } else {
-                            errs.push((
-                                CompileError::Undefined(identifier_name.to_string()).into(),
-                                span.clone(),
-                            ));
-                        }
-                    }
-                    "@" => {
-                        if let Some(index) = get(&env.client_context, identifier_suffix) {
-                            codes.push(GET);
-                            codes.push(lookup::CLIENT_CTX);
-                            codes.push(index);
-                        } else {
-                            errs.push((
-                                CompileError::Undefined(identifier_name.to_string()).into(),
-                                span.clone(),
-                            ));
-                        }
-                    }
-                    _ => {
-                        errs.push((
-                            ExprError::CompileError(CompileError::Undefined(
-                                identifier_name.to_string(),
-                            )),
-                            span.clone(),
-                        ));
-                    }
-                };
+                }
+            };
+
+            if let None = result {
+                errs.push(identifier_undefined_err);
             }
         }
         Expr::Call(expr_call) => {

@@ -18,7 +18,7 @@ impl Expr {
 
     pub fn identifier_name(&self) -> Option<&str> {
         match self {
-            Expr::Identifier(expr_identifier) => Some(expr_identifier.name()),
+            Expr::Identifier(expr_identifier) => Some(expr_identifier.lookup_name()),
             _ => None,
         }
     }
@@ -51,16 +51,80 @@ impl Expr {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct ExprIdentifier(pub String);
+pub struct ExprIdentifier(pub String, pub IdentifierKind, pub Option<Type>);
 
 impl ExprIdentifier {
     pub fn new(identifier: &str) -> Self {
-        Self(identifier.to_string())
+        Self(
+            identifier.to_string(),
+            Self::get_identifier_kind(identifier),
+            None,
+        )
     }
 
-    pub fn name(&self) -> &str {
+    pub fn get_identifier_kind(identifier: &str) -> IdentifierKind {
+        let identifier_prefix = &identifier[..1];
+
+        match identifier_prefix {
+            "?" => IdentifierKind::Prompt,
+            "!" => IdentifierKind::Secret,
+            ":" => IdentifierKind::Var,
+            "@" => IdentifierKind::Client,
+            _ => IdentifierKind::Builtin,
+        }
+    }
+
+    /// The full name of the identifier from the source code
+    ///
+    /// This is different from [Self::name] as it always includes a sigil prefix
+    /// for variables, prompts, secrets, and client identifiers.
+    pub fn full_name(&self) -> &str {
         &self.0
     }
+
+    /// The look up name for the identifier
+    ///
+    /// For builtins this is just the identifier name
+    ///
+    /// For variables, prompts, secrets, and client identifiers, it returns the
+    /// non sigil prefix version of the identifier.
+    ///
+    /// - builtin_fn => builtin_fn
+    /// - :variable => variable
+    /// - ?prompt => prompt
+    /// - !secret => secret
+    /// - @client => client
+    ///
+    pub fn lookup_name(&self) -> &str {
+        match self.identifier_kind() {
+            IdentifierKind::Builtin => &self.0,
+            IdentifierKind::Var => &self.0[1..],
+            IdentifierKind::Prompt => &self.0[1..],
+            IdentifierKind::Secret => &self.0[1..],
+            IdentifierKind::Client => &self.0[1..],
+        }
+    }
+
+    pub fn sigil(&self) -> &str {
+        &self.0[..1]
+    }
+
+    pub fn identifier_kind(&self) -> &IdentifierKind {
+        &self.1
+    }
+
+    pub fn get_type(&self) -> &Option<Type> {
+        &self.2
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum IdentifierKind {
+    Builtin,
+    Var,
+    Prompt,
+    Secret,
+    Client,
 }
 
 #[derive(Debug, PartialEq)]

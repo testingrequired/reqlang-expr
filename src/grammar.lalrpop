@@ -45,7 +45,7 @@ ExprCall: ast::Expr = {
 // Identifier Expressions
 
 ExprIdentifier: ast::Expr = <name:identifier> =>
-    ast::Expr::Identifier(ast::ExprIdentifier(name).into());
+    ast::Expr::Identifier(ast::ExprIdentifier::new(&name).into());
 
 // Utility Types
 
