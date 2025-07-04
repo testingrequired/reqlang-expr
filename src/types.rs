@@ -141,7 +141,7 @@ mod from_tests {
             name: "test".to_string(),
             args: vec![FnArg::new("a", Type::Value)],
             return_type: Type::String,
-            func: Rc::new(|_| Value::String("".to_string())),
+            func: Rc::new(|_| Ok(Value::String("".to_string()))),
         }));
 
         let ty: Type = builtin_fn.into();
@@ -162,7 +162,7 @@ mod from_tests {
             name: "test".to_string(),
             args: vec![FnArg::new("a", Type::Value)],
             return_type: Type::String,
-            func: Rc::new(|_| Value::String("".to_string())),
+            func: Rc::new(|_| Ok(Value::String("".to_string()))),
         }));
 
         let ty: Type = builtin_fn.get_type();

@@ -1,7 +1,7 @@
 use core::fmt;
 use std::fmt::Display;
 
-use crate::{types::Type, value::Value};
+use crate::{errors::ExprResult, types::Type, value::Value};
 
 #[derive(Clone)]
 pub struct FnArg {
@@ -36,7 +36,7 @@ pub struct BuiltinFn {
     pub args: Vec<FnArg>,
     pub return_type: Type,
     // Function used at runtime
-    pub func: std::rc::Rc<dyn Fn(Vec<Value>) -> Value>,
+    pub func: std::rc::Rc<dyn Fn(Vec<Value>) -> ExprResult<Value>>,
 }
 
 impl BuiltinFn {
@@ -116,56 +116,56 @@ pub enum FnArity {
 pub struct BuiltinFns;
 
 impl BuiltinFns {
-    pub fn id(args: Vec<Value>) -> Value {
+    pub fn id(args: Vec<Value>) -> ExprResult<Value> {
         let arg = args.first().unwrap();
 
-        arg.clone()
+        Ok(arg.clone())
     }
 
-    pub fn noop(_: Vec<Value>) -> Value {
-        Value::String(String::from("noop"))
+    pub fn noop(_: Vec<Value>) -> ExprResult<Value> {
+        Ok(Value::String(String::from("noop")))
     }
 
-    pub fn is_empty(args: Vec<Value>) -> Value {
+    pub fn is_empty(args: Vec<Value>) -> ExprResult<Value> {
         let string_arg = args
             .first()
             .expect("should have string expression passed")
-            .get_string();
+            .get_string()?;
 
-        Value::Bool(string_arg.is_empty())
+        Ok(Value::Bool(string_arg.is_empty()))
     }
 
-    pub fn and(args: Vec<Value>) -> Value {
+    pub fn and(args: Vec<Value>) -> ExprResult<Value> {
         let a_arg = args
             .first()
             .expect("should have first expression passed")
-            .get_bool();
+            .get_bool()?;
         let b_arg = args
             .get(1)
             .expect("should have second expression passed")
-            .get_bool();
+            .get_bool()?;
 
-        Value::Bool(a_arg && b_arg)
+        Ok(Value::Bool(a_arg && b_arg))
     }
 
-    pub fn or(args: Vec<Value>) -> Value {
+    pub fn or(args: Vec<Value>) -> ExprResult<Value> {
         let a_arg = args
             .first()
             .expect("should have first expression passed")
-            .get_bool();
+            .get_bool()?;
         let b_arg = args
             .get(1)
             .expect("should have second expression passed")
-            .get_bool();
+            .get_bool()?;
 
-        Value::Bool(a_arg || b_arg)
+        Ok(Value::Bool(a_arg || b_arg))
     }
 
-    pub fn cond(args: Vec<Value>) -> Value {
+    pub fn cond(args: Vec<Value>) -> ExprResult<Value> {
         let cond_arg = args
             .first()
             .expect("should have cond expression passed")
-            .get_bool();
+            .get_bool()?;
         let then_arg = args
             .get(1)
             .cloned()
@@ -175,19 +175,19 @@ impl BuiltinFns {
             .cloned()
             .expect("should have else expression passed");
 
-        if cond_arg { then_arg } else { else_arg }
+        if cond_arg { Ok(then_arg) } else { Ok(else_arg) }
     }
 
-    pub fn to_str(args: Vec<Value>) -> Value {
+    pub fn to_str(args: Vec<Value>) -> ExprResult<Value> {
         let value_arg = args.first().expect("should have string expression passed");
 
-        match value_arg {
+        Ok(match value_arg {
             Value::String(_) => value_arg.clone(),
             _ => Value::String(value_arg.to_string()),
-        }
+        })
     }
 
-    pub fn concat(args: Vec<Value>) -> Value {
+    pub fn concat(args: Vec<Value>) -> ExprResult<Value> {
         let mut result = String::new();
 
         for arg in args {
@@ -199,88 +199,88 @@ impl BuiltinFns {
             result.push_str(value.as_str());
         }
 
-        Value::String(result)
+        Ok(Value::String(result))
     }
 
-    pub fn contains(args: Vec<Value>) -> Value {
+    pub fn contains(args: Vec<Value>) -> ExprResult<Value> {
         let needle_arg = args
             .first()
             .expect("should have first expression passed")
-            .get_string();
+            .get_string()?;
         let haystack_arg = args
             .get(1)
             .expect("should have second expression passed")
-            .get_string();
+            .get_string()?;
 
-        Value::Bool(haystack_arg.contains(needle_arg))
+        Ok(Value::Bool(haystack_arg.contains(needle_arg)))
     }
 
-    pub fn trim(args: Vec<Value>) -> Value {
+    pub fn trim(args: Vec<Value>) -> ExprResult<Value> {
         let string_arg = args
             .first()
             .expect("should have string expression passed")
-            .get_string();
+            .get_string()?;
 
-        Value::String(string_arg.trim().to_string())
+        Ok(Value::String(string_arg.trim().to_string()))
     }
 
-    pub fn trim_start(args: Vec<Value>) -> Value {
+    pub fn trim_start(args: Vec<Value>) -> ExprResult<Value> {
         let string_arg = args
             .first()
             .expect("should have string expression passed")
-            .get_string();
+            .get_string()?;
 
-        Value::String(string_arg.trim_start().to_string())
+        Ok(Value::String(string_arg.trim_start().to_string()))
     }
 
-    pub fn trim_end(args: Vec<Value>) -> Value {
+    pub fn trim_end(args: Vec<Value>) -> ExprResult<Value> {
         let string_arg = args
             .first()
             .expect("should have string expression passed")
-            .get_string();
+            .get_string()?;
 
-        Value::String(string_arg.trim_end().to_string())
+        Ok(Value::String(string_arg.trim_end().to_string()))
     }
 
-    pub fn lowercase(args: Vec<Value>) -> Value {
+    pub fn lowercase(args: Vec<Value>) -> ExprResult<Value> {
         let string_arg = args
             .first()
             .expect("should have string expression passed")
-            .get_string();
+            .get_string()?;
 
-        Value::String(string_arg.to_lowercase().to_string())
+        Ok(Value::String(string_arg.to_lowercase().to_string()))
     }
 
-    pub fn uppercase(args: Vec<Value>) -> Value {
+    pub fn uppercase(args: Vec<Value>) -> ExprResult<Value> {
         let string_arg = args
             .first()
             .expect("should have string expression passed")
-            .get_string();
+            .get_string()?;
 
-        Value::String(string_arg.to_uppercase().to_string())
+        Ok(Value::String(string_arg.to_uppercase().to_string()))
     }
 
-    pub fn get_type(args: Vec<Value>) -> Value {
+    pub fn get_type(args: Vec<Value>) -> ExprResult<Value> {
         let value_arg = args.first().expect("should have first expression passed");
 
-        Value::Type(value_arg.get_type().into())
+        Ok(Value::Type(value_arg.get_type().into()))
     }
 
-    pub fn eq(args: Vec<Value>) -> Value {
+    pub fn eq(args: Vec<Value>) -> ExprResult<Value> {
         let first_arg = args.first().expect("should have first expression passed");
         let second_arg = args.get(1).expect("should have second expression passed");
 
         let equals = first_arg == second_arg;
 
-        equals.into()
+        Ok(equals.into())
     }
 
-    pub fn not(args: Vec<Value>) -> Value {
+    pub fn not(args: Vec<Value>) -> ExprResult<Value> {
         let value_arg = args.first().expect("should have first expression passed");
 
-        let value = &value_arg.get_bool();
+        let value = &value_arg.get_bool()?;
 
-        Value::Bool(!value)
+        Ok(Value::Bool(!value))
     }
 }
 
@@ -300,7 +300,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![FnArg::new_varadic("rest", Type::String)],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
                 }
             )
         )
@@ -316,7 +316,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
                 }
             )
         )
@@ -332,7 +332,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
                 }
             )
         )
@@ -348,7 +348,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![FnArg::new("value", Type::String)],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
                 }
             )
         )
@@ -364,7 +364,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![FnArg::new("value", Type::String)],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
                 }
             )
         )
@@ -380,7 +380,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![FnArg::new("a", Type::String), FnArg::new("b", Type::String)],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
                 }
             )
         )
@@ -396,7 +396,7 @@ mod value_tests {
                     name: "test_builtin".to_string(),
                     args: vec![FnArg::new("a", Type::String), FnArg::new("b", Type::String)],
                     return_type: Type::String,
-                    func: Rc::new(|_| { Value::String("test_builtin".to_string()) })
+                    func: Rc::new(|_| { Ok(Value::String("test_builtin".to_string())) })
                 }
             )
         )

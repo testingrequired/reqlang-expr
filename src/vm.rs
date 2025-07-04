@@ -105,11 +105,11 @@ impl Vm {
 
         let value = self.stack_pop()?;
 
-        let builtin = value.get_func().func.clone();
+        let builtin = value.get_func()?.func.clone();
 
         let result = builtin(args);
 
-        self.stack_push(result);
+        self.stack_push(result?);
 
         Ok(())
     }

@@ -218,12 +218,23 @@ impl diagnostics::AsDiagnostic for CompileError {
 pub enum RuntimeError {
     #[error("attempting to pop from an empty stack")]
     EmptyStack,
+    #[error("expected type {expected} but received {actual}")]
+    TypeMismatch { expected: Type, actual: Type },
 }
 
 impl diagnostics::AsDiagnostic for RuntimeError {
     fn as_diagnostic(&self, source: &str, span: &Span) -> diagnostics::ExprDiagnostic {
         match self {
             RuntimeError::EmptyStack => diagnostics::ExprDiagnostic {
+                code: "".to_string(),
+                range: diagnostics::get_range(source, span),
+                severity: Some(diagnostics::DiagnosisSeverity::ERROR),
+                message: format!("{self}"),
+            },
+            RuntimeError::TypeMismatch {
+                expected: _,
+                actual: _,
+            } => diagnostics::ExprDiagnostic {
                 code: "".to_string(),
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
