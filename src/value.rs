@@ -42,8 +42,8 @@ impl Value {
                 RuntimeError::TypeMismatch {
                     expected: Type::Fn {
                         args: vec![],
-                        variadic_arg: Some(Type::Unknown.into()),
-                        returns: Type::Unknown.into(),
+                        variadic_arg: Some(Type::Value.into()),
+                        returns: Type::Value.into(),
                     },
                     actual: self.get_type(),
                 }
@@ -140,8 +140,8 @@ mod tests {
                 RuntimeError::TypeMismatch {
                     expected: Type::Fn {
                         args: vec![],
-                        variadic_arg: Some(Type::Unknown.into()),
-                        returns: Type::Unknown.into()
+                        variadic_arg: Some(Type::Value.into()),
+                        returns: Type::Value.into()
                     },
                     actual: Type::String
                 }
@@ -174,8 +174,8 @@ mod tests {
                 RuntimeError::TypeMismatch {
                     expected: Type::Fn {
                         args: vec![],
-                        variadic_arg: Some(Type::Unknown.into()),
-                        returns: Type::Unknown.into()
+                        variadic_arg: Some(Type::Value.into()),
+                        returns: Type::Value.into()
                     },
                     actual: Type::Bool
                 }
