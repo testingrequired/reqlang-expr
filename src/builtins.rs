@@ -274,6 +274,14 @@ impl BuiltinFns {
 
         equals.into()
     }
+
+    pub fn not(args: Vec<Value>) -> Value {
+        let value_arg = args.first().expect("should have first expression passed");
+
+        let value = &value_arg.get_bool();
+
+        Value::Bool(!value)
+    }
 }
 
 #[cfg(test)]

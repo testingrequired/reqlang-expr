@@ -73,12 +73,7 @@ See [/spec](./spec/) for more syntax examples.
 | `uppercase(value: String) -> String`                      | Return a uppercase version of a string          |
 | `type(value: Value) -> Type`                              | Get the string representation of a value's type |
 | `eq(a: Value, b: Value) -> Bool`                          | Compare two values for equality                 |
-
-### Operator Functions
-
-| Fn                         | Description                              |
-| -------------------------- | ---------------------------------------- |
-| `not(value: Bool) -> Bool` | Logical NOT operation on a boolean value |
+| `not(value: Bool) -> Bool`                                | Logical NOT operation on a boolean value        |
 
 ### Why Backticks For Strings?
 

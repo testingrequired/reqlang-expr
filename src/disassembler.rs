@@ -53,21 +53,21 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             opcode::CONSTANT => self.disassemble_op_constant("CONSTANT", op_idx),
             opcode::TRUE => self.disassemble_op_true("TRUE", op_idx),
             opcode::FALSE => self.disassemble_op_false("FALSE", op_idx),
-            opcode::NOT => self.disassemble_op_u8("NOT", op_idx, opcode::NOT),
             _ => (1, "".to_string()),
         };
 
         (op_idx_inc, op_idx_str, op_str)
     }
 
-    fn disassemble_op_u8(&self, name: &str, op_idx: usize, expected: u8) -> (usize, String) {
-        let constant_op = self.bytecode.codes()[op_idx];
-        assert_eq!(constant_op, expected);
+    // TODO
+    // fn disassemble_op_u8(&self, name: &str, op_idx: usize, expected: u8) -> (usize, String) {
+    //     let constant_op = self.bytecode.codes()[op_idx];
+    //     assert_eq!(constant_op, expected);
 
-        let string = format!("{name}\n");
+    //     let string = format!("{name}\n");
 
-        (1, string)
-    }
+    //     (1, string)
+    // }
 
     fn disassemble_op_true(&self, name: &str, op_idx: usize) -> (usize, String) {
         let constant_op = self.bytecode.codes()[op_idx];

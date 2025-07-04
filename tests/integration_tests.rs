@@ -940,13 +940,14 @@ mod valid {
 
         compiles to: Ok(ExprByteCode::new(
             crate::make_test_bytecode(vec![
+                opcode::GET, lookup::BUILTIN, 16,
                 opcode::FALSE,
-                opcode::NOT
+                opcode::CALL, 1
             ]),
             vec![]
         ));
 
-        disassembles to: "VERSION 0700\n----\n0000 FALSE\n0001 NOT\n";
+        disassembles to: "VERSION 0700\n----\n0000 GET BUILTIN        16 == 'not'\n0003 FALSE\n0004 CALL             (1 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1858,8 +1859,8 @@ mod valid {
         interpets to: Ok(
             Value::Type(
                 Type::Fn {
-                    args: vec![Type::String, Type::String],
-                    variadic_arg: Some(Type::String.into()),
+                    args: vec![Type::Value, Type::Value],
+                    variadic_arg: Some(Type::Value.into()),
                     returns: Type::String.into()
                 }.into()
             )

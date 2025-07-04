@@ -167,6 +167,8 @@ pub enum CompileError {
     NoCallee,
     #[error("expected type {expected} but received {actual}")]
     TypeMismatch { expected: Type, actual: Type },
+    #[error("invalid lookup type: {0}")]
+    InvalidLookupType(u8),
 }
 
 impl diagnostics::AsDiagnostic for CompileError {
@@ -197,6 +199,12 @@ impl diagnostics::AsDiagnostic for CompileError {
                 expected: _,
                 actual: _,
             } => diagnostics::ExprDiagnostic {
+                code: "".to_string(),
+                range: diagnostics::get_range(source, span),
+                severity: Some(diagnostics::DiagnosisSeverity::ERROR),
+                message: format!("{self}"),
+            },
+            CompileError::InvalidLookupType(_) => diagnostics::ExprDiagnostic {
                 code: "".to_string(),
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),

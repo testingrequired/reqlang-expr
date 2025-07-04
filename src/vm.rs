@@ -85,7 +85,6 @@ impl Vm {
             opcode::GET => self.op_get(env, runtime_env),
             opcode::TRUE => self.op_true(),
             opcode::FALSE => self.op_false(),
-            opcode::NOT => self.op_not(),
             _ => panic!("Invalid OP code: {op_code}"),
         }
     }
@@ -229,16 +228,6 @@ impl Vm {
             .codes()
             .get(current_ip as usize)
             .expect("should have op in bytecode at {}")
-    }
-
-    fn op_not(&mut self) -> ExprResult<()> {
-        assert_eq!(opcode::NOT, self.read_u8(), "Expected NOT opcode");
-
-        let value = self.stack_pop()?;
-
-        self.stack_push(Value::Bool(!value.get_bool()));
-
-        Ok(())
     }
 }
 

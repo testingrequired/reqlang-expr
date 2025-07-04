@@ -34,7 +34,7 @@ impl Value {
     pub fn get_bool(&self) -> bool {
         match self {
             Value::Bool(s) => *s,
-            _ => panic!("Value is not a string"),
+            _ => panic!("Value is not a bool"),
         }
     }
 }
@@ -53,5 +53,21 @@ impl Display for Value {
 impl From<bool> for Value {
     fn from(value: bool) -> Self {
         Self::Bool(value)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic(expected = "Value is not a bool")]
+    fn get_bool_on_string() {
+        Value::String("string".to_string()).get_bool();
+    }
+
+    #[test]
+    fn get_bool_on_bool_true() {
+        assert!(Value::Bool(true).get_bool());
     }
 }
