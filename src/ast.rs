@@ -113,10 +113,6 @@ impl ExprIdentifier {
         }
     }
 
-    pub fn sigil(&self) -> &str {
-        &self.0[..1]
-    }
-
     pub fn identifier_kind(&self) -> &IdentifierKind {
         &self.1
     }

@@ -2,12 +2,11 @@
 
 use crate::{
     ast::{Expr, ExprS, IdentifierKind, add_type_to_expr},
-    builtins::{BuiltinFn, BuiltinFns},
+    builtins::BuiltinFn,
     errors::{
         CompileError::{self, WrongNumberOfArgs},
         ExprError, ExprErrorS, ExprResult,
     },
-    prelude::FnArg,
     types::Type,
 };
 
@@ -46,8 +45,8 @@ fn get(list: &[String], identifier: &str) -> Option<u8> {
 
 #[derive(Debug)]
 pub struct CompileTimeEnv {
-    builtins: Vec<Box<BuiltinFn>>,
-    user_builtins: Vec<Box<BuiltinFn>>,
+    builtins: Vec<BuiltinFn<'static>>,
+    user_builtins: Vec<BuiltinFn<'static>>,
     vars: Vec<String>,
     prompts: Vec<String>,
     secrets: Vec<String>,
@@ -57,126 +56,12 @@ pub struct CompileTimeEnv {
 impl Default for CompileTimeEnv {
     fn default() -> Self {
         Self {
-            builtins: vec![
-                Box::new(BuiltinFn {
-                    name: String::from("id"),
-                    args: vec![FnArg::new("value", Type::Value)],
-                    return_type: Type::Value,
-                    func: BuiltinFns::id,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("noop"),
-                    args: vec![],
-                    return_type: Type::String,
-                    func: BuiltinFns::noop,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("is_empty"),
-                    args: vec![FnArg::new("value", Type::String)],
-                    return_type: Type::String,
-                    func: BuiltinFns::is_empty,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("and"),
-                    args: vec![FnArg::new("a", Type::Bool), FnArg::new("b", Type::Bool)],
-                    return_type: Type::Bool,
-                    func: BuiltinFns::and,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("or"),
-                    args: vec![FnArg::new("a", Type::Bool), FnArg::new("b", Type::Bool)],
-                    return_type: Type::Bool,
-                    func: BuiltinFns::or,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("cond"),
-                    args: vec![
-                        FnArg::new("cond", Type::Bool),
-                        FnArg::new("then", Type::Value),
-                        FnArg::new("else", Type::Value),
-                    ],
-                    return_type: Type::Bool,
-                    func: BuiltinFns::cond,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("to_str"),
-                    args: vec![FnArg::new("value", Type::Value)],
-                    return_type: Type::String,
-                    func: BuiltinFns::to_str,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("concat"),
-                    args: vec![
-                        FnArg::new("a", Type::Value),
-                        FnArg::new("b", Type::Value),
-                        FnArg::new_varadic("rest", Type::Value),
-                    ],
-                    return_type: Type::String,
-                    func: BuiltinFns::concat,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("contains"),
-                    args: vec![
-                        FnArg::new("needle", Type::String),
-                        FnArg::new("haystack", Type::String),
-                    ],
-                    return_type: Type::Bool,
-                    func: BuiltinFns::contains,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("trim"),
-                    args: vec![FnArg::new("value", Type::String)],
-                    return_type: Type::String,
-                    func: BuiltinFns::trim,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("trim_start"),
-                    args: vec![FnArg::new("value", Type::String)],
-                    return_type: Type::String,
-                    func: BuiltinFns::trim_start,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("trim_end"),
-                    args: vec![FnArg::new("value", Type::String)],
-                    return_type: Type::String,
-                    func: BuiltinFns::trim_end,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("lowercase"),
-                    args: vec![FnArg::new("value", Type::String)],
-                    return_type: Type::String,
-                    func: BuiltinFns::lowercase,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("uppercase"),
-                    args: vec![FnArg::new("value", Type::String)],
-                    return_type: Type::String,
-                    func: BuiltinFns::uppercase,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("type"),
-                    args: vec![FnArg::new("value", Type::Value)],
-                    return_type: Type::String,
-                    func: BuiltinFns::get_type,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("eq"),
-                    args: vec![FnArg::new("a", Type::Value), FnArg::new("b", Type::Value)],
-                    return_type: Type::Bool,
-                    func: BuiltinFns::eq,
-                }),
-                Box::new(BuiltinFn {
-                    name: String::from("not"),
-                    args: vec![FnArg::new("value", Type::Bool)],
-                    return_type: Type::Bool,
-                    func: BuiltinFns::not,
-                }),
-            ],
+            builtins: BuiltinFn::DEFAULT_BUILTINS.to_vec(),
             user_builtins: vec![],
-            vars: Vec::new(),
-            prompts: Vec::new(),
-            secrets: Vec::new(),
-            client_context: Vec::new(),
+            vars: vec![],
+            prompts: vec![],
+            secrets: vec![],
+            client_context: vec![],
         }
     }
 }
@@ -197,35 +82,35 @@ impl CompileTimeEnv {
         }
     }
 
-    pub fn get_builtin_index(&self, name: &str) -> Option<(&Box<BuiltinFn>, u8)> {
+    pub fn get_builtin_index(&self, name: &str) -> Option<(&BuiltinFn, u8)> {
         let index = self.builtins.iter().position(|x| x.name == name);
 
         let result = index.map(|i| (self.builtins.get(i).unwrap(), i as u8));
         result
     }
 
-    pub fn get_user_builtin_index(&self, name: &str) -> Option<(&Box<BuiltinFn>, u8)> {
+    pub fn get_user_builtin_index(&self, name: &str) -> Option<(&BuiltinFn, u8)> {
         let index = self.user_builtins.iter().position(|x| x.name == name);
 
         let result = index.map(|i| (self.user_builtins.get(i).unwrap(), i as u8));
         result
     }
 
-    pub fn add_user_builtins(&mut self, builtins: Vec<Box<BuiltinFn>>) {
+    pub fn add_user_builtins(&mut self, builtins: Vec<BuiltinFn<'static>>) {
         for builtin in builtins {
             self.add_user_builtin(builtin);
         }
     }
 
-    pub fn add_user_builtin(&mut self, builtin: Box<BuiltinFn>) {
+    pub fn add_user_builtin(&mut self, builtin: BuiltinFn<'static>) {
         self.user_builtins.push(builtin);
     }
 
-    pub fn get_builtin(&self, index: usize) -> Option<&Box<BuiltinFn>> {
+    pub fn get_builtin(&self, index: usize) -> Option<&BuiltinFn<'static>> {
         self.builtins.get(index)
     }
 
-    pub fn get_user_builtin(&self, index: usize) -> Option<&Box<BuiltinFn>> {
+    pub fn get_user_builtin(&self, index: usize) -> Option<&BuiltinFn<'static>> {
         self.user_builtins.get(index)
     }
 

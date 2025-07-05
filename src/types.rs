@@ -85,8 +85,8 @@ impl From<Value> for Type {
     }
 }
 
-impl From<Box<BuiltinFn>> for Type {
-    fn from(value: Box<BuiltinFn>) -> Self {
+impl From<BuiltinFn<'static>> for Type {
+    fn from(value: BuiltinFn) -> Self {
         let args: Vec<Type> = value
             .args
             .iter()
@@ -110,16 +110,9 @@ impl From<Box<BuiltinFn>> for Type {
 
 #[cfg(test)]
 mod from_tests {
-    use crate::{
-        errors::ExprResult,
-        prelude::{BuiltinFn, FnArg},
-    };
+    use crate::prelude::BuiltinFn;
 
     use super::*;
-
-    fn example_builtin(_args: Vec<Value>) -> ExprResult<Value> {
-        Ok(Value::String("".to_string()))
-    }
 
     #[test]
     fn test_from_type_value() {
@@ -165,15 +158,7 @@ mod from_tests {
 
     #[test]
     fn test_from_fn_value() {
-        let builtin_fn = Value::Fn(
-            BuiltinFn {
-                name: "test".to_string(),
-                args: vec![FnArg::new("a", Type::Value)],
-                return_type: Type::String,
-                func: example_builtin,
-            }
-            .into(),
-        );
+        let builtin_fn = Value::Fn(BuiltinFn::ID.into());
 
         let ty: Type = builtin_fn.into();
 
@@ -181,7 +166,7 @@ mod from_tests {
             Type::Fn {
                 args: vec![Type::Value],
                 variadic_arg: None,
-                returns: Box::new(Type::String),
+                returns: Box::new(Type::Value),
             },
             ty
         );
@@ -189,15 +174,7 @@ mod from_tests {
 
     #[test]
     fn test_get_type_fn_value() {
-        let builtin_fn = Value::Fn(
-            BuiltinFn {
-                name: "test".to_string(),
-                args: vec![FnArg::new("a", Type::Value)],
-                return_type: Type::String,
-                func: example_builtin,
-            }
-            .into(),
-        );
+        let builtin_fn = Value::Fn(BuiltinFn::ID.into());
 
         let ty: Type = builtin_fn.get_type();
 
@@ -205,7 +182,7 @@ mod from_tests {
             Type::Fn {
                 args: vec![Type::Value],
                 variadic_arg: None,
-                returns: Box::new(Type::String),
+                returns: Box::new(Type::Value),
             },
             ty
         );

@@ -123,7 +123,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             lookup::VAR => {
                 let value = self.env.get_var(constant_idx).unwrap();
 
-                value
+                value.as_str()
             }
             lookup::PROMPT => {
                 let value = self.env.get_prompt(constant_idx).unwrap();

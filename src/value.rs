@@ -11,7 +11,7 @@ use crate::{
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     String(String),
-    Fn(Box<BuiltinFn>),
+    Fn(Box<BuiltinFn<'static>>),
     Bool(bool),
     Type(Box<Type>),
 }
@@ -159,8 +159,8 @@ mod tests {
     #[test]
     fn get_func_on_func() {
         let expected_fn: Box<BuiltinFn> = BuiltinFn {
-            name: String::from("name"),
-            args: vec![],
+            name: "name",
+            args: &[],
             return_type: Type::Unknown,
             func: example_builtin,
         }

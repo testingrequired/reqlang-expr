@@ -124,13 +124,13 @@ impl Vm {
                 let value = env
                     .get_builtin(get_idx)
                     .unwrap_or_else(|| panic!("undefined builtin: {get_idx}"));
-                self.stack_push(Value::Fn(value.clone()));
+                self.stack_push(Value::Fn(value.clone().into()));
             }
             USER_BUILTIN => {
                 let value = env
                     .get_user_builtin(get_idx)
                     .unwrap_or_else(|| panic!("undefined user builtin: {get_idx}"));
-                self.stack_push(Value::Fn(value.clone()));
+                self.stack_push(Value::Fn(value.clone().into()));
             }
             VAR => {
                 let value = env
