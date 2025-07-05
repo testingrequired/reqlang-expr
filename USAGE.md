@@ -55,13 +55,31 @@ pub enum Expr {
 }
 ```
 
+#### Span Information
+
+`Expr` that contain sub expressions e.g. `ExprCall` store those expressions as `(Expr, Range<usize>)`.
+
+The expression `(and true false)` would parse to this.
+
+```rust
+Expr::Call(ExprCall {
+    callee: (Expr::identifier("and"), 1..4).into(),
+    args: vec![
+        (Expr::bool(true), 5..9),
+        (Expr::bool(false), 10..15)
+    ]
+}.into());
+```
+
+Span information `1..4`, `5..9`, `10..15` is stored next to the subexpressions `and`, `true`, and `false`.
+
 #### ExprCall
 
 A call to a builtin (referenced by identifier) with N expressions passed as arguments.`
 
 ```rust
 pub struct ExprCall {
-    pub callee: ExprS,
+    pub callee: Box<ExprS>,
     pub args: Vec<ExprS>,
 }
 ```

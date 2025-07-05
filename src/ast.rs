@@ -36,7 +36,10 @@ impl Expr {
     }
 
     pub fn call(callee: ExprS, args: Vec<ExprS>) -> Self {
-        Self::Call(Box::new(ExprCall { callee, args }))
+        Self::Call(Box::new(ExprCall {
+            callee: callee.into(),
+            args,
+        }))
     }
 
     pub fn bool(value: bool) -> Self {
@@ -146,7 +149,7 @@ impl ExprString {
 
 #[derive(Debug, PartialEq)]
 pub struct ExprCall {
-    pub callee: ExprS,
+    pub callee: Box<ExprS>,
     pub args: Vec<ExprS>,
 }
 

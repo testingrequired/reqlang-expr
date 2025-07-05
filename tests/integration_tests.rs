@@ -937,7 +937,7 @@ mod valid {
 
         ast should be: Ok(
             Expr::Call(ExprCall {
-                callee: (Expr::identifier("not"), 1..4),
+                callee: (Expr::identifier("not"), 1..4).into(),
                 args: vec![(
                     Expr::bool(false),
                     5..10
@@ -982,7 +982,7 @@ mod valid {
 
         ast should be: Ok(
             Expr::Call(ExprCall {
-                callee: (Expr::identifier("and"), 1..4),
+                callee: (Expr::identifier("and"), 1..4).into(),
                 args: vec![
                     (Expr::bool(true), 5..9),
                     (Expr::bool(false), 10..15)
@@ -1028,7 +1028,7 @@ mod valid {
 
         ast should be: Ok(
             Expr::Call(ExprCall {
-                callee: (Expr::identifier("and"), 1..4),
+                callee: (Expr::identifier("and"), 1..4).into(),
                 args: vec![
                     (Expr::bool(true), 5..9),
                     (Expr::bool(true), 10..14)
@@ -1074,7 +1074,7 @@ mod valid {
 
         ast should be: Ok(
             Expr::Call(ExprCall {
-                callee: (Expr::identifier("and"), 1..4),
+                callee: (Expr::identifier("and"), 1..4).into(),
                 args: vec![
                     (Expr::bool(false), 5..10),
                     (Expr::bool(true), 11..15)
@@ -1119,7 +1119,7 @@ mod valid {
 
         ast should be: Ok(
             Expr::Call(ExprCall {
-                callee: (Expr::identifier("or"), 1..3),
+                callee: (Expr::identifier("or"), 1..3).into(),
                 args: vec![
                     (Expr::bool(true), 4..8),
                     (Expr::bool(false), 9..14)
@@ -1164,7 +1164,7 @@ mod valid {
 
         ast should be: Ok(
             Expr::Call(ExprCall {
-                callee: (Expr::identifier("or"), 1..3),
+                callee: (Expr::identifier("or"), 1..3).into(),
                 args: vec![
                     (Expr::bool(true), 4..8),
                     (Expr::bool(true), 9..13)
@@ -1209,7 +1209,7 @@ mod valid {
 
         ast should be: Ok(
             Expr::Call(ExprCall {
-                callee: (Expr::identifier("or"), 1..3),
+                callee: (Expr::identifier("or"), 1..3).into(),
                 args: vec![
                     (Expr::bool(false), 4..9),
                     (Expr::bool(true), 10..14)
@@ -1256,7 +1256,7 @@ mod valid {
 
         ast should be: Ok(
             Expr::Call(ExprCall {
-                callee: (Expr::identifier("cond"), 1..5),
+                callee: (Expr::identifier("cond"), 1..5).into(),
                 args: vec![
                     (Expr::bool(true), 6..10),
                     (Expr::string("foo"), 11..16),
@@ -1308,7 +1308,7 @@ mod valid {
 
         ast should be: Ok(
             Expr::Call(ExprCall {
-                callee: (Expr::identifier("cond"), 1..5),
+                callee: (Expr::identifier("cond"), 1..5).into(),
                 args: vec![
                     (Expr::bool(false), 6..11),
                     (Expr::string("foo"), 12..17),
@@ -1585,7 +1585,7 @@ mod valid {
 
         ast should be: Ok(
             Expr::Call(ExprCall {
-                callee: (Expr::identifier("contains"), 1..9),
+                callee: (Expr::identifier("contains"), 1..9).into(),
                 args: vec![
                     (Expr::Identifier(ExprIdentifier(":a".to_string(), IdentifierKind::Var, Some(Type::String)).into()), 10..12),
                     (Expr::identifier_with_type(":b", Type::String), 13..15)
@@ -2442,7 +2442,7 @@ mod invalid {
         ];
 
         ast should be: Ok(Expr::Call(ExprCall {
-            callee: (Expr::identifier("concat"), 1..7),
+            callee: (Expr::identifier("concat"), 1..7).into(),
             args: vec![
                 (
                     Expr::identifier("foo"),
@@ -2509,7 +2509,7 @@ mod invalid {
         ];
 
         ast should be: Ok(Expr::Call(ExprCall {
-            callee: (Expr::identifier("not"), 1..4),
+            callee: (Expr::identifier("not"), 1..4).into(),
             args: vec![]
         }.into()));
 
@@ -2548,7 +2548,7 @@ mod invalid {
         ];
 
         ast should be: Ok(Expr::Call(ExprCall {
-            callee: (Expr::identifier("not"), 1..4),
+            callee: (Expr::identifier("not"), 1..4).into(),
             args: vec![
                 (Expr::bool(true), 5..9),
                 (Expr::bool(false), 10..15),
@@ -2589,7 +2589,7 @@ mod invalid {
         ];
 
         ast should be: Ok(Expr::Call(ExprCall {
-            callee: (Expr::identifier("not"), 1..4),
+            callee: (Expr::identifier("not"), 1..4).into(),
             args: vec![
                 (Expr::string("true"), 5..11),
             ]
@@ -2630,7 +2630,7 @@ mod invalid {
         ];
 
         ast should be: Ok(Expr::Call(ExprCall {
-            callee: (Expr::identifier("not"), 1..4),
+            callee: (Expr::identifier("not"), 1..4).into(),
             args: vec![
                 (Expr::bool(true), 5..9),
                 (Expr::string("true"), 10..16),
@@ -2672,7 +2672,7 @@ mod invalid {
         ];
 
         ast should be: Ok(Expr::Call(ExprCall {
-            callee: (Expr::identifier("not"), 1..4),
+            callee: (Expr::identifier("not"), 1..4).into(),
             args: vec![
                 (Expr::string("true"), 5..11),
                 (Expr::bool(true), 12..16),

@@ -37,7 +37,7 @@ CallCallee = ExprS;
 CallArgs = Args<ExprS>;
 ExprCall: ast::Expr = {
     "(" <callee:CallCallee> <args:CallArgs> ")" => ast::Expr::Call(ast::ExprCall {
-        callee,
+        callee: callee.into(),
         args
     }.into())
 }
