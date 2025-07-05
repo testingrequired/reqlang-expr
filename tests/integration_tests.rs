@@ -636,7 +636,7 @@ mod valid {
             Ok((0, Token::identifier("@b"), 2))
         ];
 
-        ast should be: Ok(Expr::identifier_with_type("@b", Type::String));
+        ast should be: Ok(Expr::identifier_with_type("@b", Type::Value));
 
         env: (vec![], vec![], vec![], vec!["a".to_string(), "b".to_string()]);
 
@@ -1888,7 +1888,7 @@ mod valid {
         ];
 
         ast should be: Ok(
-            Expr::identifier_with_type("@intest", Type::String)
+            Expr::identifier_with_type("@intest", Type::Value)
         );
 
         env: (vec![], vec![], vec![], vec![]);

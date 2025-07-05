@@ -178,7 +178,7 @@ pub fn add_type_to_expr_parse(expr: &mut Expr) {
                 expr_identifier.2 = Some(Type::String);
             }
             IdentifierKind::Client => {
-                expr_identifier.2 = Some(Type::String);
+                expr_identifier.2 = Some(Type::Value);
             }
         },
         Expr::Call(expr_call) => {

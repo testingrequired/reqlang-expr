@@ -386,6 +386,11 @@ fn compile_expr(
                             ));
                         }
                     }
+                    lookup::CLIENT_CTX => {
+                        // No validation needs to be ran at this point
+                        // This won't happen until runtime when the client
+                        // a value.
+                    }
                     _ => {
                         errs.push((
                             CompileError::InvalidLookupType(*lookup).into(),
