@@ -1,11 +1,11 @@
 [
     (
-        RuntimeError(
+        CompileError(
             TypeMismatch {
                 expected: Bool,
                 actual: Fn(Value) -> Value,
             },
         ),
-        0..0,
+        5..7,
     ),
 ]

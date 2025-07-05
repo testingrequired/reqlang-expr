@@ -498,7 +498,7 @@ pub mod diagnostics {
 
             assert_eq!(diagnostics.len(), 1);
             let diagnostic = &diagnostics[0];
-            assert_eq!(diagnostic.code, Some("".to_string()));
+            assert_eq!(diagnostic.code, Some("lexical".to_string()));
             assert_eq!(diagnostic.message, "Invalid token".to_string());
             assert_eq!(diagnostic.severity, Severity::Error);
             assert_eq!(diagnostic.labels.len(), 1);
@@ -514,7 +514,7 @@ pub mod diagnostics {
 
             assert_eq!(diagnostics.len(), 1);
             let diagnostic = &diagnostics[0];
-            assert_eq!(diagnostic.code, Some("".to_string()));
+            assert_eq!(diagnostic.code, Some("compiler".to_string()));
             assert_eq!(diagnostic.message, "undefined: var".to_string());
             assert_eq!(diagnostic.severity, Severity::Error);
             assert_eq!(diagnostic.labels.len(), 1);
@@ -533,7 +533,7 @@ pub mod diagnostics {
 
             assert_eq!(diagnostics.len(), 1);
             let diagnostic = &diagnostics[0];
-            assert_eq!(diagnostic.code, Some("".to_string()));
+            assert_eq!(diagnostic.code, Some("compiler".to_string()));
             assert_eq!(
                 diagnostic.message,
                 "expects 2 arguments but received 3".to_string()

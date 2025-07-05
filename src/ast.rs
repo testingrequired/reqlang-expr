@@ -50,7 +50,11 @@ impl Expr {
     pub fn get_type(&self) -> Type {
         match self {
             Expr::Bool(_) => Type::Bool,
-            Expr::Identifier(_) => Type::Unknown,
+            Expr::Identifier(identifier) => identifier
+                .get_type()
+                .as_ref()
+                .unwrap_or(&Type::Unknown)
+                .clone(),
             Expr::Call(_) => Type::Unknown,
             Expr::String(_) => Type::String,
             Expr::Error => Type::Unknown,
