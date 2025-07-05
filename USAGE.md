@@ -43,7 +43,17 @@ See: [lexer.rs](./src/lexer.rs)
 
 The parser takes a stream of tokens from the lexer and constructs an AST (Abstract Syntax Tree) in the form of a tree of `Expr` nodes.
 
+### Usage
+
+```rust
+let source = "(eq (type `Hello`) (type `World`))";
+
+let ast: Expr = parse(&source)?;
+```
+
 ### Expr
+
+All values in the language are parsed in to an expression: `Expr`.
 
 ```rust
 pub enum Expr {
@@ -55,9 +65,13 @@ pub enum Expr {
 }
 ```
 
+#### Error
+
+Expressions that can't be parsed are represented in the AST as an `Expr::Error`.
+
 #### Span Information
 
-`Expr` that contain sub expressions e.g. `ExprCall` store those expressions as `(Expr, Range<usize>)`.
+Expressions that contain sub expressions (e.g. `ExprCall`) store those subexpressions and their location in the source as `(Expr, Range<usize>)`.
 
 The expression `(and true false)` would parse to this.
 
@@ -75,7 +89,10 @@ Span information `1..4`, `5..9`, `10..15` is stored next to the subexpressions `
 
 #### ExprCall
 
-A call to a builtin (referenced by identifier) with N expressions passed as arguments.`
+A call to a builtin (referenced by identifier) with N expressions passed as arguments.
+
+- `` (contains `foo`, `foobar`) ``
+- `` (eq `foo` (trim ` foo `)) ``
 
 ```rust
 pub struct ExprCall {
@@ -87,6 +104,12 @@ pub struct ExprCall {
 #### ExprIdentifier
 
 An identifier referencing a builtin, variable, prompt, secret, or client value.
+
+- `builtin_name`
+- `:var_name`
+- `?prompt_name`
+- `!secret_name`
+- `@client_value`
 
 ```rust
 pub struct ExprIdentifier(pub String, pub IdentifierKind, pub Option<Type>);
@@ -133,24 +156,21 @@ The type of the identifier is added in two passes:
 
 A string literal of text.
 
+- `` `Hello World!` ``
+
 ```rust
 pub struct ExprString(pub String);
 ```
 
 #### ExprBool
 
-A boolean literal: `true` or `false`
+A boolean literal.
+
+- `true`
+- `false`
 
 ```rust
 pub struct ExprBool(pub bool);
-```
-
-### Usage
-
-```rust
-let source = "(noop)";
-
-let ast: Expr = parse(&source)?;
 ```
 
 See: [parser.rs](./src/parser.rs), [grammar.lalrpop](./src/grammar.lalrpop), [ast.rs](./src/ast.rs)
