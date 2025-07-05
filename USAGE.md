@@ -81,7 +81,27 @@ pub enum IdentifierKind {
     Client,
 }
 
-let expr = ExprIdentifier::new("print").into();
+let ident = ExprIdentifier::new(":foo");
+let expr = Expr::Identifier(Box::new(ident));
+assert_eq!(IdentifierKind::Var, *ident.identifier_kind());
+```
+
+##### Full Name
+
+The full name of the identifier, including the sigil e.g. `:`, `?`, `!`, `@` (for non builtins).
+
+```rust
+let ident = ExprIdentifier::new(":foo");
+assert_eq!(":foo", ident.full_name());
+```
+
+##### Look Up Name
+
+The full name of the identifier, minus the sigil. This is used when looking up identifiers in the compilation and runtime phase.
+
+```rust
+let ident = ExprIdentifier::new(":foo");
+assert_eq!("foo", ident.lookup_name());
 ```
 
 ##### Identifier Type
