@@ -84,6 +84,13 @@ pub enum IdentifierKind {
 let expr = ExprIdentifier::new("print").into();
 ```
 
+##### Identifier Type
+
+The type of the identifier is added in two passes:
+
+1. Variables, prompts, secrets, and client values during the parsing phase
+2. Builtins during the compilation phase
+
 #### ExprString
 
 A string literal of text.
