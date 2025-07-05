@@ -113,27 +113,28 @@ impl SyntaxError {
 
 impl diagnostics::AsDiagnostic for SyntaxError {
     fn as_diagnostic(&self, source: &str, span: &Span) -> diagnostics::ExprDiagnostic {
+        let error_code = "syntax".to_string();
         match self {
             SyntaxError::ExtraToken { token: _ } => diagnostics::ExprDiagnostic {
-                code: "".to_string(),
+                code: error_code,
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
                 message: format!("{self}"),
             },
             SyntaxError::InvalidToken => diagnostics::ExprDiagnostic {
-                code: "".to_string(),
+                code: error_code,
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
                 message: format!("{self}"),
             },
             SyntaxError::UnexpectedInput { token: _ } => diagnostics::ExprDiagnostic {
-                code: "".to_string(),
+                code: error_code,
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
                 message: format!("{self}"),
             },
             SyntaxError::UnrecognizedEOF { expected: _ } => diagnostics::ExprDiagnostic {
-                code: "".to_string(),
+                code: error_code,
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
                 message: format!("{self}"),
@@ -142,13 +143,13 @@ impl diagnostics::AsDiagnostic for SyntaxError {
                 token: _,
                 expected: _,
             } => diagnostics::ExprDiagnostic {
-                code: "".to_string(),
+                code: error_code,
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
                 message: format!("{self}"),
             },
             SyntaxError::UnterminatedString => diagnostics::ExprDiagnostic {
-                code: "".to_string(),
+                code: error_code,
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
                 message: format!("{self}"),
@@ -173,9 +174,10 @@ pub enum CompileError {
 
 impl diagnostics::AsDiagnostic for CompileError {
     fn as_diagnostic(&self, source: &str, span: &Span) -> diagnostics::ExprDiagnostic {
+        let error_code = "compiler".to_string();
         match self {
             CompileError::Undefined(_) => diagnostics::ExprDiagnostic {
-                code: "".to_string(),
+                code: error_code,
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
                 message: format!("{self}"),
@@ -184,13 +186,13 @@ impl diagnostics::AsDiagnostic for CompileError {
                 expected: _,
                 actual: _,
             } => diagnostics::ExprDiagnostic {
-                code: "".to_string(),
+                code: error_code,
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
                 message: format!("{self}"),
             },
             CompileError::NoCallee => diagnostics::ExprDiagnostic {
-                code: "".to_string(),
+                code: error_code,
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
                 message: format!("{self}"),
@@ -199,13 +201,13 @@ impl diagnostics::AsDiagnostic for CompileError {
                 expected: _,
                 actual: _,
             } => diagnostics::ExprDiagnostic {
-                code: "".to_string(),
+                code: error_code,
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
                 message: format!("{self}"),
             },
             CompileError::InvalidLookupType(_) => diagnostics::ExprDiagnostic {
-                code: "".to_string(),
+                code: error_code,
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
                 message: format!("{self}"),
@@ -224,9 +226,10 @@ pub enum RuntimeError {
 
 impl diagnostics::AsDiagnostic for RuntimeError {
     fn as_diagnostic(&self, source: &str, span: &Span) -> diagnostics::ExprDiagnostic {
+        let error_code = "runtime".to_string();
         match self {
             RuntimeError::EmptyStack => diagnostics::ExprDiagnostic {
-                code: "".to_string(),
+                code: error_code,
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
                 message: format!("{self}"),
@@ -235,7 +238,7 @@ impl diagnostics::AsDiagnostic for RuntimeError {
                 expected: _,
                 actual: _,
             } => diagnostics::ExprDiagnostic {
-                code: "".to_string(),
+                code: error_code,
                 range: diagnostics::get_range(source, span),
                 severity: Some(diagnostics::DiagnosisSeverity::ERROR),
                 message: format!("{self}"),
