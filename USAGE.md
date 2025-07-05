@@ -226,14 +226,15 @@ pub struct CompileTimeEnv {
 Builtins are functions provided by the compiler/VM and the only functions available.
 
 ```rust
-pub struct BuiltinFn {
-    // Needs to follow identifier naming rules
-    pub name: String,
-    // Arguments the function expects
-    pub args: Vec<FnArg>,
+pub struct BuiltinFn<'a> {
+    /// Needs to follow identifier naming rules
+    pub name: &'static str,
+    /// Arguments the function expects
+    pub args: &'a [FnArg],
+    /// Type returned by the function
     pub return_type: Type,
-    // Function used at runtime
-    pub func: std::rc::Rc<dyn Fn(Vec<Value>) -> Value>,
+    /// Function used at runtime
+    pub func: fn(Vec<Value>) -> ExprResult<Value>,
 }
 
 pub struct FnArg {

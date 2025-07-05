@@ -31,12 +31,13 @@ impl FnArg {
 #[derive(Clone)]
 /// Builtin function used in expressions
 pub struct BuiltinFn<'a> {
-    // Needs to follow identifier naming rules
+    /// Needs to follow identifier naming rules
     pub name: &'static str,
-    // Arguments the function expects
+    /// Arguments the function expects
     pub args: &'a [FnArg],
+    /// Type returned by the function
     pub return_type: Type,
-    // Function used at runtime
+    /// Function used at runtime
     pub func: fn(Vec<Value>) -> ExprResult<Value>,
 }
 
