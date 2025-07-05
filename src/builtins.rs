@@ -42,6 +42,27 @@ pub struct BuiltinFn<'a> {
 }
 
 impl<'a> BuiltinFn<'a> {
+    pub fn arity(&self) -> u8 {
+        let len = self.args.len() as u8;
+
+        if self.is_variadic() { len - 1 } else { len }
+    }
+
+    pub fn is_variadic(&self) -> bool {
+        self.args.last().map(|arg| arg.variadic).unwrap_or(false)
+    }
+
+    pub fn arity_matches(&self, arity: u8) -> bool {
+        if self.is_variadic() {
+            self.arity() <= arity
+        } else {
+            self.arity() == arity
+        }
+    }
+
+    /// The default set of builtin functions
+    ///
+    /// This also defines the lookup index for builtins during compilation
     pub const DEFAULT_BUILTINS: [BuiltinFn<'a>; 17] = [
         BuiltinFn::ID,
         BuiltinFn::NOOP,
@@ -62,6 +83,9 @@ impl<'a> BuiltinFn<'a> {
         BuiltinFn::NOT,
     ];
 
+    // Builtin Definitions
+
+    /// Return the [`Value`] passed in
     pub const ID: BuiltinFn<'static> = BuiltinFn {
         name: "id",
         args: &[FnArg {
@@ -70,15 +94,26 @@ impl<'a> BuiltinFn<'a> {
             variadic: false,
         }],
         return_type: Type::Value,
-        func: BuiltinFns::id,
+        func: Self::id,
     };
 
+    fn id(args: Vec<Value>) -> ExprResult<Value> {
+        let arg = args.first().unwrap();
+
+        Ok(arg.clone())
+    }
+
+    /// Return the string `` `noop` ``
     pub const NOOP: BuiltinFn<'static> = BuiltinFn {
         name: "noop",
         args: &[],
         return_type: Type::String,
-        func: BuiltinFns::noop,
+        func: Self::noop,
     };
+
+    fn noop(_: Vec<Value>) -> ExprResult<Value> {
+        Ok(Value::String(String::from("noop")))
+    }
 
     pub const IS_EMPTY: BuiltinFn<'static> = BuiltinFn {
         name: "is_empty",
@@ -88,8 +123,17 @@ impl<'a> BuiltinFn<'a> {
             variadic: false,
         }],
         return_type: Type::String,
-        func: BuiltinFns::is_empty,
+        func: Self::is_empty,
     };
+
+    fn is_empty(args: Vec<Value>) -> ExprResult<Value> {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string()?;
+
+        Ok(Value::Bool(string_arg.is_empty()))
+    }
 
     pub const AND: BuiltinFn<'static> = BuiltinFn {
         name: "and",
@@ -106,8 +150,21 @@ impl<'a> BuiltinFn<'a> {
             },
         ],
         return_type: Type::Bool,
-        func: BuiltinFns::and,
+        func: Self::and,
     };
+
+    fn and(args: Vec<Value>) -> ExprResult<Value> {
+        let a_arg = args
+            .first()
+            .expect("should have first expression passed")
+            .get_bool()?;
+        let b_arg = args
+            .get(1)
+            .expect("should have second expression passed")
+            .get_bool()?;
+
+        Ok(Value::Bool(a_arg && b_arg))
+    }
 
     pub const OR: BuiltinFn<'static> = BuiltinFn {
         name: "or",
@@ -124,8 +181,21 @@ impl<'a> BuiltinFn<'a> {
             },
         ],
         return_type: Type::Bool,
-        func: BuiltinFns::or,
+        func: Self::or,
     };
+
+    fn or(args: Vec<Value>) -> ExprResult<Value> {
+        let a_arg = args
+            .first()
+            .expect("should have first expression passed")
+            .get_bool()?;
+        let b_arg = args
+            .get(1)
+            .expect("should have second expression passed")
+            .get_bool()?;
+
+        Ok(Value::Bool(a_arg || b_arg))
+    }
 
     pub const COND: BuiltinFn<'static> = BuiltinFn {
         name: "cond",
@@ -147,8 +217,25 @@ impl<'a> BuiltinFn<'a> {
             },
         ],
         return_type: Type::Bool,
-        func: BuiltinFns::cond,
+        func: Self::cond,
     };
+
+    fn cond(args: Vec<Value>) -> ExprResult<Value> {
+        let cond_arg = args
+            .first()
+            .expect("should have cond expression passed")
+            .get_bool()?;
+        let then_arg = args
+            .get(1)
+            .cloned()
+            .expect("should have then expression passed");
+        let else_arg = args
+            .get(2)
+            .cloned()
+            .expect("should have else expression passed");
+
+        if cond_arg { Ok(then_arg) } else { Ok(else_arg) }
+    }
 
     pub const TO_STR: BuiltinFn<'static> = BuiltinFn {
         name: "to_str",
@@ -158,8 +245,17 @@ impl<'a> BuiltinFn<'a> {
             variadic: false,
         }],
         return_type: Type::String,
-        func: BuiltinFns::to_str,
+        func: Self::to_str,
     };
+
+    fn to_str(args: Vec<Value>) -> ExprResult<Value> {
+        let value_arg = args.first().expect("should have string expression passed");
+
+        Ok(match value_arg {
+            Value::String(_) => value_arg.clone(),
+            _ => Value::String(value_arg.to_string()),
+        })
+    }
 
     pub const CONCAT: BuiltinFn<'static> = BuiltinFn {
         name: "concat",
@@ -181,8 +277,23 @@ impl<'a> BuiltinFn<'a> {
             },
         ],
         return_type: Type::String,
-        func: BuiltinFns::concat,
+        func: Self::concat,
     };
+
+    fn concat(args: Vec<Value>) -> ExprResult<Value> {
+        let mut result = String::new();
+
+        for arg in args {
+            let value = match arg {
+                Value::String(string) => string,
+                _ => arg.to_string(),
+            };
+
+            result.push_str(value.as_str());
+        }
+
+        Ok(Value::String(result))
+    }
 
     pub const CONTAINS: BuiltinFn<'static> = BuiltinFn {
         name: "contains",
@@ -199,8 +310,21 @@ impl<'a> BuiltinFn<'a> {
             },
         ],
         return_type: Type::Bool,
-        func: BuiltinFns::contains,
+        func: Self::contains,
     };
+
+    fn contains(args: Vec<Value>) -> ExprResult<Value> {
+        let needle_arg = args
+            .first()
+            .expect("should have first expression passed")
+            .get_string()?;
+        let haystack_arg = args
+            .get(1)
+            .expect("should have second expression passed")
+            .get_string()?;
+
+        Ok(Value::Bool(haystack_arg.contains(needle_arg)))
+    }
 
     pub const TRIM: BuiltinFn<'static> = BuiltinFn {
         name: "trim",
@@ -210,8 +334,17 @@ impl<'a> BuiltinFn<'a> {
             variadic: false,
         }],
         return_type: Type::String,
-        func: BuiltinFns::trim,
+        func: Self::trim,
     };
+
+    fn trim(args: Vec<Value>) -> ExprResult<Value> {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string()?;
+
+        Ok(Value::String(string_arg.trim().to_string()))
+    }
 
     pub const TRIM_START: BuiltinFn<'static> = BuiltinFn {
         name: "trim_start",
@@ -221,8 +354,17 @@ impl<'a> BuiltinFn<'a> {
             variadic: false,
         }],
         return_type: Type::String,
-        func: BuiltinFns::trim_start,
+        func: Self::trim_start,
     };
+
+    fn trim_start(args: Vec<Value>) -> ExprResult<Value> {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string()?;
+
+        Ok(Value::String(string_arg.trim_start().to_string()))
+    }
 
     pub const TRIM_END: BuiltinFn<'static> = BuiltinFn {
         name: "trim_end",
@@ -232,8 +374,17 @@ impl<'a> BuiltinFn<'a> {
             variadic: false,
         }],
         return_type: Type::String,
-        func: BuiltinFns::trim_end,
+        func: Self::trim_end,
     };
+
+    fn trim_end(args: Vec<Value>) -> ExprResult<Value> {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string()?;
+
+        Ok(Value::String(string_arg.trim_end().to_string()))
+    }
 
     pub const LOWERCASE: BuiltinFn<'static> = BuiltinFn {
         name: "lowercase",
@@ -245,8 +396,17 @@ impl<'a> BuiltinFn<'a> {
             }
         }],
         return_type: Type::String,
-        func: BuiltinFns::lowercase,
+        func: Self::lowercase,
     };
+
+    fn lowercase(args: Vec<Value>) -> ExprResult<Value> {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string()?;
+
+        Ok(Value::String(string_arg.to_lowercase().to_string()))
+    }
 
     pub const UPPERCASE: BuiltinFn<'static> = BuiltinFn {
         name: "uppercase",
@@ -256,8 +416,17 @@ impl<'a> BuiltinFn<'a> {
             variadic: false,
         }],
         return_type: Type::String,
-        func: BuiltinFns::uppercase,
+        func: Self::uppercase,
     };
+
+    fn uppercase(args: Vec<Value>) -> ExprResult<Value> {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string()?;
+
+        Ok(Value::String(string_arg.to_uppercase().to_string()))
+    }
 
     pub const TYPE: BuiltinFn<'static> = BuiltinFn {
         name: "type",
@@ -267,8 +436,14 @@ impl<'a> BuiltinFn<'a> {
             variadic: false,
         }],
         return_type: Type::String,
-        func: BuiltinFns::get_type,
+        func: Self::get_type,
     };
+
+    fn get_type(args: Vec<Value>) -> ExprResult<Value> {
+        let value_arg = args.first().expect("should have first expression passed");
+
+        Ok(Value::Type(Type::Type(value_arg.get_type().into()).into()))
+    }
 
     pub const EQ: BuiltinFn<'static> = BuiltinFn {
         name: "eq",
@@ -289,8 +464,17 @@ impl<'a> BuiltinFn<'a> {
             },
         ],
         return_type: Type::Bool,
-        func: BuiltinFns::eq,
+        func: Self::eq,
     };
+
+    fn eq(args: Vec<Value>) -> ExprResult<Value> {
+        let first_arg = args.first().expect("should have first expression passed");
+        let second_arg = args.get(1).expect("should have second expression passed");
+
+        let equals = first_arg == second_arg;
+
+        Ok(equals.into())
+    }
 
     pub const NOT: BuiltinFn<'static> = BuiltinFn {
         name: "not",
@@ -303,25 +487,15 @@ impl<'a> BuiltinFn<'a> {
             }
         }],
         return_type: Type::Bool,
-        func: BuiltinFns::not,
+        func: Self::not,
     };
 
-    pub fn arity(&self) -> u8 {
-        let len = self.args.len() as u8;
+    fn not(args: Vec<Value>) -> ExprResult<Value> {
+        let value_arg = args.first().expect("should have first expression passed");
 
-        if self.is_variadic() { len - 1 } else { len }
-    }
+        let value = &value_arg.get_bool()?;
 
-    pub fn is_variadic(&self) -> bool {
-        self.args.last().map(|arg| arg.variadic).unwrap_or(false)
-    }
-
-    pub fn arity_matches(&self, arity: u8) -> bool {
-        if self.is_variadic() {
-            self.arity() <= arity
-        } else {
-            self.arity() == arity
-        }
+        Ok(Value::Bool(!value))
     }
 }
 
@@ -377,177 +551,6 @@ impl<'a> fmt::Debug for BuiltinFn<'a> {
 pub enum FnArity {
     N(u8),
     Variadic { n: u8 },
-}
-
-pub struct BuiltinFns;
-
-impl BuiltinFns {
-    fn id(args: Vec<Value>) -> ExprResult<Value> {
-        let arg = args.first().unwrap();
-
-        Ok(arg.clone())
-    }
-
-    fn noop(_: Vec<Value>) -> ExprResult<Value> {
-        Ok(Value::String(String::from("noop")))
-    }
-
-    pub fn is_empty(args: Vec<Value>) -> ExprResult<Value> {
-        let string_arg = args
-            .first()
-            .expect("should have string expression passed")
-            .get_string()?;
-
-        Ok(Value::Bool(string_arg.is_empty()))
-    }
-
-    pub fn and(args: Vec<Value>) -> ExprResult<Value> {
-        let a_arg = args
-            .first()
-            .expect("should have first expression passed")
-            .get_bool()?;
-        let b_arg = args
-            .get(1)
-            .expect("should have second expression passed")
-            .get_bool()?;
-
-        Ok(Value::Bool(a_arg && b_arg))
-    }
-
-    pub fn or(args: Vec<Value>) -> ExprResult<Value> {
-        let a_arg = args
-            .first()
-            .expect("should have first expression passed")
-            .get_bool()?;
-        let b_arg = args
-            .get(1)
-            .expect("should have second expression passed")
-            .get_bool()?;
-
-        Ok(Value::Bool(a_arg || b_arg))
-    }
-
-    pub fn cond(args: Vec<Value>) -> ExprResult<Value> {
-        let cond_arg = args
-            .first()
-            .expect("should have cond expression passed")
-            .get_bool()?;
-        let then_arg = args
-            .get(1)
-            .cloned()
-            .expect("should have then expression passed");
-        let else_arg = args
-            .get(2)
-            .cloned()
-            .expect("should have else expression passed");
-
-        if cond_arg { Ok(then_arg) } else { Ok(else_arg) }
-    }
-
-    pub fn to_str(args: Vec<Value>) -> ExprResult<Value> {
-        let value_arg = args.first().expect("should have string expression passed");
-
-        Ok(match value_arg {
-            Value::String(_) => value_arg.clone(),
-            _ => Value::String(value_arg.to_string()),
-        })
-    }
-
-    pub fn concat(args: Vec<Value>) -> ExprResult<Value> {
-        let mut result = String::new();
-
-        for arg in args {
-            let value = match arg {
-                Value::String(string) => string,
-                _ => arg.to_string(),
-            };
-
-            result.push_str(value.as_str());
-        }
-
-        Ok(Value::String(result))
-    }
-
-    pub fn contains(args: Vec<Value>) -> ExprResult<Value> {
-        let needle_arg = args
-            .first()
-            .expect("should have first expression passed")
-            .get_string()?;
-        let haystack_arg = args
-            .get(1)
-            .expect("should have second expression passed")
-            .get_string()?;
-
-        Ok(Value::Bool(haystack_arg.contains(needle_arg)))
-    }
-
-    pub fn trim(args: Vec<Value>) -> ExprResult<Value> {
-        let string_arg = args
-            .first()
-            .expect("should have string expression passed")
-            .get_string()?;
-
-        Ok(Value::String(string_arg.trim().to_string()))
-    }
-
-    pub fn trim_start(args: Vec<Value>) -> ExprResult<Value> {
-        let string_arg = args
-            .first()
-            .expect("should have string expression passed")
-            .get_string()?;
-
-        Ok(Value::String(string_arg.trim_start().to_string()))
-    }
-
-    pub fn trim_end(args: Vec<Value>) -> ExprResult<Value> {
-        let string_arg = args
-            .first()
-            .expect("should have string expression passed")
-            .get_string()?;
-
-        Ok(Value::String(string_arg.trim_end().to_string()))
-    }
-
-    pub fn lowercase(args: Vec<Value>) -> ExprResult<Value> {
-        let string_arg = args
-            .first()
-            .expect("should have string expression passed")
-            .get_string()?;
-
-        Ok(Value::String(string_arg.to_lowercase().to_string()))
-    }
-
-    pub fn uppercase(args: Vec<Value>) -> ExprResult<Value> {
-        let string_arg = args
-            .first()
-            .expect("should have string expression passed")
-            .get_string()?;
-
-        Ok(Value::String(string_arg.to_uppercase().to_string()))
-    }
-
-    pub fn get_type(args: Vec<Value>) -> ExprResult<Value> {
-        let value_arg = args.first().expect("should have first expression passed");
-
-        Ok(Value::Type(Type::Type(value_arg.get_type().into()).into()))
-    }
-
-    pub fn eq(args: Vec<Value>) -> ExprResult<Value> {
-        let first_arg = args.first().expect("should have first expression passed");
-        let second_arg = args.get(1).expect("should have second expression passed");
-
-        let equals = first_arg == second_arg;
-
-        Ok(equals.into())
-    }
-
-    pub fn not(args: Vec<Value>) -> ExprResult<Value> {
-        let value_arg = args.first().expect("should have first expression passed");
-
-        let value = &value_arg.get_bool()?;
-
-        Ok(Value::Bool(!value))
-    }
 }
 
 #[cfg(test)]
