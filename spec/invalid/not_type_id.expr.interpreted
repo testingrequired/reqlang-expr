@@ -1,0 +1,11 @@
+[
+    (
+        RuntimeError(
+            TypeMismatch {
+                expected: Bool,
+                actual: Type<Fn(Value) -> Value>,
+            },
+        ),
+        0..0,
+    ),
+]

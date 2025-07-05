@@ -12,6 +12,7 @@ pub enum Type {
         returns: Box<Type>,
     },
     Bool,
+    Type(Box<Type>),
     Unknown,
 }
 
@@ -38,6 +39,7 @@ impl Type {
                 format!("Fn({args}) -> {returns}")
             }
             Type::Bool => "Bool".to_string(),
+            Type::Type(ty) => format!("Type<{}>", ty.name()),
             Type::Unknown => "Unknown".to_string(),
         }
     }

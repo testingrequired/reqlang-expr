@@ -1,1 +1,1 @@
-Fn(Value) -> Value
+Type<Fn(Value) -> Value>

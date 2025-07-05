@@ -1795,7 +1795,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::Type(Type::String.into()));
+        interpets to: Ok(Value::Type(Type::Type(Type::String.into()).into()));
     }
 
     test! {
@@ -1811,7 +1811,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::Type(Type::Bool.into()));
+        interpets to: Ok(Value::Type(Type::Type(Type::Bool.into()).into()));
     }
 
     test! {
@@ -1827,7 +1827,7 @@ mod valid {
             ..Default::default()
         };
 
-        interpets to: Ok(Value::Type(Type::Bool.into()));
+        interpets to: Ok(Value::Type(Type::Type(Type::Bool.into()).into()));
     }
 
     test! {
@@ -1845,11 +1845,11 @@ mod valid {
 
         interpets to: Ok(
             Value::Type(
-                Type::Fn {
+                Type::Type(Type::Fn {
                     args: vec![Type::Value],
                     variadic_arg: None,
                     returns: Type::Value.into()
-                }.into()
+                }.into()).into()
             )
         );
     }
@@ -1869,11 +1869,11 @@ mod valid {
 
         interpets to: Ok(
             Value::Type(
-                Type::Fn {
+                Type::Type(Type::Fn {
                     args: vec![Type::Value, Type::Value],
                     variadic_arg: Some(Type::Value.into()),
                     returns: Type::String.into()
-                }.into()
+                }.into()).into()
             )
         );
     }

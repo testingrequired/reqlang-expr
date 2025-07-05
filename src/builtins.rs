@@ -529,7 +529,7 @@ impl BuiltinFns {
     pub fn get_type(args: Vec<Value>) -> ExprResult<Value> {
         let value_arg = args.first().expect("should have first expression passed");
 
-        Ok(Value::Type(value_arg.get_type().into()))
+        Ok(Value::Type(Type::Type(value_arg.get_type().into()).into()))
     }
 
     pub fn eq(args: Vec<Value>) -> ExprResult<Value> {

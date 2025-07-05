@@ -187,6 +187,7 @@ pub enum Type {
         returns: Box<Type>,
     },
     Bool,
+    Type(Box<Type>),
     Unknown,
 }
 ```
