@@ -41,14 +41,64 @@ See: [lexer.rs](./src/lexer.rs)
 
 ## Parser
 
-The parser takes a stream of tokens from the lexer and constructs an AST (Abstract Syntax Tree).
+The parser takes a stream of tokens from the lexer and constructs an AST (Abstract Syntax Tree) in the form of a tree of `Expr` nodes.
 
-| Expression   | Description                                                                           |
-| ------------ | ------------------------------------------------------------------------------------- |
-| `Call`       | A call to a builtin (referenced by identifier) with N expressions passed as arguments |
-| `Identifier` | An identifier referencing a builtin, variable, prompt, or secret                      |
-| `String`     | A string literal of text                                                              |
-| `Bool`       | A string literal of text                                                              |
+### Expr
+
+```rust
+pub enum Expr {
+    Bool(Box<ExprBool>),
+    Identifier(Box<ExprIdentifier>),
+    Call(Box<ExprCall>),
+    String(Box<ExprString>),
+    Error,
+}
+```
+
+#### ExprCall
+
+A call to a builtin (referenced by identifier) with N expressions passed as arguments.`
+
+```rust
+pub struct ExprCall {
+    pub callee: ExprS,
+    pub args: Vec<ExprS>,
+}
+```
+
+#### ExprIdentifier
+
+An identifier referencing a builtin, variable, prompt, secret, or client value.
+
+```rust
+pub struct ExprIdentifier(pub String, pub IdentifierKind, pub Option<Type>);
+
+pub enum IdentifierKind {
+    Builtin,
+    Var,
+    Prompt,
+    Secret,
+    Client,
+}
+
+let expr = ExprIdentifier::new("print").into();
+```
+
+#### ExprString
+
+A string literal of text.
+
+```rust
+pub struct ExprString(pub String);
+```
+
+#### ExprBool
+
+A boolean literal: `true` or `false`
+
+```rust
+pub struct ExprBool(pub bool);
+```
 
 ### Usage
 
