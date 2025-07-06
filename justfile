@@ -1,12 +1,25 @@
 docker_image := "reqlang-expr:0.7.0"
 
-# Build docker image for reqlang cli
+# List commands
+default:
+    just --list
+
+# Run tests
+test:
+    cargo test
+
+# Run tests with coverage enabled
+coverage:
+    ./coverage.sh
+
+# Run the repl
+repl *args:
+    ./repl.sh {{args}}
+
+# Build repl docker image 
 build-docker:
     docker build -t {{docker_image}} .
 
-build-docker-no-cache:
-    docker build --no-cache -t {{docker_image}} .
-
-# Run docker image for reqlang cli
+# Run repl in built docker image
 run-docker *cli_args:
     docker run -it --rm --read-only {{docker_image}} {{cli_args}}
