@@ -85,7 +85,9 @@ impl<'a> BuiltinFn<'a> {
 
     // Builtin Definitions
 
-    /// Return the [`Value`] passed in
+    /// Return [`Value`] passed in
+    ///
+    /// `(id :variable)`
     pub const ID: BuiltinFn<'static> = BuiltinFn {
         name: "id",
         args: &[FnArg {
@@ -103,7 +105,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(arg.clone())
     }
 
-    /// Return the string `` `noop` ``
+    /// Return [`Value::String`] of `` `noop` ``
+    ///
+    /// `(noop)`
     pub const NOOP: BuiltinFn<'static> = BuiltinFn {
         name: "noop",
         args: &[],
@@ -115,6 +119,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(Value::String(String::from("noop")))
     }
 
+    /// Return [`Type::Bool`] if [`Value::String`] is empty
+    ///
+    /// `` (is_empty `...`) ``
     pub const IS_EMPTY: BuiltinFn<'static> = BuiltinFn {
         name: "is_empty",
         args: &[FnArg {
@@ -135,6 +142,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(Value::Bool(string_arg.is_empty()))
     }
 
+    /// Return [`Type::Bool`] if args [`Value::Bool`] are both `true`
+    ///
+    /// `(and true true)`
     pub const AND: BuiltinFn<'static> = BuiltinFn {
         name: "and",
         args: &[
@@ -166,6 +176,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(Value::Bool(a_arg && b_arg))
     }
 
+    /// Return [`Type::Bool`] if at least one [`Value::Bool`] is `true`
+    ///
+    /// `(or false true)`
     pub const OR: BuiltinFn<'static> = BuiltinFn {
         name: "or",
         args: &[
@@ -197,6 +210,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(Value::Bool(a_arg || b_arg))
     }
 
+    /// Return conditional [`Value`] based on if conditional [`Value::Bool`] is true
+    ///
+    /// `` (cond true `foo` `bar`) ``
     pub const COND: BuiltinFn<'static> = BuiltinFn {
         name: "cond",
         args: &[
@@ -237,6 +253,9 @@ impl<'a> BuiltinFn<'a> {
         if cond_arg { Ok(then_arg) } else { Ok(else_arg) }
     }
 
+    /// Return [`Value::String`] for the given [`Value`]
+    ///
+    /// `(to_str true)`
     pub const TO_STR: BuiltinFn<'static> = BuiltinFn {
         name: "to_str",
         args: &[FnArg {
@@ -257,6 +276,9 @@ impl<'a> BuiltinFn<'a> {
         })
     }
 
+    /// Return [`Value::String`] concatenation of the given [`Value`] arguments
+    ///
+    /// `` (concat `Hello` `, ` `World!`) ``
     pub const CONCAT: BuiltinFn<'static> = BuiltinFn {
         name: "concat",
         args: &[
@@ -295,6 +317,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(Value::String(result))
     }
 
+    /// Returns [`Value::Bool`] if `needle` [`Value::String`] is in `haystack` [`Value::String`]
+    ///
+    /// `` (contains `Hello` `Hello World`) ``
     pub const CONTAINS: BuiltinFn<'static> = BuiltinFn {
         name: "contains",
         args: &[
@@ -326,6 +351,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(Value::Bool(haystack_arg.contains(needle_arg)))
     }
 
+    /// Returns [`Value::String`] with whitespace trimmed from both sides of [`Value::String`]
+    ///
+    /// `` (trim ` Hello `) ``
     pub const TRIM: BuiltinFn<'static> = BuiltinFn {
         name: "trim",
         args: &[FnArg {
@@ -346,6 +374,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(Value::String(string_arg.trim().to_string()))
     }
 
+    /// Returns [`Value::String`] with whitespace trimmed from start of [`Value::String`]
+    ///
+    /// `` (trim_start ` Hello`) ``
     pub const TRIM_START: BuiltinFn<'static> = BuiltinFn {
         name: "trim_start",
         args: &[FnArg {
@@ -366,6 +397,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(Value::String(string_arg.trim_start().to_string()))
     }
 
+    /// Returns [`Value::String`] with whitespace trimmed from end of [`Value::String`]
+    ///
+    /// `` (trim_end `Hello `) ``
     pub const TRIM_END: BuiltinFn<'static> = BuiltinFn {
         name: "trim_end",
         args: &[FnArg {
@@ -386,6 +420,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(Value::String(string_arg.trim_end().to_string()))
     }
 
+    /// Returns [`Value::String`] lowercased
+    ///
+    /// `` (lowercase ` HELLO`) ``
     pub const LOWERCASE: BuiltinFn<'static> = BuiltinFn {
         name: "lowercase",
         args: &[{
@@ -408,6 +445,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(Value::String(string_arg.to_lowercase().to_string()))
     }
 
+    /// Returns [`Value::String`] uppercased
+    ///
+    /// `` (uppercase ` HELLO`) ``
     pub const UPPERCASE: BuiltinFn<'static> = BuiltinFn {
         name: "uppercase",
         args: &[FnArg {
@@ -428,6 +468,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(Value::String(string_arg.to_uppercase().to_string()))
     }
 
+    /// Returns [`Value::Type`] of [`Value`]
+    ///
+    /// (type true)
     pub const TYPE: BuiltinFn<'static> = BuiltinFn {
         name: "type",
         args: &[FnArg {
@@ -445,6 +488,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(Value::Type(Type::Type(value_arg.get_type().into()).into()))
     }
 
+    /// Returns [`Value::Bool`] if two [`Value`] are equal
+    ///
+    /// (eq true true)
     pub const EQ: BuiltinFn<'static> = BuiltinFn {
         name: "eq",
         args: &[
@@ -476,6 +522,9 @@ impl<'a> BuiltinFn<'a> {
         Ok(equals.into())
     }
 
+    /// Returns [`Value::Bool`] negated
+    ///
+    /// (not true)
     pub const NOT: BuiltinFn<'static> = BuiltinFn {
         name: "not",
         args: &[{
