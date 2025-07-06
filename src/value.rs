@@ -74,7 +74,7 @@ impl Display for Value {
             Value::String(string) => write!(f, "`{}`", string),
             Value::Fn(builtin) => write!(f, "{builtin:?}"),
             Value::Bool(value) => write!(f, "{}", value),
-            Value::Type(ty) => write!(f, "{}", ty),
+            Value::Type(ty) => write!(f, "Type<{}>", ty),
         }
     }
 }

@@ -25,6 +25,10 @@ The lexer takes an input string and returns a stream of tokens.
 | ------------ | ----------------------------- | --------------------------------------------------------------------- |
 | `LParan`     | `(`                           | Opening parantheses for a call expression                             |
 | `RParan`     | `)`                           | Closing parantheses for a call expression                             |
+| `Comma`      | `,`                           | Separator between arguments in `Fn` types                             |
+| `LAngle`     | `<`                           | Generic type delimitor                                                |
+| `RAngle`     | `>`                           | Generic type delimitor                                                |
+| `Arrow`      | `->`                          | Separator between `Fn` arg parans and return type                     |
 | `Identifier` | `[!?:]?[a-zA-Z][a-zA-Z0-9_]*` | Identifer referencing a builtin function, variable, prompt, or secret |
 | `String`     | `` `[^`]*` ``                 | A literal string of text delimited by backticks                       |
 | `True`       | `true`                        | A literal boolean value of `true`                                     |
@@ -103,9 +107,10 @@ pub struct ExprCall {
 
 #### ExprIdentifier
 
-An identifier referencing a builtin, variable, prompt, secret, or client value.
+An identifier referencing a builtin, type, variable, prompt, secret, or client value.
 
 - `builtin_name`
+- `TypeName`, `TypeName<Type>`, `Fn(Type, ...Type) -> Type`
 - `:var_name`
 - `?prompt_name`
 - `!secret_name`
@@ -120,6 +125,7 @@ pub enum IdentifierKind {
     Prompt,
     Secret,
     Client,
+    Type,
 }
 
 let ident = ExprIdentifier::new(":foo");
@@ -226,6 +232,7 @@ Valid bytecode will always begin with 4 bytes representing the current language 
 | `SECRET`       |            3 | Secret (identifier prefixed with `!`)                |
 | `USER_BUILTIN` |            4 | User provided builtin function                       |
 | `CLIENT_CTX`   |            5 | Client provided value (identifier prefixed with `@`) |
+| `TYPE`         |            6 | A type stored in `ExprByteCode`                      |
 
 ### Compile Time Environment
 
@@ -266,6 +273,35 @@ pub struct FnArg {
 ```
 
 See: [builtins.rs](./src/builtins.rs), [types.rs](./src/types.rs), [value.rs](./src/value.rs)
+
+### ExprByteCode
+
+The result of an expression compilation is `ExprByteCode`.
+
+```rust
+pub struct ExprByteCode {
+    version: [u8; 4],
+    codes: Vec<u8>,
+    strings: Vec<String>,
+    types: Vec<Type>,
+}
+```
+
+#### Version
+
+The version of the compiler encoded as bytes.
+
+#### Codes
+
+The actual bytecode values.
+
+#### Strings
+
+An indexed list of strings encountered during compilation. These string indexes are referenced by the `opcode::CONSTANT` opcode.
+
+#### Type
+
+An indexed list of types encountered during compilation. These type indexes are referenced by the `opcode::GET` opcode and `lookup::TYPE` lookup.
 
 ### Usage
 

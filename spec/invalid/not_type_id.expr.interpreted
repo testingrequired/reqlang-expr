@@ -3,7 +3,7 @@
         RuntimeError(
             TypeMismatch {
                 expected: Bool,
-                actual: Type<Fn(Value) -> Value>,
+                actual: Fn(Value) -> Value,
             },
         ),
         0..0,

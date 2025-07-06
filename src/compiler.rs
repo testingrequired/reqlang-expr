@@ -7,6 +7,7 @@ use crate::{
         CompileError::{self, WrongNumberOfArgs},
         ExprError, ExprErrorS, ExprResult,
     },
+    prelude::lookup::TYPE,
     types::Type,
 };
 
@@ -34,7 +35,8 @@ pub mod lookup {
         PROMPT,
         SECRET,
         USER_BUILTIN,
-        CLIENT_CTX
+        CLIENT_CTX,
+        TYPE
     }
 }
 
@@ -189,10 +191,11 @@ pub struct ExprByteCode {
     version: [u8; 4],
     codes: Vec<u8>,
     strings: Vec<String>,
+    types: Vec<Type>,
 }
 
 impl ExprByteCode {
-    pub fn new(codes: Vec<u8>, strings: Vec<String>) -> Self {
+    pub fn new(codes: Vec<u8>, strings: Vec<String>, types: Vec<Type>) -> Self {
         let version_bytes = get_version_bytes();
         let version_bytes_from_codes = &codes[0..4];
 
@@ -207,6 +210,7 @@ impl ExprByteCode {
             version: version_bytes,
             codes,
             strings,
+            types,
         }
     }
 
@@ -218,8 +222,16 @@ impl ExprByteCode {
         &self.codes
     }
 
+    pub fn get_code(&self, index: usize) -> Option<&u8> {
+        self.codes.get(index)
+    }
+
     pub fn strings(&self) -> &[String] {
         &self.strings
+    }
+
+    pub fn types(&self) -> &[Type] {
+        &self.types
     }
 }
 
@@ -235,19 +247,21 @@ pub fn get_version_bytes() -> [u8; 4] {
 /// Compile an [`ast::Expr`] into [`ExprByteCode`]
 pub fn compile(expr: &mut ExprS, env: &CompileTimeEnv) -> ExprResult<ExprByteCode> {
     let mut strings: Vec<String> = vec![];
+    let mut types: Vec<Type> = vec![];
     let mut codes = vec![];
 
     codes.extend(get_version_bytes());
 
-    codes.extend(compile_expr(expr, env, &mut strings)?);
+    codes.extend(compile_expr(expr, env, &mut strings, &mut types)?);
 
-    Ok(ExprByteCode::new(codes, strings))
+    Ok(ExprByteCode::new(codes, strings, types))
 }
 
 fn compile_expr(
     (expr, span): &mut ExprS,
     env: &CompileTimeEnv,
     strings: &mut Vec<String>,
+    types: &mut Vec<Type>,
 ) -> ExprResult<Vec<u8>> {
     use opcode::*;
 
@@ -273,7 +287,7 @@ fn compile_expr(
             let identifier_name = identifier.full_name().to_string();
 
             let identifier_undefined_err = (
-                CompileError::Undefined(identifier_name).into(),
+                CompileError::Undefined(identifier_name.clone()).into(),
                 span.clone(),
             );
 
@@ -319,6 +333,22 @@ fn compile_expr(
                         None
                     }
                 }
+                IdentifierKind::Type => {
+                    let ty = Type::from(&identifier_name);
+                    if let Some(index) = types.iter().position(|x| x == &ty) {
+                        codes.push(GET);
+                        codes.push(TYPE);
+                        codes.push(index as u8);
+                    } else {
+                        types.push(ty);
+                        let index = types.len() - 1;
+                        codes.push(GET);
+                        codes.push(TYPE);
+                        codes.push(index as u8);
+                    }
+
+                    Some(())
+                }
             };
 
             if let None = result {
@@ -326,7 +356,7 @@ fn compile_expr(
             }
         }
         Expr::Call(expr_call) => {
-            let callee_bytecode = compile_expr(&mut expr_call.callee, env, strings)?;
+            let callee_bytecode = compile_expr(&mut expr_call.callee, env, strings, types)?;
 
             if let Some(_op) = callee_bytecode.first()
                 && let Some(lookup) = callee_bytecode.get(1)
@@ -403,7 +433,7 @@ fn compile_expr(
             codes.extend(callee_bytecode);
 
             for arg in expr_call.args.iter_mut() {
-                match compile_expr(arg, env, strings) {
+                match compile_expr(arg, env, strings, types) {
                     Ok(arg_bytecode) => {
                         codes.extend(arg_bytecode);
                     }
@@ -450,7 +480,7 @@ mod compiler_tests {
         let mut codes = get_version_bytes().to_vec();
         codes.push(opcode::TRUE);
 
-        ExprByteCode::new(codes.to_vec(), vec![]);
+        ExprByteCode::new(codes.to_vec(), vec![], vec![]);
     }
 
     #[test]
@@ -459,7 +489,7 @@ mod compiler_tests {
         let mut codes: Vec<u8> = [0, 0, 0, 0].to_vec();
         codes.push(opcode::TRUE);
 
-        ExprByteCode::new(codes.to_vec(), vec![]);
+        ExprByteCode::new(codes.to_vec(), vec![], vec![]);
     }
 
     #[test]
@@ -467,7 +497,7 @@ mod compiler_tests {
         let mut codes = get_version_bytes().to_vec();
         codes.push(opcode::TRUE);
 
-        let bytecode = ExprByteCode::new(codes.to_vec(), vec![]);
+        let bytecode = ExprByteCode::new(codes.to_vec(), vec![], vec![]);
 
         assert_eq!(bytecode.version(), &get_version_bytes());
     }

@@ -140,6 +140,11 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
 
                 value
             }
+            lookup::TYPE => {
+                let value = self.bytecode.types().get(constant_idx).unwrap();
+
+                &value.name()
+            }
             _ => panic!("invalid get lookup code: {}", lookup_type),
         };
 
@@ -150,6 +155,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             lookup::PROMPT => "PROMPT",
             lookup::SECRET => "SECRET",
             lookup::CLIENT_CTX => "CLIENT_CTX",
+            lookup::TYPE => "TYPE",
             _ => panic!("invalid get lookup code: {}", lookup_type),
         };
 

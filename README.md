@@ -39,17 +39,25 @@ See [USAGE.md](./USAGE.md) and [examples](./examples/) for usage examples.
 
 The syntax is s-expression like. There are only [builtin functions](#builtin-functions), identifiers and string literals.
 
-| Syntax      | Description                                 |
-| ----------- | ------------------------------------------- |
-| `:a`        | Reference to the variable `a`               |
-| `?b`        | Reference to the prompt `b`                 |
-| `!c`        | Reference to the secret `c`                 |
-| `id`        | Reference to the builtin `id`               |
-| `@key`      | Reference to the client context value `key` |
-| `(id :a)`   | Call to builtin `id` with arguments: `:a`   |
-| `` `foo` `` | String literal                              |
-| `true`      | Literal boolean value `true`                |
-| `false`     | Literal boolean value `false`               |
+| Syntax                             | Description                                                |
+| ---------------------------------- | ---------------------------------------------------------- |
+| `:a`                               | Reference to the variable `a`                              |
+| `?b`                               | Reference to the prompt `b`                                |
+| `!c`                               | Reference to the secret `c`                                |
+| `id`                               | Reference to the builtin `id`                              |
+| `@key`                             | Reference to the client context value `key`                |
+| `(id :a)`                          | Call to builtin `id` with arguments: `:a`                  |
+| `` `foo` ``                        | String literal                                             |
+| `true`                             | Literal boolean value `true`                               |
+| `false`                            | Literal boolean value `false`                              |
+| `String`                           | Literal type `String`                                      |
+| `Bool`                             | Literal type `Bool`                                        |
+| `Type<String>`                     | Literal type `Type` of type `String`                       |
+| `Fn() -> Bool`                     | Literal type for builtin functions (no args)               |
+| `Fn(Value) -> Bool`                | Literal type for builtin functions (1 arg)                 |
+| `Fn(Value, Bool, String) -> Value` | Literal type for builtin functions (n args)                |
+| `Fn(...String) -> String`          | Literal type for builtin functions (variadic arg)          |
+| `Fn(String, ...String) -> String`  | Literal type for builtin functions (args and variadic arg) |
 
 See [/spec](./spec/) for more syntax examples.
 

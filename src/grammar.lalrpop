@@ -44,8 +44,29 @@ ExprCall: ast::Expr = {
 
 // Identifier Expressions
 
-ExprIdentifier: ast::Expr = <name:identifier> =>
-    ast::Expr::Identifier(ast::ExprIdentifier::new(&name).into());
+ExprIdentifier: ast::Expr = {
+    <name:identifier> =>
+        ast::Expr::Identifier(ast::ExprIdentifier::new(&name).into()),
+    <ty:ty> =>
+       ast::Expr::Identifier(ast::ExprIdentifier::new(&ty).into()),
+    <ty:ty> "<" <subty:ty> ">" =>
+        ast::Expr::Identifier(ast::ExprIdentifier::new(&format!("{}<{}>", ty, subty)).into()),
+    "Fn" "(" <args:Seperated<ty, ",">> ")" "->" <return_ty:ty> => {
+        let id = format!("Fn({}) -> {}", args.join(", "), return_ty);
+
+        ast::Expr::Identifier(ast::ExprIdentifier::new(&id).into())
+    },
+    "Fn" "(" <args:Seperated<ty, ",">> "," "..." <varg:ty> ")" "->" <return_ty:ty> => {
+        let id = format!("Fn({}, ...{}) -> {}", args.join(", "), varg, return_ty);
+
+        ast::Expr::Identifier(ast::ExprIdentifier::new(&id).into())
+    },
+    "Fn" "(" "..." <varg:ty> ")" "->" <return_ty:ty> => {
+        let id = format!("Fn(...{}) -> {}", varg, return_ty);
+
+        ast::Expr::Identifier(ast::ExprIdentifier::new(&id).into())
+    },
+}
 
 // Utility Types
 
@@ -63,6 +84,15 @@ Args<E>: Vec<E> = {
     () => Vec::new(),
 }
 
+#[inline]
+Seperated<E, T>: Vec<E> = {
+    <first:E> <mut args:(T <E>)*> => {
+        args.insert(0, first);
+        args
+    },
+    () => Vec::new(),
+}
+
 extern {
     type Location = usize;
     type Error = ExprErrorS;
@@ -70,9 +100,16 @@ extern {
     enum Token {
         "(" => Token::LParan,
         ")" => Token::RParan,
+        "," => Token::Comma,
+        "<" => Token::LAngle,
+        ">" => Token::RAngle,
+        "->" => Token::Arrow,
+        "Fn" => Token::Fn,
+        "..." => Token::ThreeDot,
         "true" => Token::True,
         "false" => Token::False,
         string => Token::String(<String>),
         identifier => Token::Identifier(<String>),
+        ty => Token::Type(<String>)
     }
 }

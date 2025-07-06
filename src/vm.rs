@@ -3,11 +3,12 @@
 use crate::{
     compiler::{
         CompileTimeEnv, ExprByteCode,
-        lookup::{BUILTIN, PROMPT, SECRET, VAR},
+        lookup::{BUILTIN, PROMPT, SECRET, TYPE, VAR},
         opcode,
     },
     errors::{ExprErrorS, ExprResult, RuntimeError},
     prelude::lookup::{CLIENT_CTX, USER_BUILTIN},
+    types::Type,
     value::Value,
 };
 
@@ -164,6 +165,21 @@ impl Vm {
 
                 self.stack_push(value.clone());
             }
+            TYPE => {
+                let ty = self
+                    .bytecode
+                    .as_ref()
+                    .unwrap()
+                    .types()
+                    .get(get_idx)
+                    .unwrap_or_else(|| panic!("undefined type: {get_idx}"));
+
+                if ty.is_type() {
+                    self.stack_push(Value::Type(ty.clone().into()));
+                } else {
+                    self.stack_push(Value::Type(Type::Type(ty.clone().into()).into()));
+                }
+            }
             _ => panic!("Invalid get lookup code: {}", get_lookup),
         };
 
@@ -245,7 +261,7 @@ mod tests {
         let mut codes = get_version_bytes().to_vec();
         codes.push(99);
 
-        let bytecode = Box::new(ExprByteCode::new(codes, vec![])); // 99 as invalid opcode
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 
@@ -263,7 +279,7 @@ mod tests {
         codes.push(99);
         codes.push(0);
 
-        let bytecode = Box::new(ExprByteCode::new(codes, vec![])); // 99 as invalid opcode
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 

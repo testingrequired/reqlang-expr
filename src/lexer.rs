@@ -64,11 +64,32 @@ pub enum Token {
     #[token(")")]
     RParan,
 
+    #[token(",")]
+    Comma,
+
+    #[token("<")]
+    LAngle,
+
+    #[token(">")]
+    RAngle,
+
+    #[token("->")]
+    Arrow,
+
+    #[token("Fn")]
+    Fn,
+
+    #[token("...")]
+    ThreeDot,
+
     #[regex(r#"`[^`]*`"#, lex_string)]
     String(String),
 
-    #[regex("[!?:@]?[a-zA-Z_][a-zA-Z0-9_]*", lex_identifier)]
+    #[regex("[!?:@]?[a-z_][a-zA-Z0-9_]*", lex_identifier)]
     Identifier(String),
+
+    #[regex("[A-Z][a-zA-Z0-9]*", lex_identifier)]
+    Type(String),
 
     #[token("true")]
     True,

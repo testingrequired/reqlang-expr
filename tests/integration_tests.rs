@@ -199,6 +199,7 @@ mod valid {
             crate::make_test_bytecode(vec![
                 opcode::GET, lookup::USER_BUILTIN, 0
             ]),
+            vec![],
             vec![]
         ));
 
@@ -235,7 +236,8 @@ mod valid {
             crate::make_test_bytecode(vec![
                 opcode::CONSTANT, 0
             ]),
-            vec!["test string".to_string()]
+            vec!["test string".to_string()],
+            vec![]
         ));
 
         disassembles to: "VERSION 0700\n----\n0000 CONSTANT            0 == 'test string'\n";
@@ -269,6 +271,7 @@ mod valid {
                 opcode::GET, lookup::BUILTIN, 1,
                 opcode::CALL, 0
             ]),
+            vec![],
             vec![]
         ));
 
@@ -300,6 +303,7 @@ mod valid {
             crate::make_test_bytecode(vec![
                 opcode::GET, lookup::BUILTIN, 1
             ]),
+            vec![],
             vec![]
         ));
 
@@ -346,6 +350,7 @@ mod valid {
                 opcode::CALL, 0,
                 opcode::CALL, 1
             ]),
+            vec![],
             vec![]
         ));
 
@@ -387,7 +392,8 @@ mod valid {
             ]),
             vec![
                 "test value".to_string(),
-            ]
+            ],
+            vec![]
         ));
 
         disassembles to: "VERSION 0700\n----\n0000 GET BUILTIN         0 == 'id'\n0003 CONSTANT            0 == 'test value'\n0005 CALL             (1 args)\n";
@@ -426,6 +432,7 @@ mod valid {
                 opcode::GET, lookup::VAR, 1,
                 opcode::CALL, 1
             ]),
+            vec![],
             vec![]
         ));
 
@@ -475,6 +482,7 @@ mod valid {
 
                 opcode::CALL, 1
             ]),
+            vec![],
             vec![]
         ));
 
@@ -507,6 +515,7 @@ mod valid {
             crate::make_test_bytecode(vec![
                 opcode::GET, lookup::VAR, 1
             ]),
+            vec![],
             vec![]
         ));
 
@@ -540,6 +549,7 @@ mod valid {
             crate::make_test_bytecode(vec![
                 opcode::GET, lookup::PROMPT, 1
             ]),
+            vec![],
             vec![]
         ));
 
@@ -580,6 +590,7 @@ mod valid {
                 opcode::GET, lookup::PROMPT, 1,
                 opcode::CALL, 1
             ]),
+            vec![],
             vec![]
         ));
 
@@ -613,6 +624,7 @@ mod valid {
             crate::make_test_bytecode(vec![
                 opcode::GET, lookup::SECRET, 1
             ]),
+            vec![],
             vec![]
         ));
 
@@ -646,6 +658,7 @@ mod valid {
             crate::make_test_bytecode(vec![
                 opcode::GET, lookup::CLIENT_CTX, 1
             ]),
+            vec![],
             vec![]
         ));
 
@@ -880,6 +893,7 @@ mod valid {
             crate::make_test_bytecode(vec![
                 opcode::TRUE
             ]),
+            vec![],
             vec![]
         ));
 
@@ -911,6 +925,7 @@ mod valid {
             crate::make_test_bytecode(vec![
                 opcode::FALSE
             ]),
+            vec![],
             vec![]
         ));
 
@@ -955,6 +970,7 @@ mod valid {
                 opcode::FALSE,
                 opcode::CALL, 1
             ]),
+            vec![],
             vec![]
         ));
 
@@ -1001,6 +1017,7 @@ mod valid {
                 opcode::FALSE,
                 opcode::CALL, 2
             ]),
+            vec![],
             vec![]
         ));
 
@@ -1047,6 +1064,7 @@ mod valid {
                 opcode::TRUE,
                 opcode::CALL, 2
             ]),
+            vec![],
             vec![]
         ));
 
@@ -1092,6 +1110,7 @@ mod valid {
                 opcode::FALSE, opcode::TRUE,
                 opcode::CALL, 2
             ]),
+            vec![],
             vec![]
         ));
 
@@ -1137,6 +1156,7 @@ mod valid {
                 opcode::TRUE, opcode::FALSE,
                 opcode::CALL, 2
             ]),
+            vec![],
             vec![]
         ));
 
@@ -1182,6 +1202,7 @@ mod valid {
                 opcode::TRUE, opcode::TRUE,
                 opcode::CALL, 2
             ]),
+            vec![],
             vec![]
         ));
 
@@ -1228,6 +1249,7 @@ mod valid {
                 opcode::TRUE,
                 opcode::CALL, 2
             ]),
+            vec![],
             vec![]
         ));
 
@@ -1280,7 +1302,8 @@ mod valid {
             vec![
                 "foo".to_string(),
                 "bar".to_string(),
-            ]
+            ],
+            vec![]
         ));
 
         disassembles to: "VERSION 0700\n----\n0000 GET BUILTIN         5 == 'cond'\n0003 TRUE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
@@ -1332,7 +1355,8 @@ mod valid {
             vec![
                 "foo".to_string(),
                 "bar".to_string(),
-            ]
+            ],
+            vec![]
         ));
 
         disassembles to: "VERSION 0700\n----\n0000 GET BUILTIN         5 == 'cond'\n0003 FALSE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
@@ -1604,6 +1628,7 @@ mod valid {
                 opcode::GET, lookup::VAR, 1,
                 opcode::CALL, 2
             ]),
+            vec![],
             vec![]
         ));
 
@@ -1899,6 +1924,7 @@ mod valid {
             crate::make_test_bytecode(vec![
                 opcode::GET, lookup::CLIENT_CTX, 0
             ]),
+            vec![],
             vec![]
         ));
 
@@ -1959,6 +1985,7 @@ mod valid {
                 opcode::TRUE,
                 opcode::CALL, 2
             ]),
+            vec![],
             vec![]
         ));
 
@@ -2003,6 +2030,7 @@ mod valid {
                 opcode::TRUE,
                 opcode::CALL, 2
             ]),
+            vec![],
             vec![]
         ));
 
@@ -2111,6 +2139,180 @@ mod valid {
         interpets to: Ok(Value::Bool(false));
     }
 
+    test! {
+        "String";
+
+        scenario: type literal String;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Type(Type::Type(Type::String.into()).into()));
+    }
+
+    test! {
+        "Bool";
+
+        scenario: type literal Bool;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Type(Type::Type(Type::Bool.into()).into()));
+    }
+
+    test! {
+        "Type<String>";
+
+        scenario: type literal Type String;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Type(Type::Type(Type::String.into()).into()));
+    }
+
+    test! {
+        "Fn() -> Value";
+
+        scenario: type literal Type Fn no args;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Type(Type::Type(
+            Type::Fn {
+                args: vec![],
+                variadic_arg: None,
+                returns: Type::Value.into()
+            }.into()).into()));
+    }
+
+    test! {
+        "Fn(Value) -> Value";
+
+        scenario: type literal Type Fn arg;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Type(Type::Type(
+            Type::Fn {
+                args: vec![Type::Value],
+                variadic_arg: None,
+                returns: Type::Value.into()
+            }.into()).into()));
+    }
+
+    test! {
+        "Fn(Value, Value) -> Value";
+
+        scenario: type literal Type Fn args;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Type(Type::Type(
+            Type::Fn {
+                args: vec![Type::Value, Type::Value],
+                variadic_arg: None,
+                returns: Type::Value.into()
+            }.into()).into()));
+    }
+
+    test! {
+        "Fn(...Value) -> Value";
+
+        scenario: type literal Type Fn vargs;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Type(Type::Type(
+            Type::Fn {
+                args: vec![],
+                variadic_arg: Some(Type::Value.into()),
+                returns: Type::Value.into()
+            }.into()).into()));
+    }
+
+    test! {
+        "Fn(Value, ...Value) -> Value";
+
+        scenario: type literal Type Fn arg and vargs;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Type(Type::Type(
+            Type::Fn {
+                args: vec![Type::Value],
+                variadic_arg: Some(Type::Value.into()),
+                returns: Type::Value.into()
+            }.into()).into()));
+    }
+
+    test! {
+        "Fn(Value, Value, ...Value) -> Value";
+
+        scenario: type literal Type Fn args and vargs;
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Type(Type::Type(
+            Type::Fn {
+                args: vec![Type::Value, Type::Value],
+                variadic_arg: Some(Type::Value.into()),
+                returns: Type::Value.into()
+            }.into()).into()));
+    }
+
     // test! {
     //     "(foo bar fiz baz)";
 
@@ -2202,7 +2404,7 @@ mod invalid {
         ast should be: Err(vec![(
             SyntaxError::UnrecognizedToken {
                 token: String::from(")"),
-                expected: vec![r#""(""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string()]
+                expected: vec![r#""(""#.to_string(), r#""Fn""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string(), "ty".to_string()]
             }.into(),
             1..2
         )]);
@@ -2214,7 +2416,7 @@ mod invalid {
         compiles to: Err(vec![(
             SyntaxError::UnrecognizedToken {
                 token: String::from(")"),
-                expected: vec![r#""(""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string()]
+                expected: vec![r#""(""#.to_string(), r#""Fn""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string(), "ty".to_string()]
             }.into(),
             1..2
         )]);
@@ -2228,7 +2430,7 @@ mod invalid {
         interpets to: Err(vec![(
             SyntaxError::UnrecognizedToken {
                 token: String::from(")"),
-                expected: vec![r#""(""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string()]
+                expected: vec![r#""(""#.to_string(), r#""Fn""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string(), "ty".to_string()]
             }.into(),
             1..2
         )]);
@@ -2491,7 +2693,7 @@ mod invalid {
 
         interpets to: Err(vec![(
             SyntaxError::UnrecognizedEOF {
-                expected: vec![r#""(""#.to_string(), r#"")""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string()]
+                expected: vec![r#""(""#.to_string(), r#"")""#.to_string(), r#""Fn""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string(), "ty".to_string()]
             }.into(),
             19..19
         )]);

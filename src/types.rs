@@ -1,5 +1,7 @@
 use std::fmt::{Debug, Display};
 
+use regex::Regex;
+
 use crate::{prelude::BuiltinFn, value::Value};
 
 #[derive(Clone, PartialEq)]
@@ -17,6 +19,54 @@ pub enum Type {
 }
 
 impl Type {
+    pub fn from(name: &str) -> Self {
+        match name {
+            "String" => Type::String,
+            "Bool" => Type::Bool,
+            "Value" => Type::Value,
+            _ => {
+                if let Some(captures) = Regex::new(r"^Type<(.+)>$").unwrap().captures(name) {
+                    return Type::Type(Type::from(&captures[1]).into());
+                }
+
+                if let Some(captures) = Regex::new(
+                    r"^Fn\((?P<args>(?:\w+(?:,\s*)?)*)\s*(?:\.\.\.(?P<varg>\w+))?\)\s*->\s*(?P<return>\w+)$",
+                ).unwrap().captures(name) {
+                    let args_str = captures.name("args").map_or("", |m| m.as_str());
+                    let variadic_str = captures.name("varg").map_or("", |m| m.as_str());
+                    let return_type_str = captures.name("return").unwrap().as_str();
+
+                    let args: Vec<Type> = if args_str.trim().is_empty() {
+                        vec![]
+                    } else {
+                        args_str.split(',')
+                            .filter_map(|s| {
+                                let trimmed = s.trim();
+                                if trimmed.is_empty() { None } else { Some(Type::from(trimmed)) }
+                            })
+                            .collect()
+                    };
+
+                    let variadic_arg = if variadic_str.is_empty() {
+                        None
+                    } else {
+                        Some(Type::from(variadic_str).into())
+                    };
+
+                    let returns = Type::from(return_type_str).into();
+
+                    return Type::Fn {
+                        args,
+                        variadic_arg,
+                        returns,
+                    };
+                }
+
+                Type::Unknown
+            }
+        }
+    }
+
     pub fn name(&self) -> String {
         match self {
             Type::Value => "Value".to_string(),
@@ -39,8 +89,15 @@ impl Type {
                 format!("Fn({args}) -> {returns}")
             }
             Type::Bool => "Bool".to_string(),
-            Type::Type(ty) => format!("Type<{}>", ty.name()),
+            Type::Type(ty) => format!("{}", ty.name()),
             Type::Unknown => "Unknown".to_string(),
+        }
+    }
+
+    pub fn is_type(&self) -> bool {
+        match self {
+            Type::Type(_) => true,
+            _ => false,
         }
     }
 }
@@ -273,5 +330,117 @@ mod name_and_display_tests {
     #[test]
     fn test_name_bool() {
         assert_eq!("Bool", Type::Bool.name());
+    }
+}
+
+#[cfg(test)]
+mod from_string_tests {
+    use super::*;
+
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn from_string_to_string() {
+        let ty = Type::from("String");
+
+        assert_eq!(Type::String, ty);
+    }
+
+    #[test]
+    fn from_string_to_bool() {
+        let ty = Type::from("Bool");
+
+        assert_eq!(Type::Bool, ty);
+    }
+
+    #[test]
+    fn from_string_to_value() {
+        let ty = Type::from("Value");
+
+        assert_eq!(Type::Value, ty);
+    }
+
+    #[test]
+    fn from_string_to_unknown() {
+        let ty = Type::from("Unknown");
+
+        assert_eq!(Type::Unknown, ty);
+    }
+
+    #[test]
+    fn from_string_to_type_string() {
+        let ty = Type::from("Type<String>");
+
+        assert_eq!(Type::Type(Type::String.into()), ty);
+    }
+
+    #[test]
+    fn from_string_to_type_fn_zero_args() {
+        let ty = Type::from("Fn() -> Value");
+
+        assert_eq!(
+            Type::Fn {
+                args: vec![],
+                variadic_arg: None,
+                returns: Type::Value.into()
+            },
+            ty
+        );
+    }
+
+    #[test]
+    fn from_string_to_type_fn_single_arg() {
+        let ty = Type::from("Fn(String) -> Value");
+
+        assert_eq!(
+            Type::Fn {
+                args: vec![Type::String],
+                variadic_arg: None,
+                returns: Type::Value.into()
+            },
+            ty
+        );
+    }
+
+    #[test]
+    fn from_string_to_type_fn_single_varg() {
+        let ty = Type::from("Fn(...String) -> Value");
+
+        assert_eq!(
+            Type::Fn {
+                args: vec![],
+                variadic_arg: Some(Type::String.into()),
+                returns: Type::Value.into()
+            },
+            ty
+        );
+    }
+
+    #[test]
+    fn from_string_to_type_fn_multiple_args() {
+        let ty = Type::from("Fn(String, Bool, String) -> String");
+
+        assert_eq!(
+            Type::Fn {
+                args: vec![Type::String, Type::Bool, Type::String],
+                variadic_arg: None,
+                returns: Type::String.into()
+            },
+            ty
+        );
+    }
+
+    #[test]
+    fn from_string_to_type_fn_multiple_args_and_varg() {
+        let ty = Type::from("Fn(String, Bool, String, ...Value) -> String");
+
+        assert_eq!(
+            Type::Fn {
+                args: vec![Type::String, Type::Bool, Type::String],
+                variadic_arg: Some(Type::Value.into()),
+                returns: Type::String.into()
+            },
+            ty
+        );
     }
 }

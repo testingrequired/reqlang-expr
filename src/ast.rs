@@ -85,7 +85,15 @@ impl ExprIdentifier {
             "!" => IdentifierKind::Secret,
             ":" => IdentifierKind::Var,
             "@" => IdentifierKind::Client,
-            _ => IdentifierKind::Builtin,
+            _ => {
+                let prefix_char: char = identifier_prefix.chars().nth(0).unwrap();
+
+                if prefix_char.is_uppercase() {
+                    IdentifierKind::Type
+                } else {
+                    IdentifierKind::Builtin
+                }
+            }
         }
     }
 
@@ -117,6 +125,7 @@ impl ExprIdentifier {
             IdentifierKind::Prompt => &self.0[1..],
             IdentifierKind::Secret => &self.0[1..],
             IdentifierKind::Client => &self.0[1..],
+            IdentifierKind::Type => &self.0,
         }
     }
 
@@ -136,6 +145,7 @@ pub enum IdentifierKind {
     Prompt,
     Secret,
     Client,
+    Type,
 }
 
 #[derive(Debug, PartialEq)]
@@ -179,6 +189,9 @@ pub fn add_type_to_expr_parse(expr: &mut Expr) {
             }
             IdentifierKind::Client => {
                 expr_identifier.2 = Some(Type::Value);
+            }
+            IdentifierKind::Type => {
+                //
             }
         },
         Expr::Call(expr_call) => {
@@ -237,6 +250,9 @@ pub fn add_type_to_expr(expr: &mut Expr, env: &CompileTimeEnv) {
                 if let Some(_) = index {
                     expr_identifier.2 = Some(Type::String);
                 }
+            }
+            IdentifierKind::Type => {
+                //
             }
         },
         Expr::Call(expr_call) => {
