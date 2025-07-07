@@ -472,7 +472,7 @@ mod compiler_tests {
     pub fn current_version_bytes() {
         let version_bytes = get_version_bytes();
 
-        assert_eq!(version_bytes, [0, 7, 0, 0]);
+        assert_eq!(version_bytes, [0, 8, 0, 0]);
     }
 
     #[test]
