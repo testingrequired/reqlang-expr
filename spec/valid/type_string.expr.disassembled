@@ -1,4 +1,4 @@
-VERSION 0700
+VERSION 0800
 ----
 0000 CONSTANT            0 == 'foo'
 0002 TYPE

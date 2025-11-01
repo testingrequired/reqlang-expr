@@ -1,4 +1,4 @@
-VERSION 0700
+VERSION 0800
 ----
 0000 GET BUILTIN        15 == 'eq'
 0003 CONSTANT            0 == 'foo'
