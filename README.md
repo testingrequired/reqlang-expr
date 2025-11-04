@@ -67,7 +67,7 @@ See [/spec](./spec/) for more syntax examples.
 | --------------------------------------------------------- | ----------------------------------------------- |
 | `id(value: Value) -> Value`                               | Returns the string arugment passed to it        |
 | `noop() -> String`                                        | Returns the string "noop"                       |
-| `is_empty(value: String) -> String`                       | Checks if the given string is empty             |
+| `is_empty(value: String) -> Bool`                         | Checks if the given string is empty             |
 | `and(a: Bool, b: Bool) -> Bool`                           | Logical AND operation between two booleans      |
 | `or(a: Bool, b: Bool) -> Bool`                            | Logical OR operation between two booleans       |
 | `cond(cond: Bool, then: Value, else: Value) -> Bool`      | Conditional expression                          |

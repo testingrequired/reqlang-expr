@@ -129,7 +129,7 @@ impl<'a> BuiltinFn<'a> {
             ty: Type::String,
             variadic: false,
         }],
-        return_type: Type::String,
+        return_type: Type::Bool,
         func: Self::is_empty,
     };
 
