@@ -6,7 +6,7 @@ default:
 
 # Run tests
 test:
-    cargo test
+    cargo nextest run
 
 # Run tests with coverage enabled
 coverage:
