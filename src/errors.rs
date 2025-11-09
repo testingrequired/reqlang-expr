@@ -1,5 +1,7 @@
 //! Errors
 
+use std::num::ParseFloatError;
+
 use lalrpop_util::ParseError;
 use thiserror::Error;
 
@@ -40,19 +42,27 @@ pub enum LexicalError {
     #[default]
     #[error("Invalid token")]
     InvalidToken,
+    #[error("Invalid number $0")]
+    InvalidNumber(ParseFloatError),
 }
 
 impl diagnostics::AsDiagnostic for LexicalError {
     fn as_diagnostic(&self, source: &str, span: &Span) -> ExprDiagnostic {
         let error_code = "lexical".to_string();
         match self {
-            LexicalError::InvalidToken => ExprDiagnostic {
+            _ => ExprDiagnostic {
                 code: error_code,
                 range: get_range(source, span),
                 severity: Some(ExprDiagnosisSeverity::ERROR),
                 message: format!("{self}"),
             },
         }
+    }
+}
+
+impl From<ParseFloatError> for LexicalError {
+    fn from(value: ParseFloatError) -> Self {
+        LexicalError::InvalidNumber(value)
     }
 }
 

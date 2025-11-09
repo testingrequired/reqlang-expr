@@ -11,6 +11,7 @@ use crate::{
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     String(String),
+    Number(f64),
     Fn(Box<BuiltinFn<'static>>),
     Bool(bool),
     Type(Box<Type>),
@@ -72,6 +73,7 @@ impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Value::String(string) => write!(f, "`{}`", string),
+            Value::Number(value) => write!(f, "{}", value),
             Value::Fn(builtin) => write!(f, "{builtin:?}"),
             Value::Bool(value) => write!(f, "{}", value),
             Value::Type(ty) => write!(f, "Type<{}>", ty),

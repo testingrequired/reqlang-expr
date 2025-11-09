@@ -5,7 +5,7 @@ use std::ops::Range;
 
 use crate::{
     errors::{ExprErrorS, LexicalError},
-    span::Spanned,
+    span::{Span, Spanned},
 };
 
 /// Parse source code in to a list of [`Token`].
@@ -85,6 +85,9 @@ pub enum Token {
     #[regex(r#"`[^`]*`"#, lex_string)]
     String(String),
 
+    #[regex(r#"[0-9]+(\.[0-9]+)?"#, lex_number)]
+    Number(f64),
+
     #[regex("[!?:@]?[a-z_][a-zA-Z0-9_]*", lex_identifier)]
     Identifier(String),
 
@@ -106,6 +109,13 @@ fn lex_identifier(lexer: &mut logos::Lexer<Token>) -> String {
 fn lex_string(lexer: &mut logos::Lexer<Token>) -> String {
     let slice = lexer.slice();
     slice[1..slice.len() - 1].to_string()
+}
+
+fn lex_number(lexer: &mut logos::Lexer<Token>) -> Result<f64, (LexicalError, Span)> {
+    let slice = lexer.slice();
+    slice
+        .parse::<f64>()
+        .map_err(|err| (err.into(), lexer.span()))
 }
 
 impl Token {

@@ -289,6 +289,23 @@ fn compile_expr(
                 codes.push(index as u8);
             }
         }
+        Expr::Number(number) => {
+            if let Some(index) = constants.iter().position(|x| {
+                if let Value::Number(value) = x {
+                    value == &number.0
+                } else {
+                    false
+                }
+            }) {
+                codes.push(CONSTANT);
+                codes.push(index as u8);
+            } else {
+                constants.push(Value::Number(number.0.clone()));
+                let index = constants.len() - 1;
+                codes.push(CONSTANT);
+                codes.push(index as u8);
+            }
+        }
         Expr::Identifier(identifier) => {
             let identifier_lookup_name = identifier.lookup_name();
             let identifier_name = identifier.full_name().to_string();

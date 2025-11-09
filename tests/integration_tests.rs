@@ -2404,7 +2404,7 @@ mod invalid {
         ast should be: Err(vec![(
             SyntaxError::UnrecognizedToken {
                 token: String::from(")"),
-                expected: vec![r#""(""#.to_string(), r#""Fn""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string(), "ty".to_string()]
+                expected: vec![r#""(""#.to_string(), r#""Fn""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "number".to_string(), "identifier".to_string(), "ty".to_string()]
             }.into(),
             1..2
         )]);
@@ -2416,7 +2416,7 @@ mod invalid {
         compiles to: Err(vec![(
             SyntaxError::UnrecognizedToken {
                 token: String::from(")"),
-                expected: vec![r#""(""#.to_string(), r#""Fn""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string(), "ty".to_string()]
+                expected: vec![r#""(""#.to_string(), r#""Fn""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "number".to_string(), "identifier".to_string(), "ty".to_string()]
             }.into(),
             1..2
         )]);
@@ -2430,7 +2430,7 @@ mod invalid {
         interpets to: Err(vec![(
             SyntaxError::UnrecognizedToken {
                 token: String::from(")"),
-                expected: vec![r#""(""#.to_string(), r#""Fn""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string(), "ty".to_string()]
+                expected: vec![r#""(""#.to_string(), r#""Fn""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "number".to_string(), "identifier".to_string(), "ty".to_string()]
             }.into(),
             1..2
         )]);
@@ -2693,7 +2693,7 @@ mod invalid {
 
         interpets to: Err(vec![(
             SyntaxError::UnrecognizedEOF {
-                expected: vec![r#""(""#.to_string(), r#"")""#.to_string(), r#""Fn""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "identifier".to_string(), "ty".to_string()]
+                expected: vec![r#""(""#.to_string(), r#"")""#.to_string(), r#""Fn""#.to_string(), r#""true""#.to_string(), r#""false""#.to_string(), "string".to_string(), "number".to_string(), "identifier".to_string(), "ty".to_string()]
             }.into(),
             19..19
         )]);
