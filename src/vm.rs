@@ -197,7 +197,7 @@ impl Vm {
             .expect("should have bytecode")
             .constants()
             .get(get_idx)
-            .unwrap_or_else(|| panic!("undefined string: {}", get_idx));
+            .unwrap_or_else(|| panic!("undefined constant: {}", get_idx));
 
         self.stack_push(s.clone());
 

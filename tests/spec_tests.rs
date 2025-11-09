@@ -142,6 +142,7 @@ fn spec_files_interpreted(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResul
 
                     match vm.interpret(bytecode.into(), &env, &runtime_env) {
                         Ok(value) => {
+                            dbg!(&value);
                             pretty_assertions::assert_eq!(value.to_string(), expected_interpreted);
                         }
                         Err(err) => {

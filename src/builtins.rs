@@ -563,7 +563,7 @@ impl<'a> BuiltinFn<'a> {
                 }
             },
             {
-                let ty = Type::String;
+                let ty = Type::Value;
                 FnArg {
                     name: "obj_keys",
                     ty,
@@ -571,7 +571,7 @@ impl<'a> BuiltinFn<'a> {
                 }
             },
         ],
-        return_type: Type::String,
+        return_type: Type::Value,
         func: Self::jsonobj,
     };
 
@@ -584,13 +584,25 @@ impl<'a> BuiltinFn<'a> {
         let args = &args[1..];
 
         for key in args.iter() {
-            let key = key.get_string()?;
-            let value = json_obj_value.as_object().unwrap().get(key);
+            match key {
+                Value::String(key) => {
+                    let value = json_obj_value.as_object().unwrap().get(key);
 
-            dbg!((key, value));
+                    if let Some(value) = value {
+                        json_obj_value = value.clone();
+                    }
+                }
+                Value::Number(index) => {
+                    let value = json_obj_value
+                        .as_array()
+                        .unwrap()
+                        .get(index.clone() as usize);
 
-            if let Some(value) = value {
-                json_obj_value = value.clone();
+                    if let Some(value) = value {
+                        json_obj_value = value.clone();
+                    }
+                }
+                _ => {}
             }
         }
 
