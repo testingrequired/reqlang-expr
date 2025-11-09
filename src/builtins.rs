@@ -63,7 +63,7 @@ impl<'a> BuiltinFn<'a> {
     /// The default set of builtin functions
     ///
     /// This also defines the lookup index for builtins during compilation
-    pub const DEFAULT_BUILTINS: [BuiltinFn<'a>; 17] = [
+    pub const DEFAULT_BUILTINS: [BuiltinFn<'a>; 18] = [
         BuiltinFn::ID,
         BuiltinFn::NOOP,
         BuiltinFn::IS_EMPTY,
@@ -81,6 +81,7 @@ impl<'a> BuiltinFn<'a> {
         BuiltinFn::TYPE,
         BuiltinFn::EQ,
         BuiltinFn::NOT,
+        BuiltinFn::JSONOBJ,
     ];
 
     // Builtin Definitions
@@ -546,8 +547,59 @@ impl<'a> BuiltinFn<'a> {
 
         Ok(Value::Bool(!value))
     }
-}
 
+    /// Get the value from a JSON object by key
+    ///
+    /// (jsonobj `{"greeting": "Hello", "name": "World"}` `greeting`)
+    pub const JSONOBJ: BuiltinFn<'static> = BuiltinFn {
+        name: "jsonobj",
+        args: &[
+            {
+                let ty = Type::String;
+                FnArg {
+                    name: "json_obj",
+                    ty,
+                    variadic: false,
+                }
+            },
+            {
+                let ty = Type::String;
+                FnArg {
+                    name: "obj_keys",
+                    ty,
+                    variadic: true,
+                }
+            },
+        ],
+        return_type: Type::String,
+        func: Self::jsonobj,
+    };
+
+    fn jsonobj(args: Vec<Value>) -> ExprResult<Value> {
+        let json_obj_arg = args.first().expect("should have first expression passed");
+        let json_obj_str = json_obj_arg.get_string()?;
+        let mut json_obj_value: serde_json::Value =
+            serde_json::from_str(json_obj_str).expect("should be json_obj_str as JSON");
+
+        let args = &args[1..];
+
+        for key in args.iter() {
+            let key = key.get_string()?;
+            let value = json_obj_value.as_object().unwrap().get(key);
+
+            dbg!((key, value));
+
+            if let Some(value) = value {
+                json_obj_value = value.clone();
+            }
+        }
+
+        Ok(Value::String(
+            serde_json::to_string(&json_obj_value)
+                .expect("should serialize json_obj_value to JSON"),
+        ))
+    }
+}
 impl<'a> PartialEq for BuiltinFn<'a> {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name

@@ -1,0 +1,4 @@
+(jsonobj
+    `{"greeting": "Hello", "name": "World"}`
+    `greeting`
+)
