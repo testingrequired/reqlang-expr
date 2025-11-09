@@ -11,6 +11,7 @@ pub Expr: ast::Expr = {
     ExprIdentifier,
     ExprCall,
     ExprString,
+    ExprNumber,
     ExprBool,
     <e:!> => {
         errors.push(SyntaxError::from_parser_error(e.error, source));
@@ -23,6 +24,12 @@ pub Expr: ast::Expr = {
 ExprBool: ast::Expr = {
     "true" => ast::Expr::Bool(ast::ExprBool(true).into()),
     "false" => ast::Expr::Bool(ast::ExprBool(false).into()),
+};
+
+// Number Expressions
+
+ExprNumber: ast::Expr = {
+    number => ast::Expr::Number(ast::ExprNumber(<>).into())
 };
 
 // String Expressions
@@ -109,6 +116,7 @@ extern {
         "true" => Token::True,
         "false" => Token::False,
         string => Token::String(<String>),
+        number => Token::Number(<f64>),
         identifier => Token::Identifier(<String>),
         ty => Token::Type(<String>)
     }

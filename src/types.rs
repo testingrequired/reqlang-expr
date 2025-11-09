@@ -8,6 +8,7 @@ use crate::{prelude::BuiltinFn, value::Value};
 pub enum Type {
     Value,
     String,
+    Number,
     Fn {
         args: Vec<Type>,
         variadic_arg: Option<Box<Type>>,
@@ -71,6 +72,7 @@ impl Type {
         match self {
             Type::Value => "Value".to_string(),
             Type::String => "String".to_string(),
+            Type::Number => "Number".to_string(),
             Type::Fn {
                 args,
                 variadic_arg,
@@ -118,6 +120,7 @@ impl From<Value> for Type {
     fn from(value: Value) -> Self {
         match value {
             Value::String(_) => Type::String,
+            Value::Number(_) => Type::Number,
             Value::Fn(builtin_fn) => {
                 let mut args: Vec<Type> =
                     builtin_fn.args.iter().map(|arg| arg.ty.clone()).collect();

@@ -48,6 +48,7 @@ The syntax is s-expression like. There are only [builtin functions](#builtin-fun
 | `@key`                             | Reference to the client context value `key`                |
 | `(id :a)`                          | Call to builtin `id` with arguments: `:a`                  |
 | `` `foo` ``                        | String literal                                             |
+| `12345`, `456.789`                 | Number literal                                             |
 | `true`                             | Literal boolean value `true`                               |
 | `false`                            | Literal boolean value `false`                              |
 | `String`                           | Literal type `String`                                      |

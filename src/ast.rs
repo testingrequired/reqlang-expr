@@ -8,6 +8,7 @@ pub enum Expr {
     Identifier(Box<ExprIdentifier>),
     Call(Box<ExprCall>),
     String(Box<ExprString>),
+    Number(Box<ExprNumber>),
     Error,
 }
 
@@ -60,6 +61,7 @@ impl Expr {
                 .clone(),
             Expr::Call(_) => Type::Unknown,
             Expr::String(_) => Type::String,
+            Expr::Number(_) => Type::Number,
             Expr::Error => Type::Unknown,
         }
     }
@@ -154,6 +156,15 @@ pub struct ExprString(pub String);
 impl ExprString {
     pub fn new(string: &str) -> Self {
         Self(string.to_string())
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ExprNumber(pub f64);
+
+impl ExprNumber {
+    pub fn new(value: f64) -> Self {
+        Self(value)
     }
 }
 
