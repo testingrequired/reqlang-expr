@@ -195,11 +195,11 @@ impl Vm {
             .bytecode
             .as_ref()
             .expect("should have bytecode")
-            .strings()
+            .constants()
             .get(get_idx)
             .unwrap_or_else(|| panic!("undefined string: {}", get_idx));
 
-        self.stack_push(Value::String(s.clone()));
+        self.stack_push(s.clone());
 
         Ok(())
     }

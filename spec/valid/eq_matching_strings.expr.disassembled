@@ -1,6 +1,6 @@
 VERSION 0800
 ----
 0000 GET BUILTIN        15 == 'eq'
-0003 CONSTANT            0 == 'foo'
-0005 CONSTANT            0 == 'foo'
+0003 CONSTANT            0 == '`foo`'
+0005 CONSTANT            0 == '`foo`'
 0007 CALL             (2 args)

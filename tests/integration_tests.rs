@@ -236,11 +236,11 @@ mod valid {
             crate::make_test_bytecode(vec![
                 opcode::CONSTANT, 0
             ]),
-            vec!["test string".to_string()],
+            vec![Value::String("test string".to_string())],
             vec![]
         ));
 
-        disassembles to: "VERSION 0800\n----\n0000 CONSTANT            0 == 'test string'\n";
+        disassembles to: "VERSION 0800\n----\n0000 CONSTANT            0 == '`test string`'\n";
 
         runtime env: {
             ..Default::default()
@@ -391,12 +391,12 @@ mod valid {
                 opcode::CALL, 1
             ]),
             vec![
-                "test value".to_string(),
+                Value::String("test value".to_string()),
             ],
             vec![]
         ));
 
-        disassembles to: "VERSION 0800\n----\n0000 GET BUILTIN         0 == 'id'\n0003 CONSTANT            0 == 'test value'\n0005 CALL             (1 args)\n";
+        disassembles to: "VERSION 0800\n----\n0000 GET BUILTIN         0 == 'id'\n0003 CONSTANT            0 == '`test value`'\n0005 CALL             (1 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1300,13 +1300,13 @@ mod valid {
                 opcode::CALL, 3
             ]),
             vec![
-                "foo".to_string(),
-                "bar".to_string(),
+                Value::String("foo".to_string()),
+                Value::String("bar".to_string()),
             ],
             vec![]
         ));
 
-        disassembles to: "VERSION 0800\n----\n0000 GET BUILTIN         5 == 'cond'\n0003 TRUE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
+        disassembles to: "VERSION 0800\n----\n0000 GET BUILTIN         5 == 'cond'\n0003 TRUE\n0004 CONSTANT            0 == '`foo`'\n0006 CONSTANT            1 == '`bar`'\n0008 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()
@@ -1353,13 +1353,13 @@ mod valid {
                 opcode::CALL, 3
             ]),
             vec![
-                "foo".to_string(),
-                "bar".to_string(),
+                Value::String("foo".to_string()),
+                Value::String("bar".to_string()),
             ],
             vec![]
         ));
 
-        disassembles to: "VERSION 0800\n----\n0000 GET BUILTIN         5 == 'cond'\n0003 FALSE\n0004 CONSTANT            0 == 'foo'\n0006 CONSTANT            1 == 'bar'\n0008 CALL             (3 args)\n";
+        disassembles to: "VERSION 0800\n----\n0000 GET BUILTIN         5 == 'cond'\n0003 FALSE\n0004 CONSTANT            0 == '`foo`'\n0006 CONSTANT            1 == '`bar`'\n0008 CALL             (3 args)\n";
 
         runtime env: {
             ..Default::default()
