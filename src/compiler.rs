@@ -9,6 +9,7 @@ use crate::{
     },
     prelude::lookup::TYPE,
     types::Type,
+    value::Value,
 };
 
 pub mod opcode {
@@ -190,12 +191,12 @@ impl CompileTimeEnv {
 pub struct ExprByteCode {
     version: [u8; 4],
     codes: Vec<u8>,
-    strings: Vec<String>,
+    constants: Vec<Value>,
     types: Vec<Type>,
 }
 
 impl ExprByteCode {
-    pub fn new(codes: Vec<u8>, strings: Vec<String>, types: Vec<Type>) -> Self {
+    pub fn new(codes: Vec<u8>, constants: Vec<Value>, types: Vec<Type>) -> Self {
         let version_bytes = get_version_bytes();
         let version_bytes_from_codes = &codes[0..4];
 
@@ -209,7 +210,7 @@ impl ExprByteCode {
         Self {
             version: version_bytes,
             codes,
-            strings,
+            constants,
             types,
         }
     }
@@ -226,8 +227,8 @@ impl ExprByteCode {
         self.codes.get(index)
     }
 
-    pub fn strings(&self) -> &[String] {
-        &self.strings
+    pub fn constants(&self) -> &[Value] {
+        &self.constants
     }
 
     pub fn types(&self) -> &[Type] {
@@ -246,21 +247,21 @@ pub fn get_version_bytes() -> [u8; 4] {
 
 /// Compile an [`ast::Expr`] into [`ExprByteCode`]
 pub fn compile(expr: &mut ExprS, env: &CompileTimeEnv) -> ExprResult<ExprByteCode> {
-    let mut strings: Vec<String> = vec![];
+    let mut constants: Vec<Value> = vec![];
     let mut types: Vec<Type> = vec![];
     let mut codes = vec![];
 
     codes.extend(get_version_bytes());
 
-    codes.extend(compile_expr(expr, env, &mut strings, &mut types)?);
+    codes.extend(compile_expr(expr, env, &mut constants, &mut types)?);
 
-    Ok(ExprByteCode::new(codes, strings, types))
+    Ok(ExprByteCode::new(codes, constants, types))
 }
 
 fn compile_expr(
     (expr, span): &mut ExprS,
     env: &CompileTimeEnv,
-    strings: &mut Vec<String>,
+    constants: &mut Vec<Value>,
     types: &mut Vec<Type>,
 ) -> ExprResult<Vec<u8>> {
     use opcode::*;
@@ -272,12 +273,18 @@ fn compile_expr(
 
     match expr {
         Expr::String(string) => {
-            if let Some(index) = strings.iter().position(|x| x == &string.0) {
+            if let Some(index) = constants.iter().position(|x| {
+                if let Value::String(string_constant) = x {
+                    string_constant == &string.0
+                } else {
+                    false
+                }
+            }) {
                 codes.push(CONSTANT);
                 codes.push(index as u8);
             } else {
-                strings.push(string.0.clone());
-                let index = strings.len() - 1;
+                constants.push(Value::String(string.0.clone()));
+                let index = constants.len() - 1;
                 codes.push(CONSTANT);
                 codes.push(index as u8);
             }
@@ -356,7 +363,7 @@ fn compile_expr(
             }
         }
         Expr::Call(expr_call) => {
-            let callee_bytecode = compile_expr(&mut expr_call.callee, env, strings, types)?;
+            let callee_bytecode = compile_expr(&mut expr_call.callee, env, constants, types)?;
 
             if let Some(_op) = callee_bytecode.first()
                 && let Some(lookup) = callee_bytecode.get(1)
@@ -433,7 +440,7 @@ fn compile_expr(
             codes.extend(callee_bytecode);
 
             for arg in expr_call.args.iter_mut() {
-                match compile_expr(arg, env, strings, types) {
+                match compile_expr(arg, env, constants, types) {
                     Ok(arg_bytecode) => {
                         codes.extend(arg_bytecode);
                     }

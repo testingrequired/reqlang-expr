@@ -95,9 +95,9 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
 
         let value = self
             .bytecode
-            .strings()
+            .constants()
             .get(constant_idx)
-            .expect("should have string at index");
+            .expect("should have value in constants at index");
 
         let string = format!("{name:16} {constant_idx:>4} == '{value}'\n");
 
