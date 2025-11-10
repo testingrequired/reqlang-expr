@@ -171,10 +171,6 @@ impl CompileTimeEnv {
         }
     }
 
-    pub fn add_keys_to_client_context(&mut self, keys: Vec<String>) {
-        self.client_context.extend(keys);
-    }
-
     pub fn get_client_context_index(&self, name: &str) -> Option<(&String, u8)> {
         let index = self
             .client_context
@@ -221,10 +217,6 @@ impl ExprByteCode {
 
     pub fn codes(&self) -> &[u8] {
         &self.codes
-    }
-
-    pub fn get_code(&self, index: usize) -> Option<&u8> {
-        self.codes.get(index)
     }
 
     pub fn constants(&self) -> &[Value] {

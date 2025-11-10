@@ -85,6 +85,7 @@ macro_rules! test {
                                     let mut runtime_env: RuntimeEnv = RuntimeEnv$runtime_env;
 
                                     runtime_env.add_to_client_context(i, Value::Bool(true));
+                                    runtime_env.add_to_client_context(i, Value::Bool(true));
 
                                     let value = vm.interpret(op_codes.into(), &env, &runtime_env);
 
@@ -247,6 +248,38 @@ mod valid {
         };
 
         interpets to: Ok(Value::String("test string".to_string()));
+    }
+
+    test! {
+        "123456";
+
+        scenario: number;
+
+        tokens should be: vec![
+            Ok((0, Token::Number(123456f64), 6)),
+        ];
+
+        ast should be: Ok(Expr::number(123456f64));
+
+        env: (vec![], vec![], vec![], vec![]);
+
+        user builtins: [];
+
+        compiles to: Ok(ExprByteCode::new(
+            crate::make_test_bytecode(vec![
+                opcode::CONSTANT, 0
+            ]),
+            vec![Value::Number(123456f64)],
+            vec![]
+        ));
+
+        disassembles to: "VERSION 0800\n----\n0000 CONSTANT            0 == '123456'\n";
+
+        runtime env: {
+            ..Default::default()
+        };
+
+        interpets to: Ok(Value::Number(123456f64));
     }
 
     test! {

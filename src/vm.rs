@@ -91,8 +91,8 @@ impl Vm {
     }
 
     fn op_call(&mut self) -> ExprResult<()> {
-        // Confirm the current op code is CALL
-        assert_eq!(opcode::CALL, self.read_u8(), "Expected CALL opcode");
+        // Consume current op: CALL
+        self.read_u8();
 
         let arg_count = self.read_u8() as usize;
 
@@ -116,7 +116,9 @@ impl Vm {
     }
 
     fn op_get(&mut self, env: &CompileTimeEnv, runtime_env: &RuntimeEnv) -> ExprResult<()> {
-        assert_eq!(opcode::GET, self.read_u8(), "Expected GET opcode");
+        // Consume current op: GET
+        self.read_u8();
+
         let get_lookup = self.read_u8();
         let get_idx = self.read_u8() as usize;
 
@@ -187,7 +189,8 @@ impl Vm {
     }
 
     fn op_constant(&mut self) -> ExprResult<()> {
-        assert_eq!(opcode::CONSTANT, self.read_u8(), "Expected CONSTANT opcode");
+        // Consume current op: CONSTANT
+        self.read_u8();
 
         let get_idx = self.read_u8() as usize;
 
@@ -197,7 +200,7 @@ impl Vm {
             .expect("should have bytecode")
             .constants()
             .get(get_idx)
-            .unwrap_or_else(|| panic!("undefined string: {}", get_idx));
+            .unwrap_or_else(|| panic!("undefined constant: {}", get_idx));
 
         self.stack_push(s.clone());
 
@@ -205,7 +208,8 @@ impl Vm {
     }
 
     fn op_true(&mut self) -> ExprResult<()> {
-        assert_eq!(opcode::TRUE, self.read_u8(), "Expected TRUE opcode");
+        // Consume current op: TRUE
+        self.read_u8();
 
         self.stack_push(Value::Bool(true));
 
@@ -213,7 +217,8 @@ impl Vm {
     }
 
     fn op_false(&mut self) -> ExprResult<()> {
-        assert_eq!(opcode::FALSE, self.read_u8(), "Expected FALSE opcode");
+        // Consume current op: FALSE
+        self.read_u8();
 
         self.stack_push(Value::Bool(false));
 
@@ -249,9 +254,38 @@ impl Vm {
 
 #[cfg(test)]
 mod tests {
-    use crate::compiler::get_version_bytes;
+    use crate::{compiler::get_version_bytes, errors::ExprError, prelude::lookup};
 
     use super::*;
+
+    #[test]
+    fn test_popping_from_empty_stack() {
+        let mut vm = Vm::new();
+
+        let mut codes = get_version_bytes().to_vec();
+
+        // Get builtin function `id`
+        codes.push(opcode::GET);
+        codes.push(lookup::BUILTIN);
+        codes.push(0);
+
+        // Specify call will be passing 1 argument
+        // but don't push the bytecode for the argument passed
+        codes.push(opcode::CALL);
+        codes.push(1);
+
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![]));
+        let env = CompileTimeEnv::default();
+        let runtime_env = RuntimeEnv::default();
+
+        assert_eq!(
+            Err(vec![(
+                ExprError::RuntimeError(RuntimeError::EmptyStack),
+                0..0
+            )]),
+            vm.interpret(bytecode, &env, &runtime_env)
+        );
+    }
 
     #[test]
     #[should_panic(expected = "Invalid OP code: 99")]
@@ -284,6 +318,141 @@ mod tests {
         let runtime_env = RuntimeEnv::default();
 
         // Attempt to interpret the bytecode, expecting a panic due to invalid opcode 99
+        let _ = vm.interpret(bytecode, &env, &runtime_env);
+    }
+
+    #[test]
+    #[should_panic(expected = "undefined variable: 99")]
+    fn undefined_variable() {
+        let mut vm = Vm::new();
+
+        let mut codes = get_version_bytes().to_vec();
+        codes.push(opcode::GET);
+        codes.push(lookup::VAR);
+        codes.push(99);
+
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let env = CompileTimeEnv::default();
+        let runtime_env = RuntimeEnv::default();
+
+        let _ = vm.interpret(bytecode, &env, &runtime_env);
+    }
+
+    #[test]
+    #[should_panic(expected = "undefined prompt: 99")]
+    fn undefined_prompt() {
+        let mut vm = Vm::new();
+
+        let mut codes = get_version_bytes().to_vec();
+        codes.push(opcode::GET);
+        codes.push(lookup::PROMPT);
+        codes.push(99);
+
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let env = CompileTimeEnv::default();
+        let runtime_env = RuntimeEnv::default();
+
+        let _ = vm.interpret(bytecode, &env, &runtime_env);
+    }
+
+    #[test]
+    #[should_panic(expected = "undefined secret: 99")]
+    fn undefined_secret() {
+        let mut vm = Vm::new();
+
+        let mut codes = get_version_bytes().to_vec();
+        codes.push(opcode::GET);
+        codes.push(lookup::SECRET);
+        codes.push(99);
+
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let env = CompileTimeEnv::default();
+        let runtime_env = RuntimeEnv::default();
+
+        let _ = vm.interpret(bytecode, &env, &runtime_env);
+    }
+
+    #[test]
+    #[should_panic(expected = "undefined builtin: 255")]
+    fn undefined_builtin() {
+        let mut vm = Vm::new();
+
+        let mut codes = get_version_bytes().to_vec();
+        codes.push(opcode::GET);
+        codes.push(lookup::BUILTIN);
+        codes.push(255);
+
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let env = CompileTimeEnv::default();
+        let runtime_env = RuntimeEnv::default();
+
+        let _ = vm.interpret(bytecode, &env, &runtime_env);
+    }
+
+    #[test]
+    #[should_panic(expected = "undefined user builtin: 255")]
+    fn undefined_user_builtin() {
+        let mut vm = Vm::new();
+
+        let mut codes = get_version_bytes().to_vec();
+        codes.push(opcode::GET);
+        codes.push(lookup::USER_BUILTIN);
+        codes.push(255);
+
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let env = CompileTimeEnv::default();
+        let runtime_env = RuntimeEnv::default();
+
+        let _ = vm.interpret(bytecode, &env, &runtime_env);
+    }
+
+    #[test]
+    #[should_panic(expected = "undefined client context: 255")]
+    fn undefined_client_context() {
+        let mut vm = Vm::new();
+
+        let mut codes = get_version_bytes().to_vec();
+        codes.push(opcode::GET);
+        codes.push(lookup::CLIENT_CTX);
+        codes.push(255);
+
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let env = CompileTimeEnv::default();
+        let runtime_env = RuntimeEnv::default();
+
+        let _ = vm.interpret(bytecode, &env, &runtime_env);
+    }
+
+    #[test]
+    #[should_panic(expected = "undefined type: 255")]
+    fn undefined_type() {
+        let mut vm = Vm::new();
+
+        let mut codes = get_version_bytes().to_vec();
+        codes.push(opcode::GET);
+        codes.push(lookup::TYPE);
+        codes.push(255);
+
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let env = CompileTimeEnv::default();
+        let runtime_env = RuntimeEnv::default();
+
+        let _ = vm.interpret(bytecode, &env, &runtime_env);
+    }
+
+    #[test]
+    #[should_panic(expected = "undefined constant: 255")]
+    fn undefined_constant() {
+        let mut vm = Vm::new();
+
+        let mut codes = get_version_bytes().to_vec();
+        codes.push(opcode::CONSTANT);
+        codes.push(255);
+
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let env = CompileTimeEnv::default();
+        let runtime_env = RuntimeEnv::default();
+
         let _ = vm.interpret(bytecode, &env, &runtime_env);
     }
 }

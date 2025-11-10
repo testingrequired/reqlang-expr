@@ -25,15 +25,12 @@ impl Expr {
         )))
     }
 
-    pub fn identifier_name(&self) -> Option<&str> {
-        match self {
-            Expr::Identifier(expr_identifier) => Some(expr_identifier.lookup_name()),
-            _ => None,
-        }
-    }
-
     pub fn string(string: &str) -> Self {
         Self::String(ExprString::new(string).into())
+    }
+
+    pub fn number(value: f64) -> Self {
+        Self::Number(ExprNumber::new(value).into())
     }
 
     pub fn call(callee: ExprS, args: Vec<ExprS>) -> Self {
@@ -45,10 +42,6 @@ impl Expr {
 
     pub fn bool(value: bool) -> Self {
         Self::Bool(Box::new(ExprBool::new(value)))
-    }
-
-    pub fn is_bool(&self) -> bool {
-        self.get_type() == Type::Bool
     }
 
     pub fn get_type(&self) -> Type {

@@ -72,7 +72,6 @@ pub fn unzip_key_values(keys_values: Vec<(String, String)>) -> (Vec<String>, Vec
 /// let args = Args::parse_from(["test", "--vars", "key=value", "another_key=another_value"]);
 /// assert_eq!(args.vars, vec![("key".to_string(), "value".to_string()), ("another_key".to_string(), "another_value".to_string())]);
 /// ```
-///
 pub fn parse_key_val<T, U>(value: &str) -> Result<(T, U), Box<dyn Error + Send + Sync + 'static>>
 where
     T: std::str::FromStr,
@@ -132,5 +131,54 @@ pub fn read_in_source(path: Option<String>) -> String {
 
             source
         }
+    }
+}
+
+#[cfg(test)]
+mod cliutil_tests {
+    use clap::Parser;
+
+    use crate::cliutil::{parse_key_val, read_in_source};
+
+    #[test]
+    fn read_in_source_from_file() {
+        let result = read_in_source(Some("./spec/valid/call_id.expr".to_string()));
+
+        assert_eq!("(id (noop))", result);
+    }
+
+    #[test]
+    fn parse_key_val_valid_keyvalue_pair() {
+        #[derive(Parser, Debug, PartialEq)]
+        struct Args {
+            #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser = parse_key_val::<String, String>)]
+            vars: Vec<(String, String)>,
+        }
+
+        assert_eq!(
+            Args {
+                vars: vec![(String::from("key"), String::from("value"))]
+            },
+            Args::try_parse_from(["test", "--vars", "key=value"])
+                .ok()
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn parse_key_val_invalid_keyvalue_pair() {
+        #[derive(Parser, Debug, PartialEq)]
+        struct Args {
+            #[arg(long, value_delimiter = ' ', num_args = 1.., value_parser = parse_key_val::<String, String>)]
+            vars: Vec<(String, String)>,
+        }
+
+        assert_eq!(
+            "error: invalid value 'key_without_value' for '--vars <VARS>...': should be formatted as key=value pair: `key_without_value`\n\nFor more information, try '--help'.\n",
+            Args::try_parse_from(["test", "--vars", "key_without_value"])
+                .err()
+                .unwrap()
+                .to_string()
+        );
     }
 }

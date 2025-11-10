@@ -192,20 +192,4 @@ mod tests {
             value.get_func()
         );
     }
-
-    // #[test]
-    // fn get_bool_on_func() {
-    //     let dummy_fn: Rc<BuiltinFn> = Rc::new(|_, _| Ok(Value::Bool(true)));
-    //     assert_eq!(
-    //         Err(vec![(
-    //             RuntimeError::TypeMismatch {
-    //                 expected: Type::Bool,
-    //                 actual: Type::Fn
-    //             }
-    //             .into(),
-    //             0..0
-    //         )]),
-    //         Value::Fn(dummy_fn).get_bool()
-    //     );
-    // }
 }

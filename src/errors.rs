@@ -60,12 +60,6 @@ impl diagnostics::AsDiagnostic for LexicalError {
     }
 }
 
-impl From<ParseFloatError> for LexicalError {
-    fn from(value: ParseFloatError) -> Self {
-        LexicalError::InvalidNumber(value)
-    }
-}
-
 #[derive(Debug, Clone, Error, PartialEq)]
 pub enum SyntaxError {
     #[error("extraneous input: {token:?}")]
@@ -486,7 +480,10 @@ pub mod diagnostics {
 
     #[cfg(test)]
     mod error_to_diagnostics_tests {
-        use crate::errors::{CompileError, ExprError, LexicalError};
+        use crate::{
+            errors::{CompileError, ExprError, LexicalError, RuntimeError, SyntaxError},
+            types::Type,
+        };
 
         use super::*;
         use std::ops::Range;
@@ -551,6 +548,251 @@ pub mod diagnostics {
             assert_eq!(diagnostic.severity, Severity::Error);
             assert_eq!(diagnostic.labels.len(), 1);
             assert_eq!(diagnostic.labels[0], Label::primary((), range));
+        }
+
+        #[test]
+        fn it_converts_compileerror_no_callee_to_diagnostic() {
+            let source = dummy_source();
+            let range = dummy_range();
+            let error = ExprError::CompileError(CompileError::NoCallee);
+            let diagnostics = get_diagnostics(&[(error, range.clone())], source);
+
+            assert_eq!(diagnostics.len(), 1);
+            let diagnostic = &diagnostics[0];
+            assert_eq!(diagnostic.code, Some("compiler".to_string()));
+            assert_eq!(
+                diagnostic.message,
+                "call expression without a callee".to_string()
+            );
+            assert_eq!(diagnostic.severity, Severity::Error);
+            assert_eq!(diagnostic.labels.len(), 1);
+            assert_eq!(diagnostic.labels[0], Label::primary((), range));
+        }
+
+        #[test]
+        fn it_converts_compileerror_type_mismatch_to_diagnostic() {
+            let source = dummy_source();
+            let range = dummy_range();
+            let error = ExprError::CompileError(CompileError::TypeMismatch {
+                expected: Type::String,
+                actual: Type::Bool,
+            });
+            let diagnostics = get_diagnostics(&[(error, range.clone())], source);
+
+            assert_eq!(diagnostics.len(), 1);
+            let diagnostic = &diagnostics[0];
+            assert_eq!(diagnostic.code, Some("compiler".to_string()));
+            assert_eq!(
+                diagnostic.message,
+                "expected type String but received Bool".to_string()
+            );
+            assert_eq!(diagnostic.severity, Severity::Error);
+            assert_eq!(diagnostic.labels.len(), 1);
+            assert_eq!(diagnostic.labels[0], Label::primary((), range));
+        }
+
+        #[test]
+        fn it_converts_compileerror_invalid_lookup_type_to_diagnostic() {
+            let source = dummy_source();
+            let range = dummy_range();
+            let error = ExprError::CompileError(CompileError::InvalidLookupType(99));
+            let diagnostics = get_diagnostics(&[(error, range.clone())], source);
+
+            assert_eq!(diagnostics.len(), 1);
+            let diagnostic = &diagnostics[0];
+            assert_eq!(diagnostic.code, Some("compiler".to_string()));
+            assert_eq!(diagnostic.message, "invalid lookup type: 99".to_string());
+            assert_eq!(diagnostic.severity, Severity::Error);
+            assert_eq!(diagnostic.labels.len(), 1);
+            assert_eq!(diagnostic.labels[0], Label::primary((), range));
+        }
+
+        #[test]
+        fn it_converts_runtimeerror_undefined_to_diagnostic() {
+            let source = dummy_source();
+            let range = dummy_range();
+            let error = ExprError::RuntimeError(RuntimeError::TypeMismatch {
+                expected: Type::Bool,
+                actual: Type::String,
+            });
+            let diagnostics = get_diagnostics(&[(error, range.clone())], source);
+
+            assert_eq!(diagnostics.len(), 1);
+            let diagnostic = &diagnostics[0];
+            assert_eq!(diagnostic.code, Some("runtime".to_string()));
+            assert_eq!(
+                diagnostic.message,
+                "expected type Bool but received String".to_string()
+            );
+            assert_eq!(diagnostic.severity, Severity::Error);
+            assert_eq!(diagnostic.labels.len(), 1);
+            assert_eq!(diagnostic.labels[0], Label::primary((), range));
+        }
+
+        #[test]
+        fn it_converts_runtimeerror_empty_stack_to_diagnostic() {
+            let source = dummy_source();
+            let range = dummy_range();
+            let error = ExprError::RuntimeError(RuntimeError::EmptyStack);
+            let diagnostics = get_diagnostics(&[(error, range.clone())], source);
+
+            assert_eq!(diagnostics.len(), 1);
+            let diagnostic = &diagnostics[0];
+            assert_eq!(diagnostic.code, Some("runtime".to_string()));
+            assert_eq!(
+                diagnostic.message,
+                "attempting to pop from an empty stack".to_string()
+            );
+            assert_eq!(diagnostic.severity, Severity::Error);
+            assert_eq!(diagnostic.labels.len(), 1);
+            assert_eq!(diagnostic.labels[0], Label::primary((), range));
+        }
+
+        #[test]
+        fn it_converts_syntaxerror_unrecognized_eof_to_diagnostic() {
+            let source = dummy_source();
+            let range = dummy_range();
+            let error = ExprError::SyntaxError(SyntaxError::UnrecognizedEOF {
+                expected: vec!["string".to_string()],
+            });
+            let diagnostics = get_diagnostics(&[(error, range.clone())], source);
+
+            assert_eq!(diagnostics.len(), 1);
+            let diagnostic = &diagnostics[0];
+            assert_eq!(diagnostic.code, Some("syntax".to_string()));
+            assert_eq!(
+                diagnostic.message,
+                "unexpected end of file; expected: [\"string\"]".to_string()
+            );
+            assert_eq!(diagnostic.severity, Severity::Error);
+            assert_eq!(diagnostic.labels.len(), 1);
+            assert_eq!(diagnostic.labels[0], Label::primary((), range));
+        }
+
+        #[test]
+        fn it_converts_syntaxerror_invalid_token_to_diagnostic() {
+            let source = dummy_source();
+            let range = dummy_range();
+            let error = ExprError::SyntaxError(SyntaxError::InvalidToken);
+            let diagnostics = get_diagnostics(&[(error, range.clone())], source);
+
+            assert_eq!(diagnostics.len(), 1);
+            let diagnostic = &diagnostics[0];
+            assert_eq!(diagnostic.code, Some("syntax".to_string()));
+            assert_eq!(diagnostic.message, "invalid input".to_string());
+            assert_eq!(diagnostic.severity, Severity::Error);
+            assert_eq!(diagnostic.labels.len(), 1);
+            assert_eq!(diagnostic.labels[0], Label::primary((), range));
+        }
+
+        #[test]
+        fn it_converts_syntaxerror_unexpected_input_to_diagnostic() {
+            let source = dummy_source();
+            let range = dummy_range();
+            let error = ExprError::SyntaxError(SyntaxError::UnexpectedInput {
+                token: "number".to_string(),
+            });
+            let diagnostics = get_diagnostics(&[(error, range.clone())], source);
+
+            assert_eq!(diagnostics.len(), 1);
+            let diagnostic = &diagnostics[0];
+            assert_eq!(diagnostic.code, Some("syntax".to_string()));
+            assert_eq!(
+                diagnostic.message,
+                "unexpected input: \"number\"".to_string()
+            );
+            assert_eq!(diagnostic.severity, Severity::Error);
+            assert_eq!(diagnostic.labels.len(), 1);
+            assert_eq!(diagnostic.labels[0], Label::primary((), range));
+        }
+
+        #[test]
+        fn it_converts_syntaxerror_unrecognized_token_to_diagnostic() {
+            let source = dummy_source();
+            let range = dummy_range();
+            let error = ExprError::SyntaxError(SyntaxError::UnrecognizedToken {
+                token: "number".to_string(),
+                expected: vec![",".to_string(), "number".to_string(), "]".to_string()],
+            });
+            let diagnostics = get_diagnostics(&[(error, range.clone())], source);
+
+            assert_eq!(diagnostics.len(), 1);
+            let diagnostic = &diagnostics[0];
+            assert_eq!(diagnostic.code, Some("syntax".to_string()));
+            assert_eq!(
+                diagnostic.message,
+                "unexpected \"number\"; expected: [\",\", \"number\", \"]\"]".to_string()
+            );
+            assert_eq!(diagnostic.severity, Severity::Error);
+            assert_eq!(diagnostic.labels.len(), 1);
+            assert_eq!(diagnostic.labels[0], Label::primary((), range));
+        }
+
+        #[test]
+        fn it_converts_syntaxerror_unterminated_string_to_diagnostic() {
+            let source = dummy_source();
+            let range = dummy_range();
+            let error = ExprError::SyntaxError(SyntaxError::UnterminatedString);
+            let diagnostics = get_diagnostics(&[(error, range.clone())], source);
+
+            assert_eq!(diagnostics.len(), 1);
+            let diagnostic = &diagnostics[0];
+            assert_eq!(diagnostic.code, Some("syntax".to_string()));
+            assert_eq!(diagnostic.message, "unterminated string".to_string());
+            assert_eq!(diagnostic.severity, Severity::Error);
+            assert_eq!(diagnostic.labels.len(), 1);
+            assert_eq!(diagnostic.labels[0], Label::primary((), range));
+        }
+
+        #[test]
+        fn it_converts_syntaxerror_extra_token_to_diagnostic() {
+            let source = dummy_source();
+            let range = dummy_range();
+            let error = ExprError::SyntaxError(SyntaxError::ExtraToken {
+                token: ",".to_string(),
+            });
+            let diagnostics = get_diagnostics(&[(error, range.clone())], source);
+
+            assert_eq!(diagnostics.len(), 1);
+            let diagnostic = &diagnostics[0];
+            assert_eq!(diagnostic.code, Some("syntax".to_string()));
+            assert_eq!(diagnostic.message, "extraneous input: \",\"".to_string());
+            assert_eq!(diagnostic.severity, Severity::Error);
+            assert_eq!(diagnostic.labels.len(), 1);
+            assert_eq!(diagnostic.labels[0], Label::primary((), range));
+        }
+    }
+    #[cfg(test)]
+    mod to_severity_tests {
+        use codespan_reporting::diagnostic::Severity;
+
+        use crate::errors::diagnostics::ExprDiagnosisSeverity;
+
+        #[test]
+        fn from_hint() {
+            assert_eq!(Severity::Help, ExprDiagnosisSeverity::HINT.to_severity());
+        }
+
+        #[test]
+        fn from_information() {
+            assert_eq!(
+                Severity::Note,
+                ExprDiagnosisSeverity::INFORMATION.to_severity()
+            );
+        }
+
+        #[test]
+        fn from_warning() {
+            assert_eq!(
+                Severity::Warning,
+                ExprDiagnosisSeverity::WARNING.to_severity()
+            );
+        }
+
+        #[test]
+        #[should_panic(expected = "Invalid diagnosis severity: 99")]
+        fn from_invalid() {
+            ExprDiagnosisSeverity(99).to_severity();
         }
     }
 }

@@ -5,7 +5,7 @@ use std::ops::Range;
 
 use crate::{
     errors::{ExprErrorS, LexicalError},
-    span::{Span, Spanned},
+    span::Spanned,
 };
 
 /// Parse source code in to a list of [`Token`].
@@ -111,11 +111,10 @@ fn lex_string(lexer: &mut logos::Lexer<Token>) -> String {
     slice[1..slice.len() - 1].to_string()
 }
 
-fn lex_number(lexer: &mut logos::Lexer<Token>) -> Result<f64, (LexicalError, Span)> {
+fn lex_number(lexer: &mut logos::Lexer<Token>) -> f64 {
     let slice = lexer.slice();
-    slice
-        .parse::<f64>()
-        .map_err(|err| (err.into(), lexer.span()))
+
+    slice.parse::<f64>().expect("should parse as a number")
 }
 
 impl Token {
