@@ -49,13 +49,11 @@ pub enum LexicalError {
 impl diagnostics::AsDiagnostic for LexicalError {
     fn as_diagnostic(&self, source: &str, span: &Span) -> ExprDiagnostic {
         let error_code = "lexical".to_string();
-        match self {
-            _ => ExprDiagnostic {
-                code: error_code,
-                range: get_range(source, span),
-                severity: Some(ExprDiagnosisSeverity::ERROR),
-                message: format!("{self}"),
-            },
+        ExprDiagnostic {
+            code: error_code,
+            range: get_range(source, span),
+            severity: Some(ExprDiagnosisSeverity::ERROR),
+            message: format!("{self}"),
         }
     }
 }
@@ -265,9 +263,8 @@ pub mod diagnostics {
         errs.iter()
             .map(|(err, span)| {
                 let a = err.as_diagnostic(source, span);
-                let b = a.to_diagnostic(span).with_message(a.message.clone());
 
-                b
+                a.to_diagnostic(span).with_message(a.message.clone())
             })
             .collect()
     }
@@ -310,8 +307,8 @@ pub mod diagnostics {
     }
 
     impl ExprDiagnosisSeverity {
-        fn to_severity(&self) -> Severity {
-            match *self {
+        fn to_severity(self) -> Severity {
+            match self {
                 ExprDiagnosisSeverity::HINT => Severity::Help,
                 ExprDiagnosisSeverity::INFORMATION => Severity::Note,
                 ExprDiagnosisSeverity::WARNING => Severity::Warning,

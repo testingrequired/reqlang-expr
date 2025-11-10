@@ -37,6 +37,12 @@ pub struct Vm {
     stack: Vec<Value>,
 }
 
+impl Default for Vm {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Vm {
     pub fn new() -> Self {
         Self {
@@ -68,7 +74,7 @@ impl Vm {
         }
 
         if !errs.is_empty() {
-            return Err(errs.into());
+            return Err(errs);
         }
 
         self.stack_pop()
@@ -106,7 +112,7 @@ impl Vm {
 
         let value = self.stack_pop()?;
 
-        let builtin = value.get_func()?.func.clone();
+        let builtin = value.get_func()?.func;
 
         let result = builtin(args);
 
@@ -182,7 +188,7 @@ impl Vm {
                     self.stack_push(Value::Type(Type::Type(ty.clone().into()).into()));
                 }
             }
-            _ => panic!("Invalid get lookup code: {}", get_lookup),
+            _ => panic!("Invalid get lookup code: {get_lookup}"),
         };
 
         Ok(())
@@ -200,7 +206,7 @@ impl Vm {
             .expect("should have bytecode")
             .constants()
             .get(get_idx)
-            .unwrap_or_else(|| panic!("undefined constant: {}", get_idx));
+            .unwrap_or_else(|| panic!("undefined constant: {get_idx}"));
 
         self.stack_push(s.clone());
 

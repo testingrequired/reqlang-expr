@@ -114,11 +114,11 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
         let value = match lookup_type {
             lookup::BUILTIN => {
                 let value = self.env.get_builtin(constant_idx).unwrap();
-                &value.name
+                value.name
             }
             lookup::USER_BUILTIN => {
                 let value = self.env.get_user_builtin(constant_idx).unwrap();
-                &value.name
+                value.name
             }
             lookup::VAR => {
                 let value = self.env.get_var(constant_idx).unwrap();
@@ -126,26 +126,26 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
                 value.as_str()
             }
             lookup::PROMPT => {
-                let value = self.env.get_prompt(constant_idx).unwrap();
+                
 
-                value
+                self.env.get_prompt(constant_idx).unwrap()
             }
             lookup::SECRET => {
-                let value = self.env.get_secret(constant_idx).unwrap();
+                
 
-                value
+                self.env.get_secret(constant_idx).unwrap()
             }
             lookup::CLIENT_CTX => {
-                let value = self.env.get_client_context(constant_idx).unwrap();
+                
 
-                value
+                self.env.get_client_context(constant_idx).unwrap()
             }
             lookup::TYPE => {
                 let value = self.bytecode.types().get(constant_idx).unwrap();
 
                 &value.name()
             }
-            _ => panic!("invalid get lookup code: {}", lookup_type),
+            _ => panic!("invalid get lookup code: {lookup_type}"),
         };
 
         let lookup_type_string = match lookup_type {
@@ -156,7 +156,7 @@ impl<'bytecode, 'env> Disassembler<'bytecode, 'env> {
             lookup::SECRET => "SECRET",
             lookup::CLIENT_CTX => "CLIENT_CTX",
             lookup::TYPE => "TYPE",
-            _ => panic!("invalid get lookup code: {}", lookup_type),
+            _ => panic!("invalid get lookup code: {lookup_type}"),
         };
 
         let name = "GET";

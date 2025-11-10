@@ -618,7 +618,7 @@ mod value_tests {
             return_type: Type::String,
             func: example_builtin,
         };
-        assert_eq!("test_builtin(...rest: String) -> String", format!("{}", f))
+        assert_eq!("test_builtin(...rest: String) -> String", format!("{f}"))
     }
 
     #[test]

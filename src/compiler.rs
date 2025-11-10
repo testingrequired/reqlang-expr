@@ -88,15 +88,15 @@ impl CompileTimeEnv {
     pub fn get_builtin_index(&self, name: &str) -> Option<(&BuiltinFn, u8)> {
         let index = self.builtins.iter().position(|x| x.name == name);
 
-        let result = index.map(|i| (self.builtins.get(i).unwrap(), i as u8));
-        result
+        
+        index.map(|i| (self.builtins.get(i).unwrap(), i as u8))
     }
 
     pub fn get_user_builtin_index(&self, name: &str) -> Option<(&BuiltinFn, u8)> {
         let index = self.user_builtins.iter().position(|x| x.name == name);
 
-        let result = index.map(|i| (self.user_builtins.get(i).unwrap(), i as u8));
-        result
+        
+        index.map(|i| (self.user_builtins.get(i).unwrap(), i as u8))
     }
 
     pub fn add_user_builtins(&mut self, builtins: Vec<BuiltinFn<'static>>) {
@@ -122,12 +122,12 @@ impl CompileTimeEnv {
     }
 
     pub fn get_var_index(&self, name: &str) -> Option<usize> {
-        let index = self
+        
+
+        self
             .vars
             .iter()
-            .position(|context_name| context_name == name);
-
-        index
+            .position(|context_name| context_name == name)
     }
 
     pub fn get_prompt(&self, index: usize) -> Option<&String> {
@@ -135,12 +135,12 @@ impl CompileTimeEnv {
     }
 
     pub fn get_prompt_index(&self, name: &str) -> Option<usize> {
-        let index = self
+        
+
+        self
             .prompts
             .iter()
-            .position(|context_name| context_name == name);
-
-        index
+            .position(|context_name| context_name == name)
     }
 
     pub fn get_secret(&self, index: usize) -> Option<&String> {
@@ -148,12 +148,12 @@ impl CompileTimeEnv {
     }
 
     pub fn get_secret_index(&self, name: &str) -> Option<usize> {
-        let index = self
+        
+
+        self
             .secrets
             .iter()
-            .position(|context_name| context_name == name);
-
-        index
+            .position(|context_name| context_name == name)
     }
 
     pub fn get_client_context(&self, index: usize) -> Option<&String> {
@@ -177,8 +177,8 @@ impl CompileTimeEnv {
             .iter()
             .position(|context_name| context_name == name);
 
-        let result = index.map(|i| (self.client_context.get(i).unwrap(), i as u8));
-        result
+        
+        index.map(|i| (self.client_context.get(i).unwrap(), i as u8))
     }
 }
 
@@ -292,7 +292,7 @@ fn compile_expr(
                 codes.push(CONSTANT);
                 codes.push(index as u8);
             } else {
-                constants.push(Value::Number(number.0.clone()));
+                constants.push(Value::Number(number.0));
                 let index = constants.len() - 1;
                 codes.push(CONSTANT);
                 codes.push(index as u8);
@@ -367,7 +367,7 @@ fn compile_expr(
                 }
             };
 
-            if let None = result {
+            if result.is_none() {
                 errs.push(identifier_undefined_err);
             }
         }

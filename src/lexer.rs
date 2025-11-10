@@ -10,7 +10,7 @@ use crate::{
 
 /// Parse source code in to a list of [`Token`].
 pub fn lex(source: &str) -> Vec<Result<(usize, Token, usize), ExprErrorS>> {
-    let lexer: Lexer<'_> = Lexer::new(&source);
+    let lexer: Lexer<'_> = Lexer::new(source);
     let tokens: Vec<Result<(usize, Token, usize), ExprErrorS>> = lexer.collect::<Vec<_>>();
 
     tokens

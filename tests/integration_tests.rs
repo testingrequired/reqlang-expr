@@ -193,7 +193,7 @@ mod valid {
                 args: &[],
                 return_type: Type::String,
                 func: crate::valid::example_builtin
-            }.into()
+            }
         ];
 
         compiles to: Ok(ExprByteCode::new(

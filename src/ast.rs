@@ -230,28 +230,28 @@ pub fn add_type_to_expr(expr: &mut Expr, env: &CompileTimeEnv) {
             IdentifierKind::Var => {
                 let index = env.get_var_index(expr_identifier.lookup_name());
 
-                if let Some(_) = index {
+                if index.is_some() {
                     expr_identifier.2 = Some(Type::String);
                 }
             }
             IdentifierKind::Prompt => {
                 let index = env.get_prompt_index(expr_identifier.lookup_name());
 
-                if let Some(_) = index {
+                if index.is_some() {
                     expr_identifier.2 = Some(Type::String);
                 }
             }
             IdentifierKind::Secret => {
                 let index = env.get_secret_index(expr_identifier.lookup_name());
 
-                if let Some(_) = index {
+                if index.is_some() {
                     expr_identifier.2 = Some(Type::String);
                 }
             }
             IdentifierKind::Client => {
                 let index = env.get_client_context_index(expr_identifier.lookup_name());
 
-                if let Some(_) = index {
+                if index.is_some() {
                     expr_identifier.2 = Some(Type::String);
                 }
             }

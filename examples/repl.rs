@@ -20,7 +20,7 @@ use reqlang_expr::{
 fn main() -> ExprResult<()> {
     let crate_version = env!("CARGO_PKG_VERSION");
 
-    eprintln!("reqlang-expr v{}", crate_version);
+    eprintln!("reqlang-expr v{crate_version}");
 
     let args = Args::parse();
 
@@ -85,25 +85,25 @@ fn main() -> ExprResult<()> {
         commands.extend(
             var_keys
                 .iter()
-                .map(|key| format!(":{}", key))
+                .map(|key| format!(":{key}"))
                 .collect::<Vec<String>>(),
         );
         commands.extend(
             prompt_keys
                 .iter()
-                .map(|key| format!("?{}", key))
+                .map(|key| format!("?{key}"))
                 .collect::<Vec<String>>(),
         );
         commands.extend(
             secret_keys
                 .iter()
-                .map(|key| format!("!{}", key))
+                .map(|key| format!("!{key}"))
                 .collect::<Vec<String>>(),
         );
         commands.extend(
             client_keys
                 .iter()
-                .map(|key| format!("@{}", key))
+                .map(|key| format!("@{key}"))
                 .collect::<Vec<String>>(),
         );
     }
@@ -168,7 +168,7 @@ fn main() -> ExprResult<()> {
                 }
 
                 if VERSION_PATTERN.is_match(&source) {
-                    println!("{}", crate_version);
+                    println!("{crate_version}");
                     continue;
                 }
 
@@ -340,7 +340,7 @@ fn main() -> ExprResult<()> {
                 break;
             }
             x => {
-                println!("Event: {:?}", x);
+                println!("Event: {x:?}");
             }
         }
     }

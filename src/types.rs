@@ -91,16 +91,13 @@ impl Type {
                 format!("Fn({args}) -> {returns}")
             }
             Type::Bool => "Bool".to_string(),
-            Type::Type(ty) => format!("{}", ty.name()),
+            Type::Type(ty) => ty.name().to_string(),
             Type::Unknown => "Unknown".to_string(),
         }
     }
 
     pub fn is_type(&self) -> bool {
-        match self {
-            Type::Type(_) => true,
-            _ => false,
-        }
+        matches!(self, Type::Type(_))
     }
 }
 
@@ -152,13 +149,13 @@ impl From<BuiltinFn<'static>> for Type {
         let args: Vec<Type> = value
             .args
             .iter()
-            .filter(|x| x.variadic == false)
+            .filter(|x| !x.variadic)
             .map(|x| x.ty.clone())
             .collect();
         let varg = value
             .args
             .iter()
-            .find(|x| x.variadic == true)
+            .find(|x| x.variadic)
             .map(|x| Box::new(x.ty.clone()));
         let returns = value.return_type.clone();
 

@@ -72,11 +72,11 @@ impl Value {
 impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Value::String(string) => write!(f, "`{}`", string),
-            Value::Number(value) => write!(f, "{}", value),
+            Value::String(string) => write!(f, "`{string}`"),
+            Value::Number(value) => write!(f, "{value}"),
             Value::Fn(builtin) => write!(f, "{builtin:?}"),
-            Value::Bool(value) => write!(f, "{}", value),
-            Value::Type(ty) => write!(f, "Type<{}>", ty),
+            Value::Bool(value) => write!(f, "{value}"),
+            Value::Type(ty) => write!(f, "Type<{ty}>"),
         }
     }
 }
