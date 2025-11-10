@@ -295,7 +295,7 @@ mod tests {
         let mut codes = get_version_bytes().to_vec();
         codes.push(99);
 
-        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![]));
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 
@@ -313,7 +313,7 @@ mod tests {
         codes.push(99);
         codes.push(0);
 
-        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![]));
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 
@@ -331,7 +331,7 @@ mod tests {
         codes.push(lookup::VAR);
         codes.push(99);
 
-        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![]));
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 
@@ -348,7 +348,7 @@ mod tests {
         codes.push(lookup::PROMPT);
         codes.push(99);
 
-        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![]));
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 
@@ -365,7 +365,7 @@ mod tests {
         codes.push(lookup::SECRET);
         codes.push(99);
 
-        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![]));
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 
@@ -382,7 +382,7 @@ mod tests {
         codes.push(lookup::BUILTIN);
         codes.push(255);
 
-        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![]));
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 
@@ -399,7 +399,7 @@ mod tests {
         codes.push(lookup::USER_BUILTIN);
         codes.push(255);
 
-        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![]));
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 
@@ -416,7 +416,7 @@ mod tests {
         codes.push(lookup::CLIENT_CTX);
         codes.push(255);
 
-        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![]));
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 
@@ -433,7 +433,7 @@ mod tests {
         codes.push(lookup::TYPE);
         codes.push(255);
 
-        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![]));
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 
@@ -449,7 +449,7 @@ mod tests {
         codes.push(opcode::CONSTANT);
         codes.push(255);
 
-        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![])); // 99 as invalid opcode
+        let bytecode = Box::new(ExprByteCode::new(codes, vec![], vec![]));
         let env = CompileTimeEnv::default();
         let runtime_env = RuntimeEnv::default();
 
