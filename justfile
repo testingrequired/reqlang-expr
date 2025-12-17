@@ -1,4 +1,4 @@
-docker_image := "reqlang-expr:0.8.0"
+docker_image := "reqlang-expr:0.9.0"
 
 # List commands
 default:

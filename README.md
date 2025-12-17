@@ -8,7 +8,7 @@ A small (tiny) WIP expression language for [reqlang](https://github.com/testingr
 
 ```toml
 [dependencies]
-reqlang-expr = "0.8.0"
+reqlang-expr = "0.9.0"
 ```
 
 ```sh
@@ -278,9 +278,9 @@ cargo run -q --example repl
 Or using Docker:
 
 ```sh
-docker build -t reqlang-expr-repl:0.8.0 .
+docker build -t reqlang-expr-repl:0.9.0 .
 
-docker run -it --rm --read-only reqlang-expr-repl:0.8.0
+docker run -it --rm --read-only reqlang-expr-repl:0.9.0
 ```
 
 #### Repl Mode
