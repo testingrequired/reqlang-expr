@@ -83,6 +83,8 @@ See [/spec](./spec/) for more syntax examples.
 | `type(value: Value) -> Type`                              | Get the string representation of a value's type |
 | `eq(a: Value, b: Value) -> Bool`                          | Compare two values for equality                 |
 | `not(value: Bool) -> Bool`                                | Logical NOT operation on a boolean value        |
+| `base64encode(value: String) -> String`                   | Base64 encode a string value                    |
+| `base64decode(value: String) -> String`                   | Base64 decode a string value                    |
 
 ### Why Backticks For Strings?
 

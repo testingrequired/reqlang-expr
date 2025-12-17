@@ -36,7 +36,8 @@ fn spec_files_disassembled(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResu
         let (args, expected_disassembled) = if let Some((i, _)) = expected_disassembled
             .lines()
             .next()
-            .filter(|line| line.starts_with("//")).map(|line| (line.len() + 1, line))
+            .filter(|line| line.starts_with("//"))
+            .map(|line| (line.len() + 1, line))
         {
             expected_disassembled.split_at(i)
         } else {
@@ -96,7 +97,8 @@ fn spec_files_interpreted(#[files("spec/**/*.expr")] path: PathBuf) -> ExprResul
         let (args, expected_interpreted) = if let Some((i, _)) = expected_interpreted
             .lines()
             .next()
-            .filter(|line| line.starts_with("//")).map(|line| (line.len() + 1, line))
+            .filter(|line| line.starts_with("//"))
+            .map(|line| (line.len() + 1, line))
         {
             expected_interpreted.split_at(i)
         } else {

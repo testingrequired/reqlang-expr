@@ -63,7 +63,7 @@ impl<'a> BuiltinFn<'a> {
     /// The default set of builtin functions
     ///
     /// This also defines the lookup index for builtins during compilation
-    pub const DEFAULT_BUILTINS: [BuiltinFn<'a>; 17] = [
+    pub const DEFAULT_BUILTINS: [BuiltinFn<'a>; 19] = [
         BuiltinFn::ID,
         BuiltinFn::NOOP,
         BuiltinFn::IS_EMPTY,
@@ -81,6 +81,8 @@ impl<'a> BuiltinFn<'a> {
         BuiltinFn::TYPE,
         BuiltinFn::EQ,
         BuiltinFn::NOT,
+        BuiltinFn::BASE64_ENCODE,
+        BuiltinFn::BASE64_DECODE,
     ];
 
     // Builtin Definitions
@@ -545,6 +547,62 @@ impl<'a> BuiltinFn<'a> {
         let value = &value_arg.get_bool()?;
 
         Ok(Value::Bool(!value))
+    }
+
+    /// Return a base64 encoded the [`Value`] passed in
+    ///
+    /// `(base64_encode ?string_prompt)`
+    pub const BASE64_ENCODE: BuiltinFn<'static> = BuiltinFn {
+        name: "b64encode",
+        args: &[FnArg {
+            name: "value",
+            ty: Type::Value,
+            variadic: false,
+        }],
+        return_type: Type::Value,
+        func: Self::base64_encode,
+    };
+
+    fn base64_encode(args: Vec<Value>) -> ExprResult<Value> {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string()?;
+
+        use base64::prelude::*;
+
+        let encoded = BASE64_STANDARD.encode(string_arg);
+
+        Ok(Value::String(encoded))
+    }
+
+    /// Return a base64 decoded of the [`Value`] passed in
+    ///
+    /// `(base64_encode ?string_prompt)`
+    pub const BASE64_DECODE: BuiltinFn<'static> = BuiltinFn {
+        name: "b64decode",
+        args: &[FnArg {
+            name: "value",
+            ty: Type::Value,
+            variadic: false,
+        }],
+        return_type: Type::Value,
+        func: Self::base64_decode,
+    };
+
+    fn base64_decode(args: Vec<Value>) -> ExprResult<Value> {
+        let string_arg = args
+            .first()
+            .expect("should have string expression passed")
+            .get_string()?;
+
+        use base64::prelude::*;
+
+        let decoded = BASE64_STANDARD
+            .decode(string_arg)
+            .expect("unable to decode");
+
+        Ok(Value::String(String::from_utf8(decoded).unwrap()))
     }
 }
 
