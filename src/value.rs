@@ -36,7 +36,7 @@ impl Value {
         }
     }
 
-    pub fn get_func(&self) -> ExprResult<Box<BuiltinFn>> {
+    pub fn get_func(&self) -> ExprResult<Box<BuiltinFn<'_>>> {
         match self {
             Value::Fn(f) => Ok(f.clone()),
             _ => Err(vec![(

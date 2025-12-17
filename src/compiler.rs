@@ -85,17 +85,15 @@ impl CompileTimeEnv {
         }
     }
 
-    pub fn get_builtin_index(&self, name: &str) -> Option<(&BuiltinFn, u8)> {
+    pub fn get_builtin_index(&self, name: &str) -> Option<(&BuiltinFn<'_>, u8)> {
         let index = self.builtins.iter().position(|x| x.name == name);
 
-        
         index.map(|i| (self.builtins.get(i).unwrap(), i as u8))
     }
 
-    pub fn get_user_builtin_index(&self, name: &str) -> Option<(&BuiltinFn, u8)> {
+    pub fn get_user_builtin_index(&self, name: &str) -> Option<(&BuiltinFn<'_>, u8)> {
         let index = self.user_builtins.iter().position(|x| x.name == name);
 
-        
         index.map(|i| (self.user_builtins.get(i).unwrap(), i as u8))
     }
 
@@ -122,10 +120,7 @@ impl CompileTimeEnv {
     }
 
     pub fn get_var_index(&self, name: &str) -> Option<usize> {
-        
-
-        self
-            .vars
+        self.vars
             .iter()
             .position(|context_name| context_name == name)
     }
@@ -135,10 +130,7 @@ impl CompileTimeEnv {
     }
 
     pub fn get_prompt_index(&self, name: &str) -> Option<usize> {
-        
-
-        self
-            .prompts
+        self.prompts
             .iter()
             .position(|context_name| context_name == name)
     }
@@ -148,10 +140,7 @@ impl CompileTimeEnv {
     }
 
     pub fn get_secret_index(&self, name: &str) -> Option<usize> {
-        
-
-        self
-            .secrets
+        self.secrets
             .iter()
             .position(|context_name| context_name == name)
     }
@@ -177,7 +166,6 @@ impl CompileTimeEnv {
             .iter()
             .position(|context_name| context_name == name);
 
-        
         index.map(|i| (self.client_context.get(i).unwrap(), i as u8))
     }
 }
